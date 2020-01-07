@@ -39,10 +39,15 @@ def get_data_from_url(url):
     tab_view_meta = tab_view['meta']
 
     assert url == tab['tab_url']
- 
-    full_chords = tab_view['wiki_tab']['content']
+
+    # TODO: chords
     indiv_chords = tab_view['applicature']
     #print(indiv_chords.keys() if indiv_chords else 'No individual chords')
+
+    # TODO: strumming
+    # print(tab_view['encode_strummings'])
+    # print(tab_view['strummings'])
+    # print()
 
     return {
         'song_name': tab['song_name'],
@@ -58,6 +63,7 @@ def get_data_from_url(url):
         'tonality': tab_view_meta.get('tonality', None),
         'difficulty': tab_view_meta.get('difficulty', None),
         'tuning': tab_view_meta.get('tuning', dict()).get('name', None),
+        'tab_content': tab_view['wiki_tab']['content'],
     }
 
 
@@ -121,8 +127,15 @@ with open(htmlfile, 'w+') as book:
                 book.write("""%s: %s<br />
 """ % (opt_name, val))
         book.write("""<p class="noindent">
-raw tab
-</p>""")
+%s
+</p>""" % t['tab_content']
+            .replace(' ', '&nbsp;')
+            .replace('\r\n', '<br/>\r\n')
+            .replace('[tab]', '')
+            .replace('[/tab]', '')
+            .replace('[ch]', '')
+            .replace('[/ch]', '')
+        )
         book.write(pagebreak)
     # footer
     book.write(footer)
