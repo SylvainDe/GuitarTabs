@@ -23,62 +23,41 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/neil-young/heart-of-gold-chords-56555",
     "https://tabs.ultimate-guitar.com/tab/joan-baez/diamonds-and-rust-chords-1044414",
 ]
- 
-def get_data_from_url(url):
-    #print(url)
-    soup = urlCache.get_soup(url)
-    title = soup.find("meta", property="og:title")["content"]
-    #print(title)
-    desc = soup.find("meta", property="og:description")["content"]
-    #print(desc)
-    json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
-    page_data = json_content['store']['page']['data']
-    #with open('debug.json', 'w+') as f:
-    #    json.dump(page_data, f, indent=4, sort_keys=True)
 
-    #print(url)
+def get_data_from_url(url):
     soup = urlCache.get_soup(url)
-    title = soup.find("meta", property="og:title")["content"]
-    #print(title)
-    desc = soup.find("meta", property="og:description")["content"]
-    #print(desc)
+    # title = soup.find("meta", property="og:title")["content"]
+    # desc = soup.find("meta", property="og:description")["content"]
+
     json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
     page_data = json_content['store']['page']['data']
     with open('debug.json', 'w+') as f:
         json.dump(page_data, f, indent=4, sort_keys=True)
-    # print(json.dumps(page_data, indent=4, sort_keys=True))
 
     tab = page_data['tab']
-    type_name = tab['type_name']
-    #print(type_name)
-    author = tab['username']
-    #print(author)
-    song_name = tab['song_name']
-    #print(song_name)
-    artist_name = tab['artist_name']
-    artist_url = tab['artist_url']
-    #print(artist_name, artist_url)
-    tab_url = tab['tab_url']
-    assert tab_url == url
-    version = tab['version']
-    #print(version)
-    rating = tab['rating']
-    votes = tab['votes']
-    #print(rating, votes)
-
     tab_view = page_data['tab_view']
+    tab_view_meta = tab_view['meta']
+
+    assert url == tab['tab_url']
+ 
     full_chords = tab_view['wiki_tab']['content']
-    #print(len(full_chords))
     indiv_chords = tab_view['applicature']
     #print(indiv_chords.keys() if indiv_chords else 'No individual chords')
 
-    tab_view_meta = tab_view['meta']
-    capo = tab_view_meta.get('capo', None)
-    difficulty = tab_view_meta.get('difficulty', None)
-    tuning = tab_view_meta.get('tuning', dict()).get('name', None)
-    #print(capo, difficulty, tuning)
     return {
-        'song_name': song_name,
+        'song_name': tab['song_name'],
+        'artist_name': tab['artist_name'],
+        'url': url,
+        'artist_url': tab['artist_url'],
+        'type_name': tab['type_name'],
+        'version': tab['version'],
+        'author': tab['username'],
+        'rating': tab['rating'],
+        'votes': tab['votes'],
+        'capo': tab_view_meta.get('capo', None),
+        'tonality': tab_view_meta.get('tonality', None),
+        'difficulty': tab_view_meta.get('difficulty', None),
+        'tuning': tab_view_meta.get('tuning', dict()).get('name', None),
     }
 
 
@@ -112,6 +91,13 @@ start = """<a name="start" />
 tabs = [get_data_from_url(url) for url in URLS]
 tabs.sort(key=itemgetter('song_name'))  # Or any other criteria
 
+opt_fields = [
+    ('capo', 'Capo'),
+    ('tonality', 'Tonality'),
+    ('difficulty', 'Difficulty'),
+    ('tuning', 'Tuning'),
+]
+
 with open(htmlfile, 'w+') as book:
     # header
     book.write(header)
@@ -119,17 +105,25 @@ with open(htmlfile, 'w+') as book:
     # table of content
     book.write(toc_begin)
     for i, t in enumerate(tabs):
-        book.write("""<a href="#tab%d">%s</a><br />
-""" % (i, t['song_name']))
+        book.write("""<a href="#tab%d">%s - %s</a><br />
+""" % (i, t['song_name'], t['artist_name']))
+    book.write(pagebreak)
     # real content
     book.write(start)
     for i, t in enumerate(tabs):
         book.write("""<a name="tab%d" />
-<h2 class="chapter">%s</h2>
-<p class="noindent">
+<h2 class="chapter">%s - <a href="%s">%s</a></h2>
+<a href="%s">%s version %d from %s (rated %f / %d votes)</a><br />
+""" % (i, t['song_name'], t['artist_url'], t['artist_name'], t['url'], t['type_name'], t['version'], t['author'], t['rating'], t['votes']))
+        for opt_field, opt_name in opt_fields:
+            val = t[opt_field]
+            if val is not None:
+                book.write("""%s: %s<br />
+""" % (opt_name, val))
+        book.write("""<p class="noindent">
 raw tab
-</p>
-""" % (i, t['song_name']))
+</p>""")
+        book.write(pagebreak)
     # footer
     book.write(footer)
 
