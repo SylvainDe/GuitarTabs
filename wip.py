@@ -28,7 +28,33 @@ for url in [
     desc = soup.find("meta", property="og:description")["content"]
     print(desc)
     json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
-    print(json_content.keys())
-    print(json.dumps(json_content, indent=4, sort_keys=True))
-    break
+    page_data = json_content['store']['page']['data']
+    # with open('debug.json', 'w+') as f:
+    #     json.dump(page_data, f, indent=4, sort_keys=True)
+    # print(json.dumps(page_data, indent=4, sort_keys=True))
 
+    tab = page_data['tab']
+    author = tab['username']
+    print(author)
+    song_name = tab['song_name']
+    print(song_name)
+    artist_name = tab['artist_name']
+    artist_url = tab['artist_url']
+    print(artist_name, artist_url)
+    version = tab['version']
+    print(version)
+
+    tab_view = page_data['tab_view']
+    full_chords = tab_view['wiki_tab']['content']
+    print(len(full_chords))
+    indiv_chords = tab_view['applicature']
+    print(indiv_chords.keys() if indiv_chords else 'No individual chords')
+
+    tab_view_meta = tab_view['meta']
+    print(tab_view_meta.keys())
+    capo = tab_view_meta.get('capo', None)
+    difficulty = tab_view_meta.get('difficulty', None)
+    tuning = tab_view_meta.get('tuning', dict()).get('name', None)
+    print(capo, difficulty, tuning)
+
+    print()
