@@ -34,6 +34,8 @@ for url in [
     # print(json.dumps(page_data, indent=4, sort_keys=True))
 
     tab = page_data['tab']
+    type_name = tab['type_name']
+    print(type_name)
     author = tab['username']
     print(author)
     song_name = tab['song_name']
@@ -41,8 +43,13 @@ for url in [
     artist_name = tab['artist_name']
     artist_url = tab['artist_url']
     print(artist_name, artist_url)
+    tab_url = tab['tab_url']
+    assert tab_url == url
     version = tab['version']
     print(version)
+    rating = tab['rating']
+    votes = tab['votes']
+    print(rating, votes)
 
     tab_view = page_data['tab_view']
     full_chords = tab_view['wiki_tab']['content']
@@ -51,10 +58,10 @@ for url in [
     print(indiv_chords.keys() if indiv_chords else 'No individual chords')
 
     tab_view_meta = tab_view['meta']
-    print(tab_view_meta.keys())
     capo = tab_view_meta.get('capo', None)
     difficulty = tab_view_meta.get('difficulty', None)
     tuning = tab_view_meta.get('tuning', dict()).get('name', None)
     print(capo, difficulty, tuning)
 
     print()
+
