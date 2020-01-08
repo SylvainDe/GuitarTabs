@@ -1,7 +1,8 @@
 import json
 import urlfunctions
-from operator import itemgetter
+import operator
 import subprocess
+import itertools
 
 # http://www.amazon.com/kindleformat/kindlegen
 KINDLEGEN_PATH = 'Kindlegen/kindlegen'
@@ -112,7 +113,7 @@ start = """<a name="start" />
 """
 
 tabs = [get_data_from_url(url) for url in URLS]
-# tabs.sort(key=itemgetter('song_name'))  # Or any other criteria
+tabs.sort(key=itemgetter('song_name'))  # Or any other criteria
 
 all_chords = dict()
 for t in tabs:
@@ -139,9 +140,17 @@ with open(htmlfile, 'w+') as book:
     # table of content
     book.write(toc_begin)
     book.write("""<h2><a href="#tabs">Tabs</a></h2>\n""")
-    for t in tabs:
+    book.write("""<h3>By title</h3>\n""")
+    for t in sorted(tabs, key=operator.itemgetter('song_name')):
         book.write("""<a href="#tab%s">%s - %s</a><br />
 """ % (t['html_anchor'], t['song_name'], t['artist_name']))
+    book.write("""<h3>By artist</h3>\n""")
+    for artist, artist_tabs in itertools.groupby(
+        sorted(tabs, key=operator.itemgetter('artist_name')), key=operator.itemgetter('artist_name')):
+        book.write("""<h4>%s</h4>\n""" % artist)
+        for t in sorted(artist_tabs, key=operator.itemgetter('song_name')):
+            book.write("""<a href="#tab%s">%s</a><br />
+""" % (t['html_anchor'], t['song_name']))
     book.write("""<h2><a href="#chords">Chords</a></h2>\n""")
     for c in all_chords:
         book.write("""<a href="#chord%s">%s</a><br />
