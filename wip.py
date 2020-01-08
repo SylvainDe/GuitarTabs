@@ -26,6 +26,13 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-335727",
     "https://tabs.ultimate-guitar.com/tab/neil-young/heart-of-gold-chords-56555",
     "https://tabs.ultimate-guitar.com/tab/joan-baez/diamonds-and-rust-chords-1044414",
+    "https://tabs.ultimate-guitar.com/tab/jean-jacques-goldman/comme-toi-chords-69704",
+    "https://tabs.ultimate-guitar.com/tab/queen/love-of-my-life-chords-340088",
+    "https://tabs.ultimate-guitar.com/tab/the-beatles/let-it-be-chords-17427",
+    "https://tabs.ultimate-guitar.com/tab/nirvana/the-man-who-sold-the-world-chords-651988",
+    "https://tabs.ultimate-guitar.com/tab/metallica/nothing-else-matters-tabs-8519",
+    "https://tabs.ultimate-guitar.com/tab/moriarty/jimmy-chords-790948",
+    "https://tabs.ultimate-guitar.com/tab/the-beatles/here-there-and-everywhere-chords-17273",
 ]
 
 def get_data_from_url(url):
