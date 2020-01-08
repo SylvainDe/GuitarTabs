@@ -113,7 +113,7 @@ start = """<a name="start" />
 """
 
 tabs = [get_data_from_url(url) for url in URLS]
-tabs.sort(key=itemgetter('song_name'))  # Or any other criteria
+tabs.sort(key=operator.itemgetter('song_name'))  # Or any other criteria
 
 all_chords = dict()
 for t in tabs:
