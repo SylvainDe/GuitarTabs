@@ -48,21 +48,27 @@ def get_data_from_url(url):
 
     json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
     page_data = json_content['store']['page']['data']
-    with open('debug.json', 'w+') as f:
-        json.dump(page_data, f, indent=4, sort_keys=True)
-
     tab = page_data['tab']
     tab_view = page_data['tab_view']
     tab_view_meta = tab_view['meta']
-
     assert url == tab['tab_url']
 
-    # TODO: chords
+    if False:  # for debug
+        with open('debug.json', 'w+') as f:
+            json.dump(tab_view, f, indent=4, sort_keys=True)
+
     indiv_chords = tab_view['applicature']
 
     # TODO: strumming
+    # print(tab['song_name'])
     # print(tab_view['encode_strummings'])
     # print(tab_view['strummings'])
+    for s in tab_view['strummings']:
+        # print(s.keys())  # dict_keys(['part', 'denuminator', 'bpm', 'is_triplet', 'measures'])
+        # print(s['denuminator'])
+        # print(s['part'])
+        for m in s['measures']:
+            pass # print(m['measure'])
     # print()
 
     return {
