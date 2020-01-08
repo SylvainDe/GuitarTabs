@@ -1,6 +1,10 @@
 import json
 import urlfunctions
 from operator import itemgetter
+import subprocess
+
+# http://www.amazon.com/kindleformat/kindlegen
+KINDLEGEN_PATH = 'Kindlegen/kindlegen'
 
 urlCache = urlfunctions.UrlCache("cache")
 
@@ -141,3 +145,5 @@ with open(htmlfile, 'w+') as book:
     book.write(footer)
 
 print("Wrote in %s" % htmlfile)
+
+subprocess.call([KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile])
