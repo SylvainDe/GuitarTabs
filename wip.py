@@ -34,7 +34,18 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/metallica/nothing-else-matters-tabs-8519",
     "https://tabs.ultimate-guitar.com/tab/moriarty/jimmy-chords-790948",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/here-there-and-everywhere-chords-17273",
+    "https://tabs.ultimate-guitar.com/tab/muse/feeling-good-chords-815018",
 ]
+
+
+def get_top_tabs():
+    soup = urlCache.get_soup('https://www.ultimate-guitar.com/top/tabs')
+    json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
+    page_data = json_content['store']['page']['data']
+    if True:  # for debug
+        with open('debug.json', 'w+') as f:
+            json.dump(page_data, f, indent=4, sort_keys=True)
+    return [get_data_from_url(t['tab_url']) for t in page_data['tabs']]
 
 
 def string_to_html_id(s):
@@ -60,16 +71,26 @@ def get_data_from_url(url):
     indiv_chords = tab_view['applicature']
 
     # TODO: strumming
-    # print(tab['song_name'])
-    # print(tab_view['encode_strummings'])
-    # print(tab_view['strummings'])
-    for s in tab_view['strummings']:
-        # print(s.keys())  # dict_keys(['part', 'denuminator', 'bpm', 'is_triplet', 'measures'])
-        # print(s['denuminator'])
-        # print(s['part'])
-        for m in s['measures']:
-            pass # print(m['measure'])
-    # print()
+    strummings = tab_view['strummings']
+    if strummings and True:
+        strum_values = {
+            1:   '↓',
+            101: '↑',
+            202: ' ',
+            3:   '↓', # with a small >
+            103: '↑', # with a small >
+            2:   '↓', # with a small x
+            102: '↑', # with a small x
+            201: 'x',
+            203: '"', # the pause symbol
+        }
+        # print(tab['song_name'], url)
+        for s in strummings:
+            # print(s.keys())  # dict_keys(['part', 'denuminator', 'bpm', 'is_triplet', 'measures'])
+            # print(s['part'], s['bpm'], s['is_triplet'], s['denuminator'], len(s['measures']))
+            values = [m['measure'] for m in s['measures']]
+            # print('-'.join(strum_values[v] for v in values))
+        # print()
 
     return {
         'song_name': tab['song_name'],
