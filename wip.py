@@ -35,6 +35,11 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-beatles/here-there-and-everywhere-chords-17273",
 ]
 
+
+def string_to_html_id(s):
+    return "".join(c if c.isalnum() else '-' for c in s)
+
+
 def get_data_from_url(url):
     soup = urlCache.get_soup(url)
     # title = soup.find("meta", property="og:title")["content"]
@@ -74,7 +79,8 @@ def get_data_from_url(url):
         'difficulty': tab_view_meta.get('difficulty', None),
         'tuning': tab_view_meta.get('tuning', dict()).get('name', None),
         'tab_content': tab_view['wiki_tab']['content'],
-        'chords': indiv_chords if indiv_chords is not None else dict()
+        'chords': indiv_chords if indiv_chords is not None else dict(),
+        'html_anchor': str(tab['id']) + "-" + string_to_html_id(tab['song_name']),
     }
 
 
@@ -106,7 +112,7 @@ start = """<a name="start" />
 """
 
 tabs = [get_data_from_url(url) for url in URLS]
-tabs.sort(key=itemgetter('song_name'))  # Or any other criteria
+# tabs.sort(key=itemgetter('song_name'))  # Or any other criteria
 
 all_chords = dict()
 for t in tabs:
@@ -117,9 +123,7 @@ for t in tabs:
         else:
             all_chords[name] = details
 
-chord_anchors = {
-    name: "".join(c if c.isalnum() else '-' for c in name)
-    for name in all_chords}
+chord_anchors = { name: string_to_html_id(name) for name in all_chords }
 
 opt_fields = [
     ('capo', 'Capo'),
@@ -135,9 +139,9 @@ with open(htmlfile, 'w+') as book:
     # table of content
     book.write(toc_begin)
     book.write("""<h2><a href="#tabs">Tabs</a></h2>\n""")
-    for i, t in enumerate(tabs):
-        book.write("""<a href="#tab%d">%s - %s</a><br />
-""" % (i, t['song_name'], t['artist_name']))
+    for t in tabs:
+        book.write("""<a href="#tab%s">%s - %s</a><br />
+""" % (t['html_anchor'], t['song_name'], t['artist_name']))
     book.write("""<h2><a href="#chords">Chords</a></h2>\n""")
     for c in all_chords:
         book.write("""<a href="#chord%s">%s</a><br />
@@ -146,11 +150,11 @@ with open(htmlfile, 'w+') as book:
     book.write(start)
     # tab content
     book.write("""<a name="tabs" />""")
-    for i, t in enumerate(tabs):
-        book.write("""<a name="tab%d" />
+    for t in tabs:
+        book.write("""<a name="tab%s" />
 <h2 class="chapter">%s - <a href="%s">%s</a></h2>
 <a href="%s">%s version %d from %s (rated %f / %d votes)</a><br />
-""" % (i, t['song_name'], t['artist_url'], t['artist_name'], t['url'], t['type_name'], t['version'], t['author'], t['rating'], t['votes']))
+""" % (t['html_anchor'], t['song_name'], t['artist_url'], t['artist_name'], t['url'], t['type_name'], t['version'], t['author'], t['rating'], t['votes']))
         for opt_field, opt_name in opt_fields:
             val = t[opt_field]
             if val is not None:
