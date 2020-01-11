@@ -104,7 +104,7 @@ def get_data_from_url(url):
         'votes': tab['votes'],
         'capo': tab_view_meta.get('capo', None),
         'tonality': tab_view_meta.get('tonality', None),
-        'difficulty': tab_view_meta.get('difficulty', None),
+        'difficulty': tab_view_meta.get('difficulty', 'Unknown'),
         'tuning': tab_view_meta.get('tuning', dict()).get('name', None),
         'tab_content': tab_view['wiki_tab']['content'],
         'chords': indiv_chords if indiv_chords is not None else dict(),
@@ -131,9 +131,6 @@ footer = """
 </html>
 """
 
-toc_begin = """<a id="TOC" />
-<h2>Table of contents</h2>
-"""
 pagebreak = """<mbp:pagebreak />
 """
 start = """<a name="start" />
@@ -160,26 +157,50 @@ opt_fields = [
     ('tuning', 'Tuning'),
 ]
 
+def my_groupby(iterable, key=None):
+    return itertools.groupby(sorted(iterable, key=key), key=key)
+
 with open(htmlfile, 'w+') as book:
     # header
     book.write(header)
     book.write(pagebreak)
     # table of content
-    book.write(toc_begin)
-    book.write("""<h2><a href="#tabs">Tabs</a></h2>\n""")
-    book.write("""<h3>By title</h3>\n""")
+    book.write("""<a id="TOC" />
+<h2>Table of contents</h2>
+<h3><a href="#tabs">Meta table of content</a></h3>
+<h4><a href="#toc_tabs">Tabs</a></h4>
+<h5><a href="#toc_tabs_by_title">By title</a></h5>
+<h5><a href="#toc_tabs_by_artist">By artist</a></h5>
+<h5><a href="#toc_tabs_by_diff">By difficulty</a></h5>
+<h5><a href="#toc_tabs_by_type">By type</a></h5>
+<h4><a href="#toc_chords">Chords</a></h4>
+<h3><a name="toc_tabs" />
+<a href="#tabs">Tabs</a></h3>
+""")
+    book.write("""<h4><a name="toc_tabs_by_title" />By title</h4>\n""")
     for t in sorted(tabs, key=operator.itemgetter('song_name')):
         book.write("""<a href="#tab%s">%s - %s</a><br />
 """ % (t['html_anchor'], t['song_name'], t['artist_name']))
-    book.write("""<h3>By artist</h3>\n""")
-    for artist, artist_tabs in itertools.groupby(
-        sorted(tabs, key=operator.itemgetter('artist_name')), key=operator.itemgetter('artist_name')):
-        book.write("""<h4>%s</h4>\n""" % artist)
-        for t in sorted(artist_tabs, key=operator.itemgetter('song_name')):
+    book.write("""<h4><a name="toc_tabs_by_artist" />By artist</h4>\n""")
+    for artist, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('artist_name')):
+        book.write("""<h5>%s</h5>\n""" % artist)
+        for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
             book.write("""<a href="#tab%s">%s</a><br />
 """ % (t['html_anchor'], t['song_name']))
-    book.write("""<h2><a href="#chords">Chords</a></h2>\n""")
-    for c in all_chords:
+    book.write("""<h4><a name="toc_tabs_by_diff" />By difficulty</h4>\n""")
+    for diff, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('difficulty')):
+        book.write("""<h5>%s</h5>\n""" % diff)
+        for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
+            book.write("""<a href="#tab%s">%s</a><br />
+""" % (t['html_anchor'], t['song_name']))
+    book.write("""<h4><a name="toc_tabs_by_type" />By type</h4>\n""")
+    for type_name, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('type_name')):
+        book.write("""<h5>%s</h5>\n""" % type_name)
+        for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
+            book.write("""<a href="#tab%s">%s</a><br />
+""" % (t['html_anchor'], t['song_name']))
+    book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
+    for c in sorted(all_chords):
         book.write("""<a href="#chord%s">%s</a><br />
 """ % (chord_anchors[c], c))
     book.write(pagebreak)
@@ -196,7 +217,7 @@ with open(htmlfile, 'w+') as book:
             if val is not None:
                 book.write("""%s: %s<br />
 """ % (opt_name, val))
-        for c, val in t['chords'].items():
+        for c, val in sorted(t['chords'].items()):
             book.write("""%s<a href="#chord%s">%s</a>: %s<br />
 """ % ("&nbsp;" * (10 - len(c)), chord_anchors[c], c, val[0]['id']))
         book.write(pagebreak)
@@ -213,7 +234,8 @@ with open(htmlfile, 'w+') as book:
         book.write(pagebreak)
     # chord content
     book.write("""<a name="chords" />""")
-    for c, values in all_chords.items():
+    for c in sorted(all_chords):
+        values = all_chords[c]
         book.write("""<a name="chord%s" />
 <h2>%s</h2>""" % (chord_anchors[c], c))
         for i, v in enumerate(values):
