@@ -56,79 +56,104 @@ URLS = [
 ]
 
 
-def get_top_tabs():
-    soup = urlCache.get_soup('https://www.ultimate-guitar.com/top/tabs')
-    json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
-    page_data = json_content['store']['page']['data']
-    if True:  # for debug
-        with open('debug.json', 'w+') as f:
-            json.dump(page_data, f, indent=4, sort_keys=True)
-    return [get_data_from_url(t['tab_url']) for t in page_data['tabs']]
-
 
 def string_to_html_id(s):
+    # Pretty buggy - in particular for chords
     return "".join(c if c.isalnum() else '-' for c in s)
 
 
-def get_data_from_url(url):
-    soup = urlCache.get_soup(url)
-    # title = soup.find("meta", property="og:title")["content"]
-    # desc = soup.find("meta", property="og:description")["content"]
+class GuitarTab(object):
+    def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, capo, tonality, difficulty, tuning, tab_content, chords, html_anchor):
+        self.song_name = song_name
+        self.artist_name = artist_name
+        self.url = url
+        self.artist_url = artist_url
+        self.type_name = type_name
+        self.version = version
+        self.author = author
+        self.rating = rating
+        self.votes = votes
+        self.capo = capo
+        self.tonality = tonality
+        self.difficulty = difficulty
+        self.tuning = tuning
+        self.tab_content = tab_content
+        self.chords = chords
+        self.html_anchor = html_anchor
 
-    json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
-    page_data = json_content['store']['page']['data']
-    tab = page_data['tab']
-    tab_view = page_data['tab_view']
-    tab_view_meta = tab_view['meta']
-    assert url == tab['tab_url']
+    @classmethod
+    def from_url(cls, url):
+        print(url)
+        soup = urlCache.get_soup(url)
 
-    if False:  # for debug
-        with open('debug.json', 'w+') as f:
-            json.dump(tab_view, f, indent=4, sort_keys=True)
+        json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
+        page_data = json_content['store']['page']['data']
+        tab = page_data['tab']
+        tab_view = page_data['tab_view']
+        tab_view_meta = tab_view['meta']
+        assert url == tab['tab_url']
 
-    indiv_chords = tab_view['applicature']
+        if False:  # for debug
+            with open('debug.json', 'w+') as f:
+                json.dump(tab_view, f, indent=4, sort_keys=True)
 
-    # TODO: strumming
-    strummings = tab_view['strummings']
-    if strummings and True:
-        strum_values = {
-            1:   '↓',
-            101: '↑',
-            202: ' ',
-            3:   '↓', # with a small >
-            103: '↑', # with a small >
-            2:   '↓', # with a small x
-            102: '↑', # with a small x
-            201: 'x',
-            203: '"', # the pause symbol
-        }
-        # print(tab['song_name'], url)
-        for s in strummings:
-            # print(s.keys())  # dict_keys(['part', 'denuminator', 'bpm', 'is_triplet', 'measures'])
-            # print(s['part'], s['bpm'], s['is_triplet'], s['denuminator'], len(s['measures']))
-            values = [m['measure'] for m in s['measures']]
-            # print('-'.join(strum_values[v] for v in values))
-        # print()
+        indiv_chords = tab_view['applicature']
 
-    return {
-        'song_name': tab['song_name'],
-        'artist_name': tab['artist_name'],
-        'url': url,
-        'artist_url': tab['artist_url'],
-        'type_name': tab['type_name'],
-        'version': tab['version'],
-        'author': tab['username'],
-        'rating': tab['rating'],
-        'votes': tab['votes'],
-        'capo': tab_view_meta.get('capo', None),
-        'tonality': tab_view_meta.get('tonality', None),
-        'difficulty': tab_view_meta.get('difficulty', 'Unknown'),
-        'tuning': tab_view_meta.get('tuning', dict()).get('name', None),
-        'tab_content': tab_view['wiki_tab']['content'],
-        'chords': indiv_chords if indiv_chords is not None else dict(),
-        'html_anchor': str(tab['id']) + "-" + string_to_html_id(tab['song_name']),
-    }
+        # TODO: strumming
+        strummings = tab_view['strummings']
+        if strummings and True:
+            strum_values = {
+                1:   '↓',
+                101: '↑',
+                202: ' ',
+                3:   '↓', # with a small >
+                103: '↑', # with a small >
+                2:   '↓', # with a small x
+                102: '↑', # with a small x
+                201: 'x',
+                203: '"', # the pause symbol
+            }
+            # print(tab['song_name'], url)
+            for s in strummings:
+                # print(s.keys())  # dict_keys(['part', 'denuminator', 'bpm', 'is_triplet', 'measures'])
+                # print(s['part'], s['bpm'], s['is_triplet'], s['denuminator'], len(s['measures']))
+                values = [m['measure'] for m in s['measures']]
+                # print('-'.join(strum_values[v] for v in values))
+            # print()
 
+        return cls(
+            song_name = tab['song_name'],
+            artist_name = tab['artist_name'],
+            url = url,
+            artist_url = tab['artist_url'],
+            type_name = tab['type_name'],
+            version = tab['version'],
+            author = tab['username'],
+            rating = tab['rating'],
+            votes = tab['votes'],
+            capo = tab_view_meta.get('capo', None),
+            tonality = tab_view_meta.get('tonality', None),
+            difficulty = tab_view_meta.get('difficulty', 'Unknown'),
+            tuning = tab_view_meta.get('tuning', dict()).get('name', None),
+            tab_content = tab_view['wiki_tab']['content'],
+            chords = indiv_chords if indiv_chords is not None else dict(),
+            html_anchor = str(tab['id']) + "-" + string_to_html_id(tab['song_name']),
+        )
+
+    @classmethod
+    def from_list_url(cls, list_url='https://www.ultimate-guitar.com/top/tabs'):
+        soup = urlCache.get_soup(list_url)
+        json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
+        page_data = json_content['store']['page']['data']
+        if True:  # for debug
+            with open('debug.json', 'w+') as f:
+                json.dump(page_data, f, indent=4, sort_keys=True)
+        return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
+
+
+    def __getitem__(self, k):
+        # Temporary - to make transition easier
+        return getattr(self, k)
 
 
 htmlfile = "wip_book.html"
@@ -154,7 +179,7 @@ pagebreak = """<mbp:pagebreak />
 start = """<a name="start" />
 """
 
-tabs = [get_data_from_url(url) for url in URLS]
+tabs = [GuitarTab.from_url(url) for url in URLS]
 tabs.sort(key=operator.itemgetter('song_name'))  # Or any other criteria
 
 all_chords = dict()
@@ -197,26 +222,26 @@ with open(htmlfile, 'w+') as book:
 """)
     book.write("""<h4><a name="toc_tabs_by_title" />By title</h4>\n""")
     for t in sorted(tabs, key=operator.itemgetter('song_name')):
-        book.write("""<a href="#tab%s">%s - %s</a><br />
-""" % (t['html_anchor'], t['song_name'], t['artist_name']))
+        book.write("""<a href="#tab%s">%s - %s (%s)</a><br />
+""" % (t['html_anchor'], t['song_name'], t['artist_name'], t['type_name']))
     book.write("""<h4><a name="toc_tabs_by_artist" />By artist</h4>\n""")
     for artist, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('artist_name')):
         book.write("""<h5>%s</h5>\n""" % artist)
         for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
-            book.write("""<a href="#tab%s">%s</a><br />
-""" % (t['html_anchor'], t['song_name']))
+            book.write("""<a href="#tab%s">%s (%s)</a><br />
+""" % (t['html_anchor'], t['song_name'], t['type_name']))
     book.write("""<h4><a name="toc_tabs_by_diff" />By difficulty</h4>\n""")
     for diff, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('difficulty')):
         book.write("""<h5>%s</h5>\n""" % diff)
         for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
-            book.write("""<a href="#tab%s">%s</a><br />
-""" % (t['html_anchor'], t['song_name']))
+            book.write("""<a href="#tab%s">%s - %s (%s)</a><br />
+""" % (t['html_anchor'], t['song_name'], t['artist_name'], t['type_name']))
     book.write("""<h4><a name="toc_tabs_by_type" />By type</h4>\n""")
     for type_name, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('type_name')):
         book.write("""<h5>%s</h5>\n""" % type_name)
         for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
-            book.write("""<a href="#tab%s">%s</a><br />
-""" % (t['html_anchor'], t['song_name']))
+            book.write("""<a href="#tab%s">%s - %s</a><br />
+""" % (t['html_anchor'], t['song_name'], t['artist_name']))
     book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
     for c in sorted(all_chords):
         book.write("""<a href="#chord%s">%s</a><br />
@@ -227,9 +252,9 @@ with open(htmlfile, 'w+') as book:
     book.write("""<a name="tabs" />""")
     for t in tabs:
         book.write("""<a name="tab%s" />
-<h2 class="chapter">%s - <a href="%s">%s</a></h2>
+<h2 class="chapter">%s - <a href="%s">%s</a> (%s)</h2>
 <a href="%s">%s version %d from %s (rated %f / %d votes)</a><br />
-""" % (t['html_anchor'], t['song_name'], t['artist_url'], t['artist_name'], t['url'], t['type_name'], t['version'], t['author'], t['rating'], t['votes']))
+""" % (t['html_anchor'], t['song_name'], t['artist_url'], t['artist_name'], t['type_name'], t['url'], t['type_name'], t['version'], t['author'], t['rating'], t['votes']))
         for opt_field, opt_name in opt_fields:
             val = t[opt_field]
             if val is not None:
