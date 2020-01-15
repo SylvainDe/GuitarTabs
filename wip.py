@@ -25,6 +25,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/israel-kamakawiwoole/over-the-rainbow-chords-2135261",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/yesterday-chords-887610",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-335727",
+    "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-1680129",
     "https://tabs.ultimate-guitar.com/tab/neil-young/heart-of-gold-chords-56555",
     "https://tabs.ultimate-guitar.com/tab/joan-baez/diamonds-and-rust-chords-1044414",
     "https://tabs.ultimate-guitar.com/tab/jean-jacques-goldman/comme-toi-chords-69704",
