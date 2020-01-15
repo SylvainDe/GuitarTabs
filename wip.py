@@ -156,6 +156,21 @@ class GuitarTab(object):
         return getattr(self, k)
 
 
+    def get_link(self, display_artist=True, display_type=True):
+        artist_name = " - %s" % self.artist_name if display_artist else ""
+        type_name = " (%s)" % self.type_name if display_type else ""
+        return """<a href="#tab%s">%s%s%s</a><br />
+""" % (self.html_anchor, self.song_name, artist_name, type_name)
+
+
+    def get_header(self):
+        return """<a name="tab%s" />
+<h2 class="chapter">%s - <a href="%s">%s</a> (%s)</h2>
+<a href="%s">%s version %d from %s (rated %f / %d votes)</a><br />
+""" % (self.html_anchor, self.song_name, self.artist_url, self.artist_name, self.type_name, self.url, self.type_name, self.version, self.author, self.rating, self.votes)
+
+
+
 htmlfile = "wip_book.html"
 header = """
 <!DOCTYPE html>
@@ -174,18 +189,15 @@ footer = """
 </html>
 """
 
-pagebreak = """<mbp:pagebreak />
-"""
-start = """<a name="start" />
-"""
+pagebreak = "<mbp:pagebreak />\n"
+start = "<a name=\"start\" />\n"
 
 tabs = [GuitarTab.from_url(url) for url in URLS]
 tabs.sort(key=operator.itemgetter('song_name'))  # Or any other criteria
 
 all_chords = dict()
 for t in tabs:
-    chords = t['chords']
-    for name, details in chords.items():
+    for name, details in t.chords.items():
         if name in all_chords:
             assert details == all_chords[name]
         else:
@@ -222,26 +234,22 @@ with open(htmlfile, 'w+') as book:
 """)
     book.write("""<h4><a name="toc_tabs_by_title" />By title</h4>\n""")
     for t in sorted(tabs, key=operator.itemgetter('song_name')):
-        book.write("""<a href="#tab%s">%s - %s (%s)</a><br />
-""" % (t['html_anchor'], t['song_name'], t['artist_name'], t['type_name']))
+        book.write(t.get_link())
     book.write("""<h4><a name="toc_tabs_by_artist" />By artist</h4>\n""")
     for artist, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('artist_name')):
         book.write("""<h5>%s</h5>\n""" % artist)
         for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
-            book.write("""<a href="#tab%s">%s (%s)</a><br />
-""" % (t['html_anchor'], t['song_name'], t['type_name']))
+            book.write(t.get_link(display_artist=False))
     book.write("""<h4><a name="toc_tabs_by_diff" />By difficulty</h4>\n""")
     for diff, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('difficulty')):
         book.write("""<h5>%s</h5>\n""" % diff)
         for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
-            book.write("""<a href="#tab%s">%s - %s (%s)</a><br />
-""" % (t['html_anchor'], t['song_name'], t['artist_name'], t['type_name']))
+            book.write(t.get_link())
     book.write("""<h4><a name="toc_tabs_by_type" />By type</h4>\n""")
     for type_name, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('type_name')):
         book.write("""<h5>%s</h5>\n""" % type_name)
         for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
-            book.write("""<a href="#tab%s">%s - %s</a><br />
-""" % (t['html_anchor'], t['song_name'], t['artist_name']))
+            book.write(t.get_link(display_type=False))
     book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
     for c in sorted(all_chords):
         book.write("""<a href="#chord%s">%s</a><br />
@@ -251,22 +259,19 @@ with open(htmlfile, 'w+') as book:
     # tab content
     book.write("""<a name="tabs" />""")
     for t in tabs:
-        book.write("""<a name="tab%s" />
-<h2 class="chapter">%s - <a href="%s">%s</a> (%s)</h2>
-<a href="%s">%s version %d from %s (rated %f / %d votes)</a><br />
-""" % (t['html_anchor'], t['song_name'], t['artist_url'], t['artist_name'], t['type_name'], t['url'], t['type_name'], t['version'], t['author'], t['rating'], t['votes']))
+        book.write(t.get_header())
         for opt_field, opt_name in opt_fields:
             val = t[opt_field]
             if val is not None:
                 book.write("""%s: %s<br />
 """ % (opt_name, val))
-        for c, val in sorted(t['chords'].items()):
+        for c, val in sorted(t.chords.items()):
             book.write("""%s<a href="#chord%s">%s</a>: %s<br />
 """ % ("&nbsp;" * (10 - len(c)), chord_anchors[c], c, val[0]['id']))
         book.write(pagebreak)
         book.write("""<p class="noindent">
 %s
-</p>""" % t['tab_content']
+</p>""" % t.tab_content
             .replace(' ', '&nbsp;')
             .replace('\r\n', '<br/>\r\n')
             .replace('[tab]', '')
