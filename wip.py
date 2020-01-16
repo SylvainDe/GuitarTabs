@@ -64,7 +64,7 @@ def string_to_html_id(s):
 
 
 class GuitarTab(object):
-    def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, capo, tonality, difficulty, tuning, tab_content, chords, html_anchor):
+    def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, html_anchor):
         self.song_name = song_name
         self.artist_name = artist_name
         self.url = url
@@ -74,6 +74,7 @@ class GuitarTab(object):
         self.author = author
         self.rating = rating
         self.votes = votes
+        self.is_acoustic = is_acoustic
         self.capo = capo
         self.tonality = tonality
         self.difficulty = difficulty
@@ -132,6 +133,7 @@ class GuitarTab(object):
             author = tab['username'],
             rating = tab['rating'],
             votes = tab['votes'],
+            is_acoustic = tab['recording']['is_acoustic'],
             capo = tab_view_meta.get('capo', None),
             tonality = tab_view_meta.get('tonality', None),
             difficulty = tab_view_meta.get('difficulty', 'Unknown'),
@@ -158,17 +160,18 @@ class GuitarTab(object):
 
 
     def get_link(self, display_artist=True, display_type=True):
+        acoustic = "Acoustic " if self.is_acoustic else ""
         artist_name = " - %s" % self.artist_name if display_artist else ""
-        type_name = " (%s)" % self.type_name if display_type else ""
+        type_name = " (%s%s)" % (acoustic, self.type_name) if display_type else ""
         return """<a href="#tab%s">%s%s%s</a><br />
 """ % (self.html_anchor, self.song_name, artist_name, type_name)
 
 
     def get_header(self):
         return """<a name="tab%s" />
-<h2 class="chapter">%s - <a href="%s">%s</a> (%s)</h2>
+<h2 class="chapter">%s - <a href="%s">%s</a> (%s%s)</h2>
 <a href="%s">%s version %d from %s (rated %f / %d votes)</a><br />
-""" % (self.html_anchor, self.song_name, self.artist_url, self.artist_name, self.type_name, self.url, self.type_name, self.version, self.author, self.rating, self.votes)
+""" % (self.html_anchor, self.song_name, self.artist_url, self.artist_name, "Acoustic " if self.is_acoustic else "", self.type_name, self.url, self.type_name, self.version, self.author, self.rating, self.votes)
 
 
 
