@@ -100,6 +100,10 @@ class Chords(object):
             s += "%d: %s<br/>\n" % (i, v['id'])
         return s
 
+    def get_short_html_content(self):
+         return """%s<a href="#chord%s">%s</a>: %s<br />
+""" % ("&nbsp;" * (10 - len(self.name)), self.html_anchor, self.name, self.details[0]['id'])
+
 
 class GuitarTab(object):
     def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, html_anchor):
@@ -210,6 +214,35 @@ class GuitarTab(object):
 <a href="%s">%s version %d from %s (rated %f / %d votes)</a><br />
 """ % (self.html_anchor, self.song_name, self.artist_url, self.artist_name, "Acoustic " if self.is_acoustic else "", self.type_name, self.url, self.type_name, self.version, self.author, self.rating, self.votes)
 
+    def get_optional_field_content(self):
+        opt_fields = [
+            ('capo', 'Capo'),
+            ('tonality', 'Tonality'),
+            ('difficulty', 'Difficulty'),
+            ('tuning', 'Tuning'),
+        ]
+
+        s = ""
+        for opt_field, opt_name in opt_fields:
+            val = self[opt_field]
+            if val is not None:
+                s += """%s: %s<br />
+""" % (opt_name, val)
+        return s
+
+    def get_chord_content(self):
+        return "".join(c.get_short_html_content() for c in self.chords)
+
+    def get_tab_content(self):
+        return ("""<p class="noindent">
+%s
+</p>""" % self.tab_content
+            .replace(' ', '&nbsp;')
+            .replace('\r\n', '<br/>\r\n')
+            .replace('[tab]', '')
+            .replace('[/tab]', '')
+            .replace('[ch]', '')
+            .replace('[/ch]', ''))
 
 
 htmlfile = "wip_book.html"
@@ -235,13 +268,6 @@ start = "<a name=\"start\" />\n"
 
 tabs = [GuitarTab.from_url(url) for url in URLS]
 tabs.sort(key=operator.itemgetter('song_name'))  # Or any other criteria
-
-opt_fields = [
-    ('capo', 'Capo'),
-    ('tonality', 'Tonality'),
-    ('difficulty', 'Difficulty'),
-    ('tuning', 'Tuning'),
-]
 
 def my_groupby(iterable, key=None):
     return itertools.groupby(sorted(iterable, key=key), key=key)
@@ -290,25 +316,10 @@ with open(htmlfile, 'w+') as book:
     book.write("""<a name="tabs" />""")
     for t in tabs:
         book.write(t.get_header())
-        for opt_field, opt_name in opt_fields:
-            val = t[opt_field]
-            if val is not None:
-                book.write("""%s: %s<br />
-""" % (opt_name, val))
-        for c in t.chords:
-            book.write("""%s<a href="#chord%s">%s</a>: %s<br />
-""" % ("&nbsp;" * (10 - len(c.name)), c.html_anchor, c.name, c.details[0]['id']))
+        book.write(t.get_optional_field_content())
+        book.write(t.get_chord_content())
         book.write(pagebreak)
-        book.write("""<p class="noindent">
-%s
-</p>""" % t.tab_content
-            .replace(' ', '&nbsp;')
-            .replace('\r\n', '<br/>\r\n')
-            .replace('[tab]', '')
-            .replace('[/tab]', '')
-            .replace('[ch]', '')
-            .replace('[/ch]', '')
-        )
+        book.write(t.get_tab_content())
         book.write(pagebreak)
     # chord content
     book.write("""<a name="chords" />""")
