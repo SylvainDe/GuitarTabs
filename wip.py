@@ -63,6 +63,44 @@ def string_to_html_id(s):
     return "".join(c if c.isalnum() else '-' for c in s)
 
 
+class Chords(object):
+
+    name_to_obj = dict()
+
+    def __init__(self, name, details):
+        self.name = name
+        self.details = details
+        self.html_anchor = string_to_html_id(self.name)
+        self.register()
+
+    def register(self):
+        if self.name in self.name_to_obj:
+            assert self.details == self.name_to_obj[self.name].details
+        else:
+            self.name_to_obj[self.name] = self
+
+    @classmethod
+    def from_raw_data(cls, data):
+        if data is None:
+            data = dict()
+        return sorted((cls(name, details) for name, details in data.items()), key=operator.attrgetter('name'))
+
+    @classmethod
+    def get_all(cls):
+        return sorted(cls.name_to_obj.values(), key=operator.attrgetter('name'))
+
+    def get_link(self):
+        return """<a href="#chord%s">%s</a><br />
+""" % (self.html_anchor, self.name)
+
+    def get_html_content(self):
+        s = """<a name="chord%s" />
+<h2>%s</h2>""" % (c.html_anchor, c.name)
+        for i, v in enumerate(c.details):
+            s += "%d: %s<br/>\n" % (i, v['id'])
+        return s
+
+
 class GuitarTab(object):
     def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, html_anchor):
         self.song_name = song_name
@@ -99,7 +137,6 @@ class GuitarTab(object):
             with open('debug.json', 'w+') as f:
                 json.dump(tab_view, f, indent=4, sort_keys=True)
 
-        indiv_chords = tab_view['applicature']
 
         # TODO: strumming
         strummings = tab_view['strummings']
@@ -139,7 +176,7 @@ class GuitarTab(object):
             difficulty = tab_view_meta.get('difficulty', 'Unknown'),
             tuning = tab_view_meta.get('tuning', dict()).get('name', None),
             tab_content = tab_view['wiki_tab']['content'],
-            chords = indiv_chords if indiv_chords is not None else dict(),
+            chords = Chords.from_raw_data(tab_view['applicature']),
             html_anchor = str(tab['id']) + "-" + string_to_html_id(tab['song_name']),
         )
 
@@ -199,16 +236,6 @@ start = "<a name=\"start\" />\n"
 tabs = [GuitarTab.from_url(url) for url in URLS]
 tabs.sort(key=operator.itemgetter('song_name'))  # Or any other criteria
 
-all_chords = dict()
-for t in tabs:
-    for name, details in t.chords.items():
-        if name in all_chords:
-            assert details == all_chords[name]
-        else:
-            all_chords[name] = details
-
-chord_anchors = { name: string_to_html_id(name) for name in all_chords }
-
 opt_fields = [
     ('capo', 'Capo'),
     ('tonality', 'Tonality'),
@@ -255,9 +282,8 @@ with open(htmlfile, 'w+') as book:
         for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
             book.write(t.get_link(display_type=False))
     book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
-    for c in sorted(all_chords):
-        book.write("""<a href="#chord%s">%s</a><br />
-""" % (chord_anchors[c], c))
+    for c in Chords.get_all():
+        book.write(c.get_link())
     book.write(pagebreak)
     book.write(start)
     # tab content
@@ -269,9 +295,9 @@ with open(htmlfile, 'w+') as book:
             if val is not None:
                 book.write("""%s: %s<br />
 """ % (opt_name, val))
-        for c, val in sorted(t.chords.items()):
+        for c in t.chords:
             book.write("""%s<a href="#chord%s">%s</a>: %s<br />
-""" % ("&nbsp;" * (10 - len(c)), chord_anchors[c], c, val[0]['id']))
+""" % ("&nbsp;" * (10 - len(c.name)), c.html_anchor, c.name, c.details[0]['id']))
         book.write(pagebreak)
         book.write("""<p class="noindent">
 %s
@@ -286,12 +312,8 @@ with open(htmlfile, 'w+') as book:
         book.write(pagebreak)
     # chord content
     book.write("""<a name="chords" />""")
-    for c in sorted(all_chords):
-        values = all_chords[c]
-        book.write("""<a name="chord%s" />
-<h2>%s</h2>""" % (chord_anchors[c], c))
-        for i, v in enumerate(values):
-            book.write("%d: %s<br/>\n" % (i, v['id']))
+    for c in Chords.get_all():
+        book.write(c.get_html_content())
         book.write(pagebreak)
 
     # footer
