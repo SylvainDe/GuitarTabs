@@ -90,19 +90,15 @@ class Chords(object):
         return sorted(cls.name_to_obj.values(), key=operator.attrgetter('name'))
 
     def get_link(self):
-        return """<a href="#chord%s">%s</a><br />
-""" % (self.html_anchor, self.name)
+        return "<a href=\"#chord%s\">%s</a><br />\n" % (self.html_anchor, self.name)
 
     def get_html_content(self):
-        s = """<a name="chord%s" />
-<h2>%s</h2>""" % (c.html_anchor, c.name)
-        for i, v in enumerate(c.details):
-            s += "%d: %s<br/>\n" % (i, v['id'])
-        return s
+        h = "<a name=\"chord%s\" />\n<h2>%s</h2>" % (self.html_anchor, self.name)
+        return h + "".join("%d: %s<br/>\n" % (i, v['id']) for i, v in enumerate(self.details))
 
     def get_short_html_content(self):
-         return """%s<a href="#chord%s">%s</a>: %s<br />
-""" % ("&nbsp;" * (10 - len(self.name)), self.html_anchor, self.name, self.details[0]['id'])
+        padding = "&nbsp;" * (10 - len(self.name))
+        return "%s<a href=\"#chord%s\">%s</a>: %s<br />\n" % (padding, self.html_anchor, self.name, self.details[0]['id'])
 
 
 class GuitarTab(object):
@@ -194,19 +190,15 @@ class GuitarTab(object):
                 json.dump(page_data, f, indent=4, sort_keys=True)
         return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
 
-
     def __getitem__(self, k):
         # Temporary - to make transition easier
         return getattr(self, k)
-
 
     def get_link(self, display_artist=True, display_type=True):
         acoustic = "Acoustic " if self.is_acoustic else ""
         artist_name = " - %s" % self.artist_name if display_artist else ""
         type_name = " (%s%s)" % (acoustic, self.type_name) if display_type else ""
-        return """<a href="#tab%s">%s%s%s</a><br />
-""" % (self.html_anchor, self.song_name, artist_name, type_name)
-
+        return "<a href=\"#tab%s\">%s%s%s</a><br />\n" % (self.html_anchor, self.song_name, artist_name, type_name)
 
     def get_header(self):
         return """<a name="tab%s" />
@@ -221,22 +213,18 @@ class GuitarTab(object):
             ('difficulty', 'Difficulty'),
             ('tuning', 'Tuning'),
         ]
-
         s = ""
         for opt_field, opt_name in opt_fields:
             val = self[opt_field]
             if val is not None:
-                s += """%s: %s<br />
-""" % (opt_name, val)
+                s += "%s: %s<br />\n" % (opt_name, val)
         return s
 
     def get_chord_content(self):
         return "".join(c.get_short_html_content() for c in self.chords)
 
     def get_tab_content(self):
-        return ("""<p class="noindent">
-%s
-</p>""" % self.tab_content
+        return ("<p class=\"noindent\">\n%s\n</p>" % self.tab_content
             .replace(' ', '&nbsp;')
             .replace('\r\n', '<br/>\r\n')
             .replace('[tab]', '')
