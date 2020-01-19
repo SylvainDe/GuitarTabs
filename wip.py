@@ -66,6 +66,7 @@ def string_to_html_id(s):
 class Chords(object):
 
     name_to_obj = dict()
+    by_name = operator.attrgetter('name')
 
     def __init__(self, name, details):
         self.name = name
@@ -83,11 +84,11 @@ class Chords(object):
     def from_raw_data(cls, data):
         if data is None:
             data = dict()
-        return sorted((cls(name, details) for name, details in data.items()), key=operator.attrgetter('name'))
+        return sorted((cls(name, details) for name, details in data.items()), key=cls.by_name)
 
     @classmethod
     def get_all(cls):
-        return sorted(cls.name_to_obj.values(), key=operator.attrgetter('name'))
+        return sorted(cls.name_to_obj.values(), key=cls.by_name)
 
     def get_link(self):
         return "<a href=\"#chord%s\">%s</a><br />\n" % (self.html_anchor, self.name)
@@ -102,6 +103,12 @@ class Chords(object):
 
 
 class GuitarTab(object):
+
+    by_name = operator.attrgetter('song_name')
+    by_artist = operator.attrgetter('artist_name')
+    by_difficulty = operator.attrgetter('difficulty')
+    by_type = operator.attrgetter('type_name')
+
     def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, html_anchor):
         self.song_name = song_name
         self.artist_name = artist_name
@@ -190,10 +197,6 @@ class GuitarTab(object):
                 json.dump(page_data, f, indent=4, sort_keys=True)
         return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
 
-    def __getitem__(self, k):
-        # Temporary - to make transition easier
-        return getattr(self, k)
-
     def get_link(self, display_artist=True, display_type=True):
         acoustic = "Acoustic " if self.is_acoustic else ""
         artist_name = " - %s" % self.artist_name if display_artist else ""
@@ -215,7 +218,7 @@ class GuitarTab(object):
         ]
         s = ""
         for opt_field, opt_name in opt_fields:
-            val = self[opt_field]
+            val = getattr(self, opt_field)
             if val is not None:
                 s += "%s: %s<br />\n" % (opt_name, val)
         return s
@@ -255,7 +258,7 @@ pagebreak = "<mbp:pagebreak />\n"
 start = "<a name=\"start\" />\n"
 
 tabs = [GuitarTab.from_url(url) for url in URLS]
-tabs.sort(key=operator.itemgetter('song_name'))  # Or any other criteria
+tabs.sort(key=GuitarTab.by_name)
 
 def my_groupby(iterable, key=None):
     return itertools.groupby(sorted(iterable, key=key), key=key)
@@ -278,22 +281,22 @@ with open(htmlfile, 'w+') as book:
 <a href="#tabs">Tabs</a></h3>
 """)
     book.write("""<h4><a name="toc_tabs_by_title" />By title</h4>\n""")
-    for t in sorted(tabs, key=operator.itemgetter('song_name')):
+    for t in sorted(tabs, key=GuitarTab.by_name):
         book.write(t.get_link())
     book.write("""<h4><a name="toc_tabs_by_artist" />By artist</h4>\n""")
-    for artist, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('artist_name')):
+    for artist, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_artist):
         book.write("""<h5>%s</h5>\n""" % artist)
-        for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
+        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
             book.write(t.get_link(display_artist=False))
     book.write("""<h4><a name="toc_tabs_by_diff" />By difficulty</h4>\n""")
-    for diff, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('difficulty')):
+    for diff, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_difficulty):
         book.write("""<h5>%s</h5>\n""" % diff)
-        for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
+        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
             book.write(t.get_link())
     book.write("""<h4><a name="toc_tabs_by_type" />By type</h4>\n""")
-    for type_name, tabs_grouped in my_groupby(tabs, key=operator.itemgetter('type_name')):
+    for type_name, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_type):
         book.write("""<h5>%s</h5>\n""" % type_name)
-        for t in sorted(tabs_grouped, key=operator.itemgetter('song_name')):
+        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
             book.write(t.get_link(display_type=False))
     book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
     for c in Chords.get_all():
