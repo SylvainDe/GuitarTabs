@@ -102,6 +102,44 @@ class Chords(object):
         return "%s<a href=\"#chord%s\">%s</a>: %s<br />\n" % (padding, self.html_anchor, self.name, self.details[0]['id'])
 
 
+class Strumming(object):
+
+    def __init__(self, part, measures, bpm, is_triplet, denuminator):
+        self.part = part
+        self.measures = measures
+        self.bpm = bpm
+        self.is_triplet = is_triplet
+        self.denuminator = denuminator
+
+    @classmethod
+    def from_raw_data(cls, data):
+       return [cls(part=s['part'],
+                    measures=s['measures'],
+                    bpm=s['bpm'],
+                    is_triplet=s['is_triplet'],
+                    denuminator=s['denuminator']) for s in data]
+
+    def get_html_content(self):
+        return ""
+        # TODO
+        # strum_values = {
+        #     1:   '↓',
+        #     101: '↑',
+        #     202: ' ',
+        #     3:   '↓', # with a small >
+        #     103: '↑', # with a small >
+        #     2:   '↓', # with a small x
+        #     102: '↑', # with a small x
+        #     201: 'x',
+        #     203: '"', # the pause symbol
+        # }
+        # print(self.part, self.bpm, self.is_triplet, self.denuminator, len(self.measures))
+        # values = [m['measure'] for m in self.measures]
+        # print('-'.join(strum_values[v] for v in values))
+        # print()
+
+
+
 class GuitarTab(object):
 
     by_name = operator.attrgetter('song_name')
@@ -109,7 +147,7 @@ class GuitarTab(object):
     by_difficulty = operator.attrgetter('difficulty')
     by_type = operator.attrgetter('type_name')
 
-    def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, html_anchor):
+    def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, html_anchor):
         self.song_name = song_name
         self.artist_name = artist_name
         self.url = url
@@ -126,6 +164,7 @@ class GuitarTab(object):
         self.tuning = tuning
         self.tab_content = tab_content
         self.chords = chords
+        self.strummings = strummings
         self.html_anchor = html_anchor
 
     @classmethod
@@ -144,29 +183,6 @@ class GuitarTab(object):
             with open('debug.json', 'w+') as f:
                 json.dump(tab_view, f, indent=4, sort_keys=True)
 
-
-        # TODO: strumming
-        strummings = tab_view['strummings']
-        if strummings and True:
-            strum_values = {
-                1:   '↓',
-                101: '↑',
-                202: ' ',
-                3:   '↓', # with a small >
-                103: '↑', # with a small >
-                2:   '↓', # with a small x
-                102: '↑', # with a small x
-                201: 'x',
-                203: '"', # the pause symbol
-            }
-            # print(tab['song_name'], url)
-            for s in strummings:
-                # print(s.keys())  # dict_keys(['part', 'denuminator', 'bpm', 'is_triplet', 'measures'])
-                # print(s['part'], s['bpm'], s['is_triplet'], s['denuminator'], len(s['measures']))
-                values = [m['measure'] for m in s['measures']]
-                # print('-'.join(strum_values[v] for v in values))
-            # print()
-
         return cls(
             song_name = tab['song_name'],
             artist_name = tab['artist_name'],
@@ -184,6 +200,7 @@ class GuitarTab(object):
             tuning = tab_view_meta.get('tuning', dict()).get('name', None),
             tab_content = tab_view['wiki_tab']['content'],
             chords = Chords.from_raw_data(tab_view['applicature']),
+            strummings = Strumming.from_raw_data(tab_view['strummings']),
             html_anchor = str(tab['id']) + "-" + string_to_html_id(tab['song_name']),
         )
 
@@ -234,6 +251,9 @@ class GuitarTab(object):
             .replace('[/tab]', '')
             .replace('[ch]', '')
             .replace('[/ch]', ''))
+
+    def get_strumming_content(self):
+        return "".join(s.get_html_content() for s in self.strummings)
 
 
 htmlfile = "wip_book.html"
@@ -308,6 +328,7 @@ with open(htmlfile, 'w+') as book:
     for t in tabs:
         book.write(t.get_header())
         book.write(t.get_optional_field_content())
+        book.write(t.get_strumming_content())
         book.write(t.get_chord_content())
         book.write(pagebreak)
         book.write(t.get_tab_content())
