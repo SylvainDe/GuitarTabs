@@ -29,6 +29,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/neil-young/heart-of-gold-chords-56555",
     "https://tabs.ultimate-guitar.com/tab/joan-baez/diamonds-and-rust-chords-1044414",
     "https://tabs.ultimate-guitar.com/tab/jean-jacques-goldman/comme-toi-chords-69704",
+    "https://tabs.ultimate-guitar.com/tab/francis-cabrel/la-corrida-chords-995197",
     "https://tabs.ultimate-guitar.com/tab/queen/love-of-my-life-chords-340088",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/let-it-be-chords-17427",
     "https://tabs.ultimate-guitar.com/tab/nirvana/the-man-who-sold-the-world-chords-651988",
@@ -44,7 +45,11 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/pink-floyd/wish-you-were-here-chords-44555",
     "https://tabs.ultimate-guitar.com/tab/pink-floyd/wish-you-were-here-tabs-984061",
     "https://tabs.ultimate-guitar.com/tab/coldplay/the-scientist-chords-180849",
+    "https://tabs.ultimate-guitar.com/tab/r-e-m-/everybody-hurts-chords-37519",
+    "https://tabs.ultimate-guitar.com/tab/r-e-m-/everybody-hurts-tabs-90215",
     "https://tabs.ultimate-guitar.com/tab/r-e-m-/losing-my-religion-chords-114345",
+    "https://tabs.ultimate-guitar.com/tab/r-e-m-/losing-my-religion-tabs-81372",
+    "https://tabs.ultimate-guitar.com/tab/r-e-m-/imitation-of-life-chords-22477",
     "https://tabs.ultimate-guitar.com/tab/radiohead/karma-police-chords-103398",
     "https://tabs.ultimate-guitar.com/tab/elton-john/rocket-man-chords-10744",
     "https://tabs.ultimate-guitar.com/tab/america/a-horse-with-no-name-chords-59609",
@@ -54,6 +59,13 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/nirvana/the-man-who-sold-the-world-chords-841325",
     "https://tabs.ultimate-guitar.com/tab/travis/sing-chords-1334",
     "https://tabs.ultimate-guitar.com/tab/travis/sing-tabs-2749659",
+    "https://tabs.ultimate-guitar.com/tab/simon-garfunkel/the-sound-of-silence-chords-159157",
+    "https://tabs.ultimate-guitar.com/tab/simon-garfunkel/the-sound-of-silence-tabs-58064",
+    "https://tabs.ultimate-guitar.com/tab/simon-garfunkel/the-sound-of-silence-tabs-2655012",
+    "https://tabs.ultimate-guitar.com/tab/depeche-mode/enjoy-the-silence-chords-891725",
+    "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-chords-1457192",
+    "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-tabs-2094741",
+    "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-true-detective-theme-chords-1493932",
 ]
 
 
@@ -177,6 +189,8 @@ class GuitarTab(object):
         tab = page_data['tab']
         tab_view = page_data['tab_view']
         tab_view_meta = tab_view['meta']
+        if tab_view_meta == []:
+            tab_view_meta = {}
         assert url == tab['tab_url']
 
         if False:  # for debug
