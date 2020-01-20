@@ -4,6 +4,7 @@ import operator
 import subprocess
 import itertools
 
+# https://kdp.amazon.com/en_US/help/topic/G200673180 "Supported HTML Tags in Book Content "
 # http://www.amazon.com/kindleformat/kindlegen
 KINDLEGEN_PATH = 'Kindlegen/kindlegen'
 
@@ -274,7 +275,10 @@ class GuitarTab(object):
         return "".join(s.get_html_content() for s in self.strummings)
 
 
-htmlfile = "wip_book.html"
+def my_groupby(iterable, key=None):
+    return itertools.groupby(sorted(iterable, key=key), key=key)
+
+
 header = """
 <!DOCTYPE html>
 <html>
@@ -295,18 +299,16 @@ footer = """
 pagebreak = "<mbp:pagebreak />\n"
 start = "<a name=\"start\" />\n"
 
-tabs = [GuitarTab.from_url(url) for url in URLS]
-tabs.sort(key=GuitarTab.by_name)
+def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
+    tabs = [GuitarTab.from_url(url) for url in urls]
+    tabs.sort(key=GuitarTab.by_name)
 
-def my_groupby(iterable, key=None):
-    return itertools.groupby(sorted(iterable, key=key), key=key)
-
-with open(htmlfile, 'w+') as book:
-    # header
-    book.write(header)
-    book.write(pagebreak)
-    # table of content
-    book.write("""<a id="TOC" />
+    with open(htmlfile, 'w+') as book:
+        # header
+        book.write(header)
+        book.write(pagebreak)
+        # table of content
+        book.write("""<a id="TOC" />
 <h2>Table of contents</h2>
 <h3><a href="#tabs">Meta table of content</a></h3>
 <h4><a href="#toc_tabs">Tabs</a></h4>
@@ -318,48 +320,50 @@ with open(htmlfile, 'w+') as book:
 <h3><a name="toc_tabs" />
 <a href="#tabs">Tabs</a></h3>
 """)
-    book.write("""<h4><a name="toc_tabs_by_title" />By title</h4>\n""")
-    for t in sorted(tabs, key=GuitarTab.by_name):
-        book.write(t.get_link())
-    book.write("""<h4><a name="toc_tabs_by_artist" />By artist</h4>\n""")
-    for artist, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_artist):
-        book.write("""<h5>%s</h5>\n""" % artist)
-        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
-            book.write(t.get_link(display_artist=False))
-    book.write("""<h4><a name="toc_tabs_by_diff" />By difficulty</h4>\n""")
-    for diff, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_difficulty):
-        book.write("""<h5>%s</h5>\n""" % diff)
-        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+        book.write("""<h4><a name="toc_tabs_by_title" />By title</h4>\n""")
+        for t in sorted(tabs, key=GuitarTab.by_name):
             book.write(t.get_link())
-    book.write("""<h4><a name="toc_tabs_by_type" />By type</h4>\n""")
-    for type_name, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_type):
-        book.write("""<h5>%s</h5>\n""" % type_name)
-        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
-            book.write(t.get_link(display_type=False))
-    book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
-    for c in Chords.get_all():
-        book.write(c.get_link())
-    book.write(pagebreak)
-    book.write(start)
-    # tab content
-    book.write("""<a name="tabs" />""")
-    for t in tabs:
-        book.write(t.get_header())
-        book.write(t.get_optional_field_content())
-        book.write(t.get_strumming_content())
-        book.write(t.get_chord_content())
+        book.write("""<h4><a name="toc_tabs_by_artist" />By artist</h4>\n""")
+        for artist, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_artist):
+            book.write("""<h5>%s</h5>\n""" % artist)
+            for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+                book.write(t.get_link(display_artist=False))
+        book.write("""<h4><a name="toc_tabs_by_diff" />By difficulty</h4>\n""")
+        for diff, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_difficulty):
+            book.write("""<h5>%s</h5>\n""" % diff)
+            for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+                book.write(t.get_link())
+        book.write("""<h4><a name="toc_tabs_by_type" />By type</h4>\n""")
+        for type_name, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_type):
+            book.write("""<h5>%s</h5>\n""" % type_name)
+            for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+                book.write(t.get_link(display_type=False))
+        book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
+        for c in Chords.get_all():
+            book.write(c.get_link())
         book.write(pagebreak)
-        book.write(t.get_tab_content())
-        book.write(pagebreak)
-    # chord content
-    book.write("""<a name="chords" />""")
-    for c in Chords.get_all():
-        book.write(c.get_html_content())
-        book.write(pagebreak)
+        book.write(start)
+        # tab content
+        book.write("""<a name="tabs" />""")
+        for t in tabs:
+            book.write(t.get_header())
+            book.write(t.get_optional_field_content())
+            book.write(t.get_strumming_content())
+            book.write(t.get_chord_content())
+            book.write(pagebreak)
+            book.write(t.get_tab_content())
+            book.write(pagebreak)
+        # chord content
+        book.write("""<a name="chords" />""")
+        for c in Chords.get_all():
+            book.write(c.get_html_content())
+            book.write(pagebreak)
 
-    # footer
-    book.write(footer)
+        # footer
+        book.write(footer)
 
-print("Wrote in %s" % htmlfile)
+    print("Wrote in %s" % htmlfile)
+    if make_mobi:
+        subprocess.call([KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile])
 
-subprocess.call([KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile])
+make_book(URLS)
