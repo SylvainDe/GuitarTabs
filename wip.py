@@ -132,24 +132,28 @@ class Strumming(object):
                     denuminator=s['denuminator']) for s in data]
 
     def get_html_content(self):
-        return ""
-        # TODO
-        # strum_values = {
-        #     1:   '↓',
-        #     101: '↑',
-        #     202: ' ',
-        #     3:   '↓', # with a small >
-        #     103: '↑', # with a small >
-        #     2:   '↓', # with a small x
-        #     102: '↑', # with a small x
-        #     201: 'x',
-        #     203: '"', # the pause symbol
-        # }
-        # print(self.part, self.bpm, self.is_triplet, self.denuminator, len(self.measures))
-        # values = [m['measure'] for m in self.measures]
-        # print('-'.join(strum_values[v] for v in values))
-        # print()
-
+        space, amp = '&nbsp', '&amp;'
+        strum_values = {
+            1:   (' ', '↓'),
+            101: (' ', '↑'),
+            202: (' ', ' '),
+            3:   ('>', '↓'), # arrow with a small >
+            103: ('>', '↑'), # arrow with a small >
+            2:   ('x', '↓'), # arrow with a small x
+            102: ('x', '↑'), # arrow with a small x
+            201: (' ', 'x'),
+            203: (' ', '⏸'), # the pause symbol
+        }
+        values = [m['measure'] for m in self.measures]
+        pattern0 = "".join(strum_values[v][0].ljust(2, " ") for v in values).replace(" ", space)
+        pattern1 = "".join(strum_values[v][1].ljust(2, " ") for v in values).replace(" ", space)
+        # TODO: how to count ? how to display lines ? how to handle triplets ?
+        #coef = 2  # how to compute this ?
+        #beg, end = ("╘═", "╛ ") if coef == 2 else ("└─", "┘ ")
+        #pattern2 = "".join((str(1 + i//(2*coef)) if i % (2*coef) == 0 else '&' if i % coef == 0 else ' ').ljust(2, " ") for i, _ in enumerate(values)).replace(" ", space)
+        #pattern3 = "".join((beg if i % 2 == 0 else end) for i, _ in enumerate(values)).replace(" ", space)
+        part = self.part if self.part else "All"
+        return "<p class=\"noindent\">%s: %d bpm, triplet:%d, denuminator:%d, %d measures<br/>\n%s<br/>\n%s<br/>\n</p>\n" % (part, self.bpm, self.is_triplet, self.denuminator, len(self.measures), pattern0, pattern1)
 
 
 class GuitarTab(object):
