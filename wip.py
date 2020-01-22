@@ -70,6 +70,10 @@ URLS = [
 ]
 
 
+def write_json_to_file(json_data, filename='debug.json'):
+    with open(filename, 'w+') as f:
+        json.dump(json_data, f, indent=4, sort_keys=True)
+
 
 def string_to_html_id(s):
     # Pretty buggy - in particular for chords
@@ -198,9 +202,6 @@ class GuitarTab(object):
             tab_view_meta = {}
         assert url == tab['tab_url']
 
-        if False:  # for debug
-            with open('debug.json', 'w+') as f:
-                json.dump(tab_view, f, indent=4, sort_keys=True)
 
         return cls(
             song_name = tab['song_name'],
@@ -228,9 +229,6 @@ class GuitarTab(object):
         soup = urlCache.get_soup(list_url)
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
         page_data = json_content['store']['page']['data']
-        if True:  # for debug
-            with open('debug.json', 'w+') as f:
-                json.dump(page_data, f, indent=4, sort_keys=True)
         return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
 
     def get_link(self, display_artist=True, display_type=True):
