@@ -35,12 +35,3 @@ h3 {
   font-family: Consolas, "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", Monaco, "Courier New", monospace !important;
 }
 
-.noindent {
-  text-indent: 0;
-}
-.smallfont {
-  font-size:.675em;
-}
-.stoppagebreak {
-  page-break-inside:avoid;
-}

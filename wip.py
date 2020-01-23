@@ -114,8 +114,8 @@ class Chords(object):
         h = "<a name=\"chord%s\" />\n<h2>%s</h2>" % (self.html_anchor, self.name)
         return h + "".join("%d: %s<br/>\n" % (i, v['id']) for i, v in enumerate(self.details))
 
-    def get_short_html_content(self):
-        padding = "&nbsp;" * (10 - len(self.name))
+    def get_short_html_content(self, alignment=10):
+        padding = "&nbsp;" * (alignment - len(self.name))
         return "%s<a href=\"#chord%s\">%s</a>: %s<br />\n" % (padding, self.html_anchor, self.name, self.details[0]['id'])
 
 
@@ -137,7 +137,6 @@ class Strumming(object):
                     denuminator=s['denuminator']) for s in data]
 
     def get_html_content(self):
-        space, amp = '&nbsp', '&amp;'
         strum_values = {
             1:   (' ', '↓'),
             101: (' ', '↑'),
@@ -150,15 +149,17 @@ class Strumming(object):
             203: (' ', '⏸'), # the pause symbol
         }
         values = [m['measure'] for m in self.measures]
-        pattern0 = "".join(strum_values[v][0].ljust(2, " ") for v in values).replace(" ", space)
-        pattern1 = "".join(strum_values[v][1].ljust(2, " ") for v in values).replace(" ", space)
+        pattern0 = "".join(strum_values[v][0].ljust(2, " ") for v in values).rstrip()
+        if pattern0:
+            pattern0 += "\n"
+        pattern1 = "".join(strum_values[v][1].ljust(2, " ") for v in values).rstrip()
         # TODO: how to count ? how to display lines ? how to handle triplets ?
         #coef = 2  # how to compute this ?
         #beg, end = ("╘═", "╛ ") if coef == 2 else ("└─", "┘ ")
         #pattern2 = "".join((str(1 + i//(2*coef)) if i % (2*coef) == 0 else '&' if i % coef == 0 else ' ').ljust(2, " ") for i, _ in enumerate(values)).replace(" ", space)
         #pattern3 = "".join((beg if i % 2 == 0 else end) for i, _ in enumerate(values)).replace(" ", space)
         part = self.part if self.part else "All"
-        return "<p class=\"noindent\">%s: %d bpm, triplet:%d, denuminator:%d, %d measures<br/>\n%s<br/>\n%s<br/>\n</p>\n" % (part, self.bpm, self.is_triplet, self.denuminator, len(self.measures), pattern0, pattern1)
+        return "<pre>%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s%s</pre>" % (part, self.bpm, self.is_triplet, self.denuminator, len(self.measures), pattern0, pattern1)
 
 
 class GuitarTab(object):
@@ -258,12 +259,12 @@ class GuitarTab(object):
         return s
 
     def get_chord_content(self):
-        return "".join(c.get_short_html_content() for c in self.chords)
+        alignment = max((len(c.name) for c in self.chords), default=0)
+        return "".join(c.get_short_html_content(alignment) for c in self.chords)
 
     def get_tab_content(self):
-        return ("<p class=\"noindent\">\n%s\n</p>" % self.tab_content
-            .replace(' ', '&nbsp;')
-            .replace('\r\n', '<br/>\r\n')
+        return ("<pre>\n%s\n</pre>" % self.tab_content
+            .replace('\r\n', '\n')
             .replace('[tab]', '')
             .replace('[/tab]', '')
             .replace('[ch]', '')
