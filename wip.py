@@ -236,7 +236,7 @@ class GuitarTab(object):
         acoustic = "Acoustic " if self.is_acoustic else ""
         artist_name = " - %s" % self.artist_name if display_artist else ""
         type_name = " (%s%s)" % (acoustic, self.type_name) if display_type else ""
-        return "<a href=\"#tab%s\">%s%s%s</a><br />\n" % (self.html_anchor, self.song_name, artist_name, type_name)
+        return "<a href=\"#tab%s\">%s%s%s</a>" % (self.html_anchor, self.song_name, artist_name, type_name)
 
     def get_header(self):
         return """<a name="tab%s" />
@@ -322,22 +322,22 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
 """)
         book.write("""<h4><a name="toc_tabs_by_title" />By title</h4>\n""")
         for t in sorted(tabs, key=GuitarTab.by_name):
-            book.write(t.get_link())
+            book.write(t.get_link() + "<br />\n")
         book.write("""<h4><a name="toc_tabs_by_artist" />By artist</h4>\n""")
         for artist, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_artist):
             book.write("""<h5>%s</h5>\n""" % artist)
             for t in sorted(tabs_grouped, key=GuitarTab.by_name):
-                book.write(t.get_link(display_artist=False))
+                book.write(t.get_link(display_artist=False) + "<br />\n")
         book.write("""<h4><a name="toc_tabs_by_diff" />By difficulty</h4>\n""")
         for diff, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_difficulty):
             book.write("""<h5>%s</h5>\n""" % diff)
             for t in sorted(tabs_grouped, key=GuitarTab.by_name):
-                book.write(t.get_link())
+                book.write(t.get_link() + "<br />\n")
         book.write("""<h4><a name="toc_tabs_by_type" />By type</h4>\n""")
         for type_name, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_type):
             book.write("""<h5>%s</h5>\n""" % type_name)
             for t in sorted(tabs_grouped, key=GuitarTab.by_name):
-                book.write(t.get_link(display_type=False))
+                book.write(t.get_link(display_type=False) + "<br />\n")
         book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
         for c in Chords.get_all():
             book.write(c.get_link() + "<br />\n")
