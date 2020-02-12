@@ -149,17 +149,24 @@ class Strumming(object):
             203: (' ', '⏸'), # the pause symbol
         }
         values = [m['measure'] for m in self.measures]
-        pattern0 = "".join(strum_values[v][0].ljust(2, " ") for v in values).rstrip()
+        width = 2
+        pattern0 = "".join(strum_values[v][0].ljust(width, " ") for v in values).rstrip()
         if pattern0:
             pattern0 += "\n"
-        pattern1 = "".join(strum_values[v][1].ljust(2, " ") for v in values).rstrip()
-        # TODO: how to count ? how to display lines ? how to handle triplets ?
-        #coef = 2  # how to compute this ?
+        pattern1 = "".join(strum_values[v][1].ljust(width, " ") for v in values).rstrip()
+        if self.is_triplet:
+            assert self.denuminator == 8, "denuminator=%d is not handled" % self.denuminator
+            coef = 3
+            pattern2 = "".join((str(1 + i//(coef)) if i % coef == 0 else ' ').ljust(width, " ") for i, _ in enumerate(values)).rstrip()
+        else:
+            assert self.denuminator in (8, 16), "denuminator=%d is not handled" % self.denuminator
+            coef = self.denuminator // 8
+            pattern2 = "".join((str(1 + i//(2*coef)) if i % (2*coef) == 0 else '&' if i % coef == 0 else ' ').ljust(width, " ") for i, _ in enumerate(values)).rstrip()
+        # TODO: how to display lines ? how to handle triplets ?
         #beg, end = ("╘═", "╛ ") if coef == 2 else ("└─", "┘ ")
-        #pattern2 = "".join((str(1 + i//(2*coef)) if i % (2*coef) == 0 else '&' if i % coef == 0 else ' ').ljust(2, " ") for i, _ in enumerate(values)).replace(" ", space)
         #pattern3 = "".join((beg if i % 2 == 0 else end) for i, _ in enumerate(values)).replace(" ", space)
         part = self.part if self.part else "All"
-        return "<pre>%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s%s</pre>" % (part, self.bpm, self.is_triplet, self.denuminator, len(self.measures), pattern0, pattern1)
+        return "<pre>%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s%s\n%s</pre>\n" % (part, self.bpm, self.is_triplet, self.denuminator, len(self.measures), pattern0, pattern1, pattern2)
 
 
 class GuitarTab(object):
