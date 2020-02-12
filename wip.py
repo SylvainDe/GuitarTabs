@@ -3,6 +3,7 @@ import urlfunctions
 import operator
 import subprocess
 import itertools
+import html
 
 # https://kdp.amazon.com/en_US/help/topic/G200673180 "Supported HTML Tags in Book Content "
 # http://www.amazon.com/kindleformat/kindlegen
@@ -76,8 +77,7 @@ def write_json_to_file(json_data, filename='debug.json'):
 
 
 def string_to_html_id(s):
-    # Pretty buggy - in particular for chords
-    return "".join(c if c.isalnum() else '-' for c in s)
+    return html.escape(s, quote=True)
 
 
 class Chords(object):
