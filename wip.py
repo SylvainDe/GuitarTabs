@@ -148,25 +148,31 @@ class Strumming(object):
             201: (' ', 'x'),
             203: (' ', '⏸'), # the pause symbol
         }
-        values = [m['measure'] for m in self.measures]
-        width = 2
-        pattern0 = "".join(strum_values[v][0].ljust(width, " ") for v in values).rstrip()
-        if pattern0:
-            pattern0 += "\n"
-        pattern1 = "".join(strum_values[v][1].ljust(width, " ") for v in values).rstrip()
+        values = [strum_values[m['measure']] for m in self.measures]
+        pattern0 = (s[0] for s in values)
+        pattern1 = (s[1] for s in values)
         if self.is_triplet:
             assert self.denuminator == 8, "denuminator=%d is not handled" % self.denuminator
             coef = 3
-            pattern2 = "".join((str(1 + i//(coef)) if i % coef == 0 else ' ').ljust(width, " ") for i, _ in enumerate(values)).rstrip()
+            pattern2 = ((str(1 + i//coef) if i % coef == 0 else ' ') for i, _ in enumerate(values))
         else:
             assert self.denuminator in (8, 16), "denuminator=%d is not handled" % self.denuminator
             coef = self.denuminator // 8
-            pattern2 = "".join((str(1 + i//(2*coef)) if i % (2*coef) == 0 else '&' if i % coef == 0 else ' ').ljust(width, " ") for i, _ in enumerate(values)).rstrip()
+            pattern2 = ((str(1 + i//(2*coef)) if i % (2*coef) == 0 else '&' if i % coef == 0 else ' ') for i, _ in enumerate(values))
         # TODO: how to display lines ? how to handle triplets ?
         #beg, end = ("╘═", "╛ ") if coef == 2 else ("└─", "┘ ")
         #pattern3 = "".join((beg if i % 2 == 0 else end) for i, _ in enumerate(values)).replace(" ", space)
+        width = 2
         part = self.part if self.part else "All"
-        return "<pre>%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s%s\n%s</pre>\n" % (part, self.bpm, self.is_triplet, self.denuminator, len(self.measures), pattern0, pattern1, pattern2)
+        return "<pre>%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s\n%s\n%s</pre>\n" % (
+                    part,
+                    self.bpm,
+                    self.is_triplet,
+                    self.denuminator,
+                    len(self.measures),
+                    "".join(v.ljust(width, " ") for v in pattern0).rstrip(),
+                    "".join(v.ljust(width, " ") for v in pattern1).rstrip(),
+                    "".join(v.ljust(width, " ") for v in pattern2).rstrip())
 
 
 class GuitarTab(object):
