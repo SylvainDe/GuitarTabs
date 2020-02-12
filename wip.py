@@ -108,7 +108,7 @@ class Chords(object):
         return sorted(cls.name_to_obj.values(), key=cls.by_name)
 
     def get_link(self):
-        return "<a href=\"#chord%s\">%s</a><br />\n" % (self.html_anchor, self.name)
+        return "<a href=\"#chord%s\">%s</a>" % (self.html_anchor, self.name)
 
     def get_html_content(self):
         h = "<a name=\"chord%s\" />\n<h2>%s</h2>" % (self.html_anchor, self.name)
@@ -263,12 +263,13 @@ class GuitarTab(object):
         return "".join(c.get_short_html_content(alignment) for c in self.chords)
 
     def get_tab_content(self):
-        return ("<pre>\n%s\n</pre>" % self.tab_content
+        content = ("<pre>\n%s\n</pre>" % self.tab_content
             .replace('\r\n', '\n')
             .replace('[tab]', '')
-            .replace('[/tab]', '')
-            .replace('[ch]', '')
-            .replace('[/ch]', ''))
+            .replace('[/tab]', ''))
+        for c in self.chords:
+            content = content.replace("[ch]%s[/ch]" % c.name, c.get_link())
+        return content
 
     def get_strumming_content(self):
         return "".join(s.get_html_content() for s in self.strummings)
@@ -339,7 +340,7 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
                 book.write(t.get_link(display_type=False))
         book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
         for c in Chords.get_all():
-            book.write(c.get_link())
+            book.write(c.get_link() + "<br />\n")
         book.write(pagebreak)
         book.write(start)
         # tab content
