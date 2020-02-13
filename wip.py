@@ -154,19 +154,14 @@ class Strumming(object):
         width = 2
         values = [strum_values[m['measure']] for m in self.measures]
         numbers = list(range(len(values)))
-        patterns = [(s[0] for s in values), (s[1] for s in values)]
         if self.is_triplet:
             assert self.denuminator in (8, 16), "denuminator=%d is not handled for triplet" % self.denuminator
             if self.denuminator == 8:
                 coef, beg, mid, end, fill = 3, "└", "┴", "┘", "─"
             else:
                 coef, beg, mid, end, fill = 6, "╘", "╧", "╛", "═"
-            patterns.append((str(1 + i//coef) if i % coef == 0 else '&' if (2*i % coef == 0) else '') for i in numbers)
-            symbols1 = [beg.ljust(width, fill), mid.ljust(width, fill), end]
-            patterns.append(symbols1[i % 3] for i in numbers)
-            beg, mid, end, fill = "└", "3", "┘", "─"
-            symbols2 = [beg.ljust(width, fill), mid.ljust(width, fill), end]
-            patterns.append(symbols2[i % 3] for i in numbers)
+            beg2, mid2, end2, fill2 = "└", "3", "┘", "─"
+            symbols = [[beg.ljust(width, fill), mid.ljust(width, fill), end], [beg2.ljust(width, fill2), mid2.ljust(width, fill2), end2]]
         else:
             assert self.denuminator in (4, 8, 16), "denuminator=%d is not handled" % self.denuminator
             if self.denuminator == 4:
@@ -175,9 +170,12 @@ class Strumming(object):
                 coef, beg, end, fill = 2, "└", "┘", "─"
             else:
                 coef, beg, end, fill = 4, "╘", "╛", "═"
-            symbols = [beg.ljust(width, fill), end]
-            patterns.append((str(1 + i//coef) if i % coef == 0 else '&' if (2*i % coef == 0) else '') for i in numbers)
-            patterns.append(symbols[i % 2] for i in numbers)
+            symbols = [beg.ljust(width, fill), end],
+        patterns = [(s[0] for s in values),
+                    (s[1] for s in values),
+                    ((str(1 + i//coef) if i % coef == 0 else '&' if (2*i % coef == 0) else '') for i in numbers)]
+        for symbol in symbols:
+            patterns.append(s for s, _ in zip(itertools.cycle(symbol), numbers))
         patterns = ["".join(v.ljust(width, " ") for v in p).rstrip() for p in patterns]
         lines = "\n".join(p for p in patterns if p)
         part = self.part if self.part else "All"
