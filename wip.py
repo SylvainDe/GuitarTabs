@@ -153,14 +153,15 @@ class Strumming(object):
         numbers = list(range(len(values)))
         pattern0 = (s[0] for s in values)
         pattern1 = (s[1] for s in values)
-        pattern3 = ""
         if self.is_triplet:
             assert self.denuminator == 8, "denuminator=%d is not handled for triplet" % self.denuminator
             coef = 3
-            beg, mid, end, fill = "└", "┴", "┘", "─"
-            symbols = {0: beg.ljust(width, fill), 1: mid.ljust(width, fill), 2: end}
+            beg, mid1, mid2, end, fill = "└", "┴", "3", "┘", "─"
             pattern2 = ((str(1 + i//coef) if i % coef == 0 else '') for i in numbers)
-            pattern3 = (symbols[i % coef] for i in numbers)
+            symbols1 = {0: beg.ljust(width, fill), 1: mid1.ljust(width, fill), 2: end}
+            symbols2 = {0: beg.ljust(width, fill), 1: mid2.ljust(width, fill), 2: end}
+            pattern3 = (symbols1[i % coef] for i in numbers)
+            pattern4 = (symbols2[i % coef] for i in numbers)
         else:
             assert self.denuminator in (8, 16), "denuminator=%d is not handled" % self.denuminator
             if self.denuminator == 8:
@@ -169,8 +170,9 @@ class Strumming(object):
                 coef, beg, end, fill = 2, "╘", "╛", "═"
             pattern2 = ((str(1 + i//(2*coef)) if i % (2*coef) == 0 else '&' if i % coef == 0 else '') for i in numbers)
             pattern3 = (beg.ljust(width, fill) if i % 2 == 0 else end for i in numbers)
+            pattern4 = ""
         part = self.part if self.part else "All"
-        return "<pre>%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s\n%s\n%s\n%s</pre>\n" % (
+        return "<pre>%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s\n%s\n%s\n%s\n%s</pre>\n" % (
                     part,
                     self.bpm,
                     self.is_triplet,
@@ -179,7 +181,8 @@ class Strumming(object):
                     "".join(v.ljust(width, " ") for v in pattern0).rstrip(),
                     "".join(v.ljust(width, " ") for v in pattern1).rstrip(),
                     "".join(v.ljust(width, " ") for v in pattern2).rstrip(),
-                    "".join(v.ljust(width, " ") for v in pattern3).rstrip())
+                    "".join(v.ljust(width, " ") for v in pattern3).rstrip(),
+                    "".join(v.ljust(width, " ") for v in pattern4).rstrip())
 
 
 class GuitarTab(object):
