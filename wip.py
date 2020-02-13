@@ -25,6 +25,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-beatles/hey-jude-chords-1061739",
     "https://tabs.ultimate-guitar.com/tab/david-bowie/space-oddity-chords-105869",
     "https://tabs.ultimate-guitar.com/tab/israel-kamakawiwoole/over-the-rainbow-chords-2135261",
+    # "https://tabs.ultimate-guitar.com/tab/israel-kamakawiwoole/over-the-rainbow-ukulele-1486181",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/yesterday-chords-887610",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-335727",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-1680129",
@@ -96,6 +97,8 @@ class Chords(object):
 
     def register(self):
         if self.name in self.name_to_obj:
+            # TODO: This assertion fails when mixing guitar/ukulele chord
+            # Maybe we should use tab['type_name'] or tab['type]
             assert self.details == self.name_to_obj[self.name].details
         else:
             self.name_to_obj[self.name] = self
