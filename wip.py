@@ -244,7 +244,7 @@ class GuitarTab(object):
             tonality = tab_view_meta.get('tonality', None),
             difficulty = tab_view_meta.get('difficulty', 'Unknown'),
             tuning = tab_view_meta.get('tuning', dict()).get('name', None),
-            tab_content = tab_view['wiki_tab']['content'],
+            tab_content = tab_view['wiki_tab'].get('content', 'No content (official tab?)'),
             chords = Chords.from_raw_data(tab_view['applicature']),
             strummings = Strumming.from_raw_data(tab_view['strummings']),
             html_anchor = str(tab['id']) + "-" + string_to_html_id(tab['song_name']),
