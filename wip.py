@@ -68,6 +68,9 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-chords-1457192",
     "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-tabs-2094741",
     "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-true-detective-theme-chords-1493932",
+    # For testing purposes
+    "https://tabs.ultimate-guitar.com/tab/misc-cartoons/frozen-let-it-go-chords-1445224",
+    "https://tabs.ultimate-guitar.com/tab/tones-and-i/dance-monkey-chords-2787730",
 ]
 
 
@@ -153,22 +156,27 @@ class Strumming(object):
         numbers = list(range(len(values)))
         patterns = [(s[0] for s in values), (s[1] for s in values)]
         if self.is_triplet:
-            assert self.denuminator == 8, "denuminator=%d is not handled for triplet" % self.denuminator
-            coef = 3
-            patterns.append((str(1 + i//coef) if i % coef == 0 else '') for i in numbers)
-            beg, mid1, mid2, end, fill = "└", "┴", "3", "┘", "─"
-            symbols1 = [beg.ljust(width, fill), mid1.ljust(width, fill), end]
-            symbols2 = [beg.ljust(width, fill), mid2.ljust(width, fill), end]
-            patterns.append(symbols1[i % coef] for i in numbers)
-            patterns.append(symbols2[i % coef] for i in numbers)
-        else:
-            assert self.denuminator in (8, 16), "denuminator=%d is not handled" % self.denuminator
+            assert self.denuminator in (8, 16), "denuminator=%d is not handled for triplet" % self.denuminator
             if self.denuminator == 8:
-                coef, beg, end, fill = 1, "└", "┘", "─"
+                coef, beg, mid, end, fill = 3, "└", "┴", "┘", "─"
             else:
-                coef, beg, end, fill = 2, "╘", "╛", "═"
+                coef, beg, mid, end, fill = 6, "╘", "╧", "╛", "═"
+            patterns.append((str(1 + i//coef) if i % coef == 0 else '&' if (2*i % coef == 0) else '') for i in numbers)
+            symbols1 = [beg.ljust(width, fill), mid.ljust(width, fill), end]
+            patterns.append(symbols1[i % 3] for i in numbers)
+            beg, mid, end, fill = "└", "3", "┘", "─"
+            symbols2 = [beg.ljust(width, fill), mid.ljust(width, fill), end]
+            patterns.append(symbols2[i % 3] for i in numbers)
+        else:
+            assert self.denuminator in (4, 8, 16), "denuminator=%d is not handled" % self.denuminator
+            if self.denuminator == 4:
+                coef, beg, end, fill = 1, "│", "│", " "
+            elif self.denuminator == 8:
+                coef, beg, end, fill = 2, "└", "┘", "─"
+            else:
+                coef, beg, end, fill = 4, "╘", "╛", "═"
             symbols = [beg.ljust(width, fill), end]
-            patterns.append((str(1 + i//(2*coef)) if i % (2*coef) == 0 else '&' if i % coef == 0 else '') for i in numbers)
+            patterns.append((str(1 + i//coef) if i % coef == 0 else '&' if (2*i % coef == 0) else '') for i in numbers)
             patterns.append(symbols[i % 2] for i in numbers)
         patterns = ["".join(v.ljust(width, " ") for v in p).rstrip() for p in patterns]
         lines = "\n".join(p for p in patterns if p)
