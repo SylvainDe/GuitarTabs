@@ -107,6 +107,8 @@ class Chords(object):
     def from_raw_data(cls, data):
         if data is None:
             data = dict()
+        if data == []:
+            data = dict()
         return sorted((cls(name, details) for name, details in data.items()), key=cls.by_name)
 
     @classmethod
