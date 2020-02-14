@@ -120,7 +120,7 @@ class Chords(object):
 
     @classmethod
     def get_all(cls):
-        return sorted(cls.name_and_type_to_obj.values(), key=cls.by_name)
+        return cls.name_and_type_to_obj.values()
 
     def get_link(self, display_type):
         type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
@@ -349,7 +349,6 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
             for type_ in ('type=all', 'type=official', 'type=chords', 'type=tabs', 'type=guitar%20pro', 'type=power', 'type=bass', 'type=ukulele',  ''):
                 url = "https://www.ultimate-guitar.com/top/tabs?" + order + '&' + type_
                 tabs.extend(GuitarTab.from_list_url(url))
-    tabs.sort(key=GuitarTab.by_name)
     chords = Chords.get_all()
 
     with open(htmlfile, 'w+') as book:
@@ -389,7 +388,7 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
                 book.write(t.get_link(display_type=False) + "<br />\n")
         book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
         book.write("""<h4><a name="toc_chords_by_name" />By name</h4>\n""")
-        for c in chords:
+        for c in sorted(chords, key=Chords.by_name):
             book.write(c.get_link(display_type=True) + "<br />\n")
         book.write("""<h4><a name="toc_chords_by_type" />By type</h4>\n""")
         for type_name, chords_grouped in my_groupby(chords, key=Chords.by_type):
@@ -400,7 +399,7 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
         book.write(start)
         # tab content
         book.write("""<a name="tabs" />""")
-        for t in tabs:
+        for t in sorted(tabs, key=GuitarTab.by_name):
             book.write(t.get_header())
             book.write(t.get_optional_field_content())
             book.write(t.get_strumming_content())
@@ -410,7 +409,7 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
             book.write(pagebreak)
         # chord content
         book.write("""<a name="chords" />""")
-        for c in chords:
+        for c in sorted(chords, key=Chords.by_name):
             book.write(c.get_html_content())
             book.write(pagebreak)
 
