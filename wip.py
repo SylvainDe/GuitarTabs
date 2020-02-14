@@ -17,6 +17,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/eagles/hotel-california-chords-46190",
     "https://tabs.ultimate-guitar.com/tab/led-zeppelin/stairway-to-heaven-tabs-9488",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/yesterday-chords-17450",
+    "https://tabs.ultimate-guitar.com/tab/the-beatles/yesterday-ukulele-1728302",
     "https://tabs.ultimate-guitar.com/tab/adele/someone-like-you-chords-1006751",
     "https://tabs.ultimate-guitar.com/tab/oasis/dont-look-back-in-anger-chords-6097",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/let-it-be-chords-60690",
@@ -29,6 +30,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-beatles/yesterday-chords-887610",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-335727",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-1680129",
+    "https://tabs.ultimate-guitar.com/tab/the-beatles/something-ukulele-1801336",
     "https://tabs.ultimate-guitar.com/tab/neil-young/heart-of-gold-chords-56555",
     "https://tabs.ultimate-guitar.com/tab/joan-baez/diamonds-and-rust-chords-1044414",
     "https://tabs.ultimate-guitar.com/tab/jean-jacques-goldman/comme-toi-chords-69704",
@@ -72,6 +74,7 @@ URLS = [
     # For testing purposes
     "https://tabs.ultimate-guitar.com/tab/misc-cartoons/frozen-let-it-go-chords-1445224",
     "https://tabs.ultimate-guitar.com/tab/tones-and-i/dance-monkey-chords-2787730",
+    # "https://tabs.ultimate-guitar.com/tab/frank-sinatra/fly-me-to-the-moon-ukulele-1351387",
 ]
 
 
@@ -99,6 +102,9 @@ class Chords(object):
     def register(self):
         key = (self.name, self.is_ukulele)
         if key in self.name_and_type_to_obj:
+            # For some reason, the current logic is not perfect yet: for instance the
+            # ukulele version for Yesterday/Something use a C7 which is not the same
+            # as Fly me to the moon - to be investigated.
             assert self.details == self.name_and_type_to_obj[key].details
         else:
             self.name_and_type_to_obj[key] = self
@@ -332,7 +338,16 @@ pagebreak = "<mbp:pagebreak />\n"
 start = "<a name=\"start\" />\n"
 
 def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
-    tabs = [GuitarTab.from_url(url) for url in urls]
+    if 1:
+        tabs = [GuitarTab.from_url(url) for url in urls]
+    elif 0: # For debug purposes
+        tabs = GuitarTab.from_list_url()
+    elif 0: # For debug purposes
+        tabs = []
+        for order in ('order=hitsdaily_desc', 'order=hitstotal_desc', 'order=rating_desc', ''):
+            for type_ in ('type=all', 'type=official', 'type=chords', 'type=tabs', 'type=guitar%20pro', 'type=power', 'type=bass', 'type=ukulele',  ''):
+                url = "https://www.ultimate-guitar.com/top/tabs?" + order + '&' + type_
+                tabs.extend(GuitarTab.from_list_url(url))
     tabs.sort(key=GuitarTab.by_name)
     chords = Chords.get_all()
 
