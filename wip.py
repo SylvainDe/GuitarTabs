@@ -25,7 +25,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-beatles/hey-jude-chords-1061739",
     "https://tabs.ultimate-guitar.com/tab/david-bowie/space-oddity-chords-105869",
     "https://tabs.ultimate-guitar.com/tab/israel-kamakawiwoole/over-the-rainbow-chords-2135261",
-    # "https://tabs.ultimate-guitar.com/tab/israel-kamakawiwoole/over-the-rainbow-ukulele-1486181",
+    "https://tabs.ultimate-guitar.com/tab/israel-kamakawiwoole/over-the-rainbow-ukulele-1486181",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/yesterday-chords-887610",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-335727",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-1680129",
@@ -86,40 +86,42 @@ def string_to_html_id(s):
 
 class Chords(object):
 
-    name_to_obj = dict()
-    by_name = operator.attrgetter('name')
+    name_and_type_to_obj = dict()
+    by_name = lambda c: (c.name, c.is_ukulele)
 
-    def __init__(self, name, details):
+    def __init__(self, name, is_ukulele, details):
         self.name = name
+        self.is_ukulele = is_ukulele
         self.details = details
-        self.html_anchor = string_to_html_id(self.name)
+        self.html_anchor = string_to_html_id(self.name) + ("-ukulele" if is_ukulele else "")
         self.register()
 
     def register(self):
-        if self.name in self.name_to_obj:
-            # TODO: This assertion fails when mixing guitar/ukulele chord
-            # Maybe we should use tab['type_name'] or tab['type]
-            assert self.details == self.name_to_obj[self.name].details
+        key = (self.name, self.is_ukulele)
+        if key in self.name_and_type_to_obj:
+            assert self.details == self.name_and_type_to_obj[key].details
         else:
-            self.name_to_obj[self.name] = self
+            self.name_and_type_to_obj[key] = self
 
     @classmethod
-    def from_raw_data(cls, data):
+    def from_raw_data(cls, data, is_ukulele):
         if data is None:
             data = dict()
         if data == []:
             data = dict()
-        return sorted((cls(name, details) for name, details in data.items()), key=cls.by_name)
+        return sorted((cls(name, is_ukulele, details) for name, details in data.items()), key=cls.by_name)
 
     @classmethod
     def get_all(cls):
-        return sorted(cls.name_to_obj.values(), key=cls.by_name)
+        return sorted(cls.name_and_type_to_obj.values(), key=cls.by_name)
 
-    def get_link(self):
-        return "<a href=\"#chord%s\">%s</a>" % (self.html_anchor, self.name)
+    def get_link(self, display_type):
+        type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
+        return "<a href=\"#chord%s\">%s%s</a>" % (self.html_anchor, self.name, type_name)
 
     def get_html_content(self):
-        h = "<a name=\"chord%s\" />\n<h2>%s</h2>" % (self.html_anchor, self.name)
+        type_name = " (Ukulele)" if self.is_ukulele else ""
+        h = "<a name=\"chord%s\" />\n<h2>%s%s</h2>" % (self.html_anchor, self.name, type_name)
         return h + "".join("%d: %s<br/>\n" % (i, v['id']) for i, v in enumerate(self.details))
 
     def get_short_html_content(self, alignment=10):
@@ -233,7 +235,7 @@ class GuitarTab(object):
             tab_view_meta = {}
         assert url == tab['tab_url']
 
-
+        is_ukulele = tab['type_name'] == 'Ukulele'
         return cls(
             song_name = tab['song_name'],
             artist_name = tab['artist_name'],
@@ -250,7 +252,7 @@ class GuitarTab(object):
             difficulty = tab_view_meta.get('difficulty', 'Unknown'),
             tuning = tab_view_meta.get('tuning', dict()).get('name', None),
             tab_content = tab_view['wiki_tab'].get('content', 'No content (official tab?)'),
-            chords = Chords.from_raw_data(tab_view['applicature']),
+            chords = Chords.from_raw_data(tab_view['applicature'], is_ukulele),
             strummings = Strumming.from_raw_data(tab_view['strummings']),
             html_anchor = str(tab['id']) + "-" + string_to_html_id(tab['song_name']),
         )
@@ -298,7 +300,7 @@ class GuitarTab(object):
             .replace('[tab]', '')
             .replace('[/tab]', ''))
         for c in self.chords:
-            content = content.replace("[ch]%s[/ch]" % c.name, c.get_link())
+            content = content.replace("[ch]%s[/ch]" % c.name, c.get_link(display_type=False))
         return content
 
     def get_strumming_content(self):
@@ -332,6 +334,7 @@ start = "<a name=\"start\" />\n"
 def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
     tabs = [GuitarTab.from_url(url) for url in urls]
     tabs.sort(key=GuitarTab.by_name)
+    chords = Chords.get_all()
 
     with open(htmlfile, 'w+') as book:
         # header
@@ -369,8 +372,9 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
             for t in sorted(tabs_grouped, key=GuitarTab.by_name):
                 book.write(t.get_link(display_type=False) + "<br />\n")
         book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
-        for c in Chords.get_all():
-            book.write(c.get_link() + "<br />\n")
+        # Note: should we have the chords grouped by instrument ?
+        for c in chords:
+            book.write(c.get_link(display_type=True) + "<br />\n")
         book.write(pagebreak)
         book.write(start)
         # tab content
@@ -385,7 +389,7 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
             book.write(pagebreak)
         # chord content
         book.write("""<a name="chords" />""")
-        for c in Chords.get_all():
+        for c in chords:
             book.write(c.get_html_content())
             book.write(pagebreak)
 
