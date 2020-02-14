@@ -271,11 +271,11 @@ class GuitarTab(object):
         page_data = json_content['store']['page']['data']
         return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
 
-    def get_link(self, display_artist=True, display_type=True):
+    def get_link(self, display_artist=True, display_type=True, prefix=""):
         acoustic = "Acoustic " if self.is_acoustic else ""
         artist_name = " - %s" % self.artist_name if display_artist else ""
         type_name = " (%s%s)" % (acoustic, self.type_name) if display_type else ""
-        return "<a href=\"#tab%s\">%s%s%s</a>" % (self.html_anchor, self.song_name, artist_name, type_name)
+        return "<a href=\"#tab%s\">%s%s%s%s</a>" % (self.html_anchor, prefix, self.song_name, artist_name, type_name)
 
     def get_header(self):
         return """<a name="tab%s" />
@@ -365,6 +365,8 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
 <h5><a href="#toc_tabs_by_diff">By difficulty</a></h5>
 <h5><a href="#toc_tabs_by_type">By type</a></h5>
 <h4><a href="#toc_chords">Chords</a></h4>
+<h5><a href="#toc_chords_by_name">Chords</a></h4>
+<h5><a href="#toc_chords_by_type">Chords</a></h4>
 <h3><a name="toc_tabs" />
 <a href="#tabs">Tabs</a></h3>
 """)
@@ -406,6 +408,7 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
             book.write(t.get_chord_content())
             book.write(pagebreak)
             book.write(t.get_tab_content())
+            book.write(t.get_link(prefix="Back to top of ") + "<br />\n")
             book.write(pagebreak)
         # chord content
         book.write("""<a name="chords" />""")
