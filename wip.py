@@ -91,6 +91,7 @@ class Chords(object):
 
     name_and_type_to_obj = dict()
     by_name = lambda c: (c.name, c.is_ukulele)
+    by_type = lambda c: "Ukulele" if c.is_ukulele else "Guitar"
 
     def __init__(self, name, is_ukulele, details):
         self.name = name
@@ -387,9 +388,14 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
             for t in sorted(tabs_grouped, key=GuitarTab.by_name):
                 book.write(t.get_link(display_type=False) + "<br />\n")
         book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
-        # Note: should we have the chords grouped by instrument ?
+        book.write("""<h4><a name="toc_chords_by_name" />By name</h4>\n""")
         for c in chords:
             book.write(c.get_link(display_type=True) + "<br />\n")
+        book.write("""<h4><a name="toc_chords_by_type" />By type</h4>\n""")
+        for type_name, chords_grouped in my_groupby(chords, key=Chords.by_type):
+            book.write("""<h5>%s</h5>\n""" % type_name)
+            for c in sorted(chords_grouped, key=Chords.by_name):
+                book.write(c.get_link(display_type=False) + "<br />\n")
         book.write(pagebreak)
         book.write(start)
         # tab content
