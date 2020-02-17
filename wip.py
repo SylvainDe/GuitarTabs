@@ -80,7 +80,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/eagles/hotel-california-official-1910943",
     "https://tabs.ultimate-guitar.com/tab/misc-cartoons/frozen-let-it-go-chords-1445224",
     "https://tabs.ultimate-guitar.com/tab/tones-and-i/dance-monkey-chords-2787730",
-    # "https://tabs.ultimate-guitar.com/tab/frank-sinatra/fly-me-to-the-moon-ukulele-1351387",
+    "https://tabs.ultimate-guitar.com/tab/frank-sinatra/fly-me-to-the-moon-ukulele-1351387",
 ]
 
 
@@ -103,18 +103,17 @@ class Chords(object):
         self.name = name
         self.is_ukulele = is_ukulele
         self.details = details
-        self.html_anchor = string_to_html_id(self.name) + ("-ukulele" if is_ukulele else "")
-        self.register()
+        self.index = self.register()
+        self.html_anchor = string_to_html_id(self.name) + ("-ukulele" if is_ukulele else "") + (str(self.index) if self.index else "")
 
     def register(self):
         key = (self.name, self.is_ukulele)
-        if key in self.name_and_type_to_obj:
-            # For some reason, the current logic is not perfect yet: for instance the
-            # ukulele version for Yesterday/Something use a C7 which is not the same
-            # as Fly me to the moon - to be investigated.
-            assert self.details == self.name_and_type_to_obj[key].details
-        else:
-            self.name_and_type_to_obj[key] = self
+        data = self.name_and_type_to_obj.setdefault(key, [])
+        for i, d in enumerate(data):
+            if d.details == self.details:
+                return i
+        data.append(self)
+        return len(data) - 1
 
     @classmethod
     def from_raw_data(cls, data, is_ukulele):
@@ -126,7 +125,7 @@ class Chords(object):
 
     @classmethod
     def get_all(cls):
-        return cls.name_and_type_to_obj.values()
+        return [v for values in cls.name_and_type_to_obj.values() for v in values]
 
     def get_link(self, display_type):
         type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
