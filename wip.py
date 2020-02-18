@@ -370,8 +370,8 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
 <h5><a href="#toc_tabs_by_diff">By difficulty</a></h5>
 <h5><a href="#toc_tabs_by_type">By type</a></h5>
 <h4><a href="#toc_chords">Chords</a></h4>
-<h5><a href="#toc_chords_by_name">Chords</a></h4>
-<h5><a href="#toc_chords_by_type">Chords</a></h4>
+<h5><a href="#toc_chords_by_name">Chords</a></h5>
+<h5><a href="#toc_chords_by_type">Chords</a></h5>
 <h3><a name="toc_tabs" />
 <a href="#tabs">Tabs</a></h3>
 """)
