@@ -133,8 +133,9 @@ class Chords(object):
 
     def get_html_content(self):
         type_name = " (Ukulele)" if self.is_ukulele else ""
-        h = "<a name=\"chord%s\" />\n<h2>%s%s</h2>" % (self.html_anchor, self.name, type_name)
-        return h + "".join("%d: %s<br/>\n" % (i, v['id']) for i, v in enumerate(self.details))
+        idx_width = len(str(len(self.details) - 1))
+        content = "\n".join("%s: %s" % (str(i).rjust(idx_width), v['id']) for i, v in enumerate(self.details))
+        return "<a name=\"chord%s\" />\n<h2>%s%s</h2>\n<pre>%s</pre>\n" % (self.html_anchor, self.name, type_name, content)
 
     def get_short_html_content(self, alignment=10):
         padding = " " * (alignment - len(self.name))
@@ -195,7 +196,7 @@ class Strumming(object):
                     ((str(1 + i//coef) if i % coef == 0 else '&' if (2*i % coef == 0) else '') for i in numbers)]
         for symbol in symbols:
             patterns.append(s for s, _ in zip(itertools.cycle(symbol), numbers))
-        patterns = ["".join(v.ljust(width, " ") for v in p).rstrip() for p in patterns]
+        patterns = ["".join(v.ljust(width) for v in p).rstrip() for p in patterns]
         lines = "\n".join(p for p in patterns if p)
         part = self.part if self.part else "All"
         return "<pre>%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s</pre>\n" % (
