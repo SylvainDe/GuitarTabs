@@ -328,6 +328,7 @@ header = """
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name='cover' content='empty.jpg'>
 <title>Tabs and Chords</title>
 <link rel="stylesheet" href="default.css" type="text/css" />
 </head>
