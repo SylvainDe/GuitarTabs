@@ -11,7 +11,11 @@ import inspect
 import logging
 import json
 import os
+import time
 from bs4 import BeautifulSoup
+
+# Avoid flooding the server with requests
+DELAY_BEFORE_REQUEST = 1
 
 def log(string):
     """Dirty logging function."""
@@ -29,6 +33,7 @@ def urlopen_wrapper(url, referer=None):
     log('(url : %s)' % url)
     user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/534.30 (KHTML, like Gecko) Ubuntu/11.04 Chromium/12.0.742.112 Chrome/12.0.742.112 Safari/534.30'
     try:
+        time.sleep(DELAY_BEFORE_REQUEST)
         req = urllib.request.Request(url, headers={'User-Agent': user_agent, 'Accept': '*/*'})
         if referer:
             req.add_header('Referer', referer)
