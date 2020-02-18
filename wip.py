@@ -137,8 +137,8 @@ class Chords(object):
         return h + "".join("%d: %s<br/>\n" % (i, v['id']) for i, v in enumerate(self.details))
 
     def get_short_html_content(self, alignment=10):
-        padding = "&nbsp;" * (alignment - len(self.name))
-        return "%s<a href=\"#chord%s\">%s</a>: %s<br />\n" % (padding, self.html_anchor, self.name, self.details[0]['id'])
+        padding = " " * (alignment - len(self.name))
+        return "%s<a href=\"#chord%s\">%s</a>: %s" % (padding, self.html_anchor, self.name, self.details[0]['id'])
 
 
 class Strumming(object):
@@ -303,8 +303,10 @@ class GuitarTab(object):
         return s
 
     def get_chord_content(self):
-        alignment = max((len(c.name) for c in self.chords), default=0)
-        return "".join(c.get_short_html_content(alignment) for c in self.chords)
+        if not self.chords:
+            return ""
+        alignment = max(len(c.name) for c in self.chords)
+        return "<pre>%s</pre>\n" % "\n".join(c.get_short_html_content(alignment) for c in self.chords)
 
     def get_tab_content(self):
         content = ("<pre>\n%s\n</pre>" % self.tab_content
