@@ -133,9 +133,12 @@ class Chords(object):
 
     def get_html_content(self):
         type_name = " (Ukulele)" if self.is_ukulele else ""
-        idx_width = len(str(len(self.details) - 1))
-        content = "\n".join("%s: %s" % (str(i).rjust(idx_width), v['id']) for i, v in enumerate(self.details))
-        return "<a name=\"chord%s\" />\n<h2>%s%s</h2>\n<pre>%s</pre>\n" % (self.html_anchor, self.name, type_name, content)
+        debug = "" # "<pre>%s</pre>" % "\n".join(str(d) for d in self.details)
+        idx_width = len(str(len(self.details)))
+        fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
+        fret_width = max(len(f) for frets in fret_details for f in frets)
+        content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
+        return "<a name=\"chord%s\" />\n<h2>%s%s</h2>\n<pre>%s</pre>%s\n" % (self.html_anchor, self.name, type_name, content, debug)
 
     def get_short_html_content(self, alignment=10):
         padding = " " * (alignment - len(self.name))
