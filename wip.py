@@ -142,7 +142,7 @@ class Chords(object):
 
     def get_short_html_content(self, alignment=10):
         padding = " " * (alignment - len(self.name))
-        return "%s<a href=\"#chord%s\">%s</a>: %s" % (padding, self.html_anchor, self.name, self.details[0]['id'])
+        return "%s%s: %s" % (padding, self.get_link(display_type=False), self.details[0]['id'])
 
 
 class Strumming(object):
