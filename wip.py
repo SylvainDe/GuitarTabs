@@ -129,7 +129,7 @@ class Chords(object):
 
     def get_link(self, display_type):
         type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
-        return "<a href=\"#chord%s\">%s%s</a>" % (self.html_anchor, self.name, type_name)
+        return "<a href=\"#chord%s\" title=\"%s\">%s%s</a>" % (self.html_anchor, self.details[0]['id'], self.name, type_name)
 
     def get_html_content(self):
         type_name = " (Ukulele)" if self.is_ukulele else ""
