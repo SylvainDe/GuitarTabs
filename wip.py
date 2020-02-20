@@ -131,9 +131,28 @@ class Chords(object):
         type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
         return "<a href=\"#chord%s\" title=\"%s\">%s%s</a>" % (self.html_anchor, self.details[0]['id'], self.name, type_name)
 
+    @classmethod
+    def format_fingering_detail(cls, name, fingering):
+        # WORK IN PROGRESS
+        width = 2
+        height = 1
+        nb_frets = 5
+        nb_strings = len(fingering['frets'])
+        # print(name, str(fingering))
+        top, mid, bottom, vert_lines = ("┍", "┯", "┑", "━"), ("├", "┼", "┤", "─"), ("└", "┴", "┘", "─"), ("│", "│", "│", " ")
+        symbols = []
+        symbols.append(top)
+        for i in range(nb_frets - 1):
+            symbols.extend([vert_lines] * height + [mid])
+        symbols.extend([vert_lines] * height + [bottom])
+        fretboard = "\n".join("".join([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end]) for beg, mid, end, fill in symbols)
+        return "<pre>%s</pre>" % fretboard
+
     def get_html_content(self):
         type_name = " (Ukulele)" if self.is_ukulele else ""
-        debug = "" # "<pre>%s</pre>" % "\n".join(str(d) for d in self.details)
+        debug = ""
+        # debug = "<pre>%s</pre>" % "\n".join(str(d) for d in self.details)
+        # debug = self.format_fingering_detail(self.name, self.details[0])
         idx_width = len(str(len(self.details)))
         fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
         fret_width = max(len(f) for frets in fret_details for f in frets)
