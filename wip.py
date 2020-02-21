@@ -134,25 +134,46 @@ class Chords(object):
     @classmethod
     def format_fingering_detail(cls, name, fingering):
         # WORK IN PROGRESS
+        # print(name, str(fingering))
+        frets = fingering['frets']
+        capos = fingering['listCapos']
+        fingers = fingering['fingers']
+        fret_offset = fingering['fret']
+        nb_strings = len(frets)
+        nb_frets = 5
         width = 2
         height = 1
-        nb_frets = 5
-        nb_strings = len(fingering['frets'])
-        # print(name, str(fingering))
+
         top, mid, bottom, vert_lines = ("┍", "┯", "┑", "━"), ("├", "┼", "┤", "─"), ("└", "┴", "┘", "─"), ("│", "│", "│", " ")
         symbols = []
         symbols.append(top)
         for i in range(nb_frets - 1):
             symbols.extend([vert_lines] * height + [mid])
         symbols.extend([vert_lines] * height + [bottom])
-        fretboard = "\n".join("".join([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end]) for beg, mid, end, fill in symbols)
+        fretboard = [([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end]) for beg, mid, end, fill in symbols]
+
+        for j, (fr, fi) in enumerate(reversed(list(zip(frets, fingers)))):
+            if fr > 0:
+                assert fi in [0, 1, 2, 3, 4]
+                fi_str = str(fi)
+                if fret_offset:
+                    fr -= fret_offset - 1
+                i = 1 + ((fr - 1) * (height + 1)) + (height // 2)
+                fretboard[i][j] = fi_str + fretboard[i][j][len(fi_str):]
+            elif fr == 0:
+                assert fi == 0
+            elif fr == -1:
+                assert fi == 0
+            else:
+                assert False
+
+        fretboard = "\n".join("".join(line) for line in fretboard)
+        # print(fretboard)
         return "<pre>%s</pre>" % fretboard
 
     def get_html_content(self):
         type_name = " (Ukulele)" if self.is_ukulele else ""
-        debug = ""
-        # debug = "<pre>%s</pre>" % "\n".join(str(d) for d in self.details)
-        # debug = self.format_fingering_detail(self.name, self.details[0])
+        debug = self.format_fingering_detail(self.name, self.details[0])
         idx_width = len(str(len(self.details)))
         fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
         fret_width = max(len(f) for frets in fret_details for f in frets)
