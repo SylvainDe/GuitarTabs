@@ -89,8 +89,23 @@ def write_json_to_file(json_data, filename='debug.json'):
         json.dump(json_data, f, indent=4, sort_keys=True)
 
 
-def string_to_html_id(s):
-    return html.escape(s, quote=True)
+class HtmlFormatter(object):
+
+    @staticmethod
+    def string_to_html_id(s):
+        return html.escape(s, quote=True)
+
+    @staticmethod
+    def pre(s):
+        return "<pre>%s</pre>\n" % s
+
+    @staticmethod
+    def a(href=None, content=None, title=None, name=None):
+        title_used = "" if title is None else " title=\"%s\"" % title
+        name_used = "" if name is None else " name=\"%s\"" % name
+        href_used = "" if href is None else " href=\"%s\"" % href
+        closing = " />" if content is None else ">%s</a>" % content
+        return "<a%s%s%s%s" % (href_used, name_used, title_used, closing)
 
 
 class Chords(object):
@@ -104,7 +119,7 @@ class Chords(object):
         self.is_ukulele = is_ukulele
         self.details = details
         self.index = self.register()
-        self.html_anchor = string_to_html_id(self.name) + ("-ukulele" if is_ukulele else "") + (str(self.index) if self.index else "")
+        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(self.index) if self.index else ""))
 
     def register(self):
         key = (self.name, self.is_ukulele)
@@ -129,7 +144,7 @@ class Chords(object):
 
     def get_link(self, display_type):
         type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
-        return "<a href=\"#chord%s\" title=\"%s\">%s%s</a>" % (self.html_anchor, self.details[0]['id'], self.name, type_name)
+        return HtmlFormatter.a(href="#" + self.html_anchor, title=self.details[0]['id'], content=self.name + type_name)
 
     @classmethod
     def format_fingering_detail(cls, name, fingering):
@@ -167,9 +182,7 @@ class Chords(object):
             else:
                 assert False
 
-        fretboard = "\n".join("".join(line) for line in fretboard)
-        # print(fretboard)
-        return "<pre>%s</pre>" % fretboard
+        return HtmlFormatter.pre("\n".join("".join(line) for line in fretboard))
 
     def get_html_content(self):
         type_name = " (Ukulele)" if self.is_ukulele else ""
@@ -178,7 +191,7 @@ class Chords(object):
         fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
         fret_width = max(len(f) for frets in fret_details for f in frets)
         content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
-        return "<a name=\"chord%s\" />\n<h2>%s%s</h2>\n<pre>%s</pre>%s\n" % (self.html_anchor, self.name, type_name, content, debug)
+        return HtmlFormatter.a(name=self.html_anchor) + "\n<h2>%s%s</h2>\n%s%s" % (self.name, type_name, HtmlFormatter.pre(content), debug)
 
     def get_short_html_content(self, alignment=10):
         padding = " " * (alignment - len(self.name))
@@ -242,13 +255,13 @@ class Strumming(object):
         patterns = ["".join(v.ljust(width) for v in p).rstrip() for p in patterns]
         lines = "\n".join(p for p in patterns if p)
         part = self.part if self.part else "All"
-        return "<pre>%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s</pre>\n" % (
+        return HtmlFormatter.pre("%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s" % (
                     part,
                     self.bpm,
                     self.is_triplet,
                     self.denuminator,
                     len(self.measures),
-                    lines)
+                    lines))
 
 class GuitarTab(object):
 
@@ -310,7 +323,7 @@ class GuitarTab(object):
             tab_content = tab_view['wiki_tab'].get('content', ''),
             chords = Chords.from_raw_data(tab_view['applicature'], is_ukulele),
             strummings = Strumming.from_raw_data(tab_view['strummings']),
-            html_anchor = str(tab['id']) + "-" + string_to_html_id(tab['song_name']),
+            html_anchor = HtmlFormatter.string_to_html_id("tab" + str(tab['id']) + "-" + tab['song_name']),
         )
 
     @classmethod
@@ -324,13 +337,14 @@ class GuitarTab(object):
         acoustic = "Acoustic " if self.is_acoustic else ""
         artist_name = " - %s" % self.artist_name if display_artist else ""
         type_name = " (%s%s)" % (acoustic, self.type_name) if display_type else ""
-        return "<a href=\"#tab%s\">%s%s%s%s</a>" % (self.html_anchor, prefix, self.song_name, artist_name, type_name)
+        return HtmlFormatter.a(href="#" + self.html_anchor, content="%s%s%s%s" % (prefix, self.song_name, artist_name, type_name))
 
     def get_header(self):
-        return """<a name="tab%s" />
-<h2 class="chapter">%s - <a href="%s">%s</a> (%s%s)</h2>
-<a href="%s">%s version %d from %s (rated %f / %d votes)</a><br />
-""" % (self.html_anchor, self.song_name, self.artist_url, self.artist_name, "Acoustic " if self.is_acoustic else "", self.type_name, self.url, self.type_name, self.version, self.author, self.rating, self.votes)
+        anchor = HtmlFormatter.a(name=self.html_anchor)
+        artist_link = HtmlFormatter.a(href=self.artist_url, content=self.artist_name)
+        src_link = HtmlFormatter.a(href=self.url, content="%s version %d from %s (rated %f / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes))
+        return """%s\n<h2 class="chapter">%s - %s (%s%s)</h2>\n%s<br />
+""" % (anchor, self.song_name, artist_link, "Acoustic " if self.is_acoustic else "", self.type_name, src_link)
 
     def get_optional_field_content(self):
         opt_fields = [
@@ -350,10 +364,10 @@ class GuitarTab(object):
         if not self.chords:
             return ""
         alignment = max(len(c.name) for c in self.chords)
-        return "<pre>%s</pre>\n" % "\n".join(c.get_short_html_content(alignment) for c in self.chords)
+        return HtmlFormatter.pre("\n".join(c.get_short_html_content(alignment) for c in self.chords))
 
     def get_tab_content(self):
-        content = ("<pre>\n%s\n</pre>" % self.tab_content
+        content = HtmlFormatter.pre(self.tab_content
             .replace('\r\n', '\n')
             .replace('[tab]', '')
             .replace('[/tab]', ''))
