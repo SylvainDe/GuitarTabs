@@ -96,6 +96,11 @@ class HtmlFormatter(object):
         return html.escape(s, quote=True)
 
     @staticmethod
+    def h(level, s):
+        tag = "h" + str(level)
+        return "<%s>%s</%s>\n" % (tag, s, tag)
+
+    @staticmethod
     def pre(s):
         return "<pre>%s</pre>\n" % s
 
@@ -191,7 +196,11 @@ class Chords(object):
         fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
         fret_width = max(len(f) for frets in fret_details for f in frets)
         content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
-        return HtmlFormatter.a(name=self.html_anchor) + "\n<h2>%s%s</h2>\n%s%s" % (self.name, type_name, HtmlFormatter.pre(content), debug)
+        return "%s\n%s%s%s" % (
+                    HtmlFormatter.a(name=self.html_anchor),
+                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
+                    HtmlFormatter.pre(content),
+                    debug)
 
     def get_short_html_content(self, alignment=10):
         padding = " " * (alignment - len(self.name))
@@ -277,11 +286,12 @@ class GuitarTab(object):
         return HtmlFormatter.a(href="#" + self.html_anchor, content="%s%s%s%s" % (prefix, self.song_name, artist_name, type_name))
 
     def get_header(self):
-        anchor = HtmlFormatter.a(name=self.html_anchor)
+        acoustic = "Acoustic " if self.is_acoustic else ""
         artist_link = HtmlFormatter.a(href=self.artist_url, content=self.artist_name)
-        src_link = self.get_link_to_original()
-        return """%s\n<h2 class="chapter">%s - %s (%s%s)</h2>\n%s<br />
-""" % (anchor, self.song_name, artist_link, "Acoustic " if self.is_acoustic else "", self.type_name, src_link)
+        return "%s\n%s%s<br />\n" % (
+                HtmlFormatter.a(name=self.html_anchor),
+                "<h2 class=\"chapter\">%s - %s (%s%s)</h2>\n" % (self.song_name, artist_link, acoustic, self.type_name),
+                self.get_link_to_original())
 
     def get_optional_field_content(self):
         opt_fields = [
