@@ -270,6 +270,115 @@ class GuitarTab(object):
     by_difficulty = operator.attrgetter('difficulty')
     by_type = operator.attrgetter('type_name')
 
+    def get_link(self, display_artist=True, display_type=True, prefix=""):
+        acoustic = "Acoustic " if self.is_acoustic else ""
+        artist_name = " - %s" % self.artist_name if display_artist else ""
+        type_name = " (%s%s)" % (acoustic, self.type_name) if display_type else ""
+        return HtmlFormatter.a(href="#" + self.html_anchor, content="%s%s%s%s" % (prefix, self.song_name, artist_name, type_name))
+
+    def get_header(self):
+        anchor = HtmlFormatter.a(name=self.html_anchor)
+        artist_link = HtmlFormatter.a(href=self.artist_url, content=self.artist_name)
+        src_link = self.get_link_to_original()
+        return """%s\n<h2 class="chapter">%s - %s (%s%s)</h2>\n%s<br />
+""" % (anchor, self.song_name, artist_link, "Acoustic " if self.is_acoustic else "", self.type_name, src_link)
+
+    def get_optional_field_content(self):
+        opt_fields = [
+            ('capo', 'Capo'),
+            ('tonality', 'Tonality'),
+            ('difficulty', 'Difficulty'),
+            ('tuning', 'Tuning'),
+        ]
+        s = ""
+        for opt_field, opt_name in opt_fields:
+            val = getattr(self, opt_field)
+            if val is not None:
+                s += "%s: %s<br />\n" % (opt_name, val)
+        return s
+
+    def get_chord_content(self):
+        if not self.chords:
+            return ""
+        alignment = max(len(c.name) for c in self.chords)
+        return HtmlFormatter.pre("\n".join(c.get_short_html_content(alignment) for c in self.chords))
+
+    def get_link_to_original(self):
+        raise NotImplementedError
+
+    def get_tab_content(self):
+        raise NotImplementedError
+
+    def get_strumming_content(self):
+        raise NotImplementedError
+
+    @classmethod
+    def from_url(cls, url):
+        return None
+
+    @classmethod
+    def from_list_url(cls, list_url):
+        return []
+
+class GuitarTabFromGuitarTabDotCom(GuitarTab):
+    prefixes = 'https://www.guitaretab.com/',
+
+
+class GuitarTabFromGuitarTabsDotCc(GuitarTab):
+    prefixes = 'https://www.guitartabs.cc/',
+
+class ChordsFromTabs4Acoustic(object):
+
+    @classmethod
+    def from_html_div(cls, div):
+        return []
+
+
+class GuitarTabFromTabs4Acoustic(GuitarTab):
+    prefixes = 'https://www.tabs4acoustic.com/',
+
+    def __init__(self, song_name, artist_name, url, tab_content, chord_div):
+        self.song_name = song_name
+        self.artist_name = artist_name
+        self.url = url
+        self.tab_content = tab_content
+        self.is_acoustic = False
+        self.type_name = "TODO type"
+        self.html_anchor = "TODO anchor"
+        self.artist_url = "TODO artist url"
+        self.difficulty = "Unknown"
+        self.capo = None
+        self.tonality = None
+        self.tuning = None
+        self.chords = ChordsFromTabs4Acoustic.from_html_div(chord_div)
+
+    @classmethod
+    def from_url(cls, url):
+        soup = urlCache.get_soup(url)
+        return cls(song_name='toto',
+                   artist_name='titi',
+                   url=url,
+                   tab_content=soup.find(id='tab_zone').find(class_="small-12 column"),
+                   chord_div=soup.find(id="crd_zone"))
+
+    def get_link_to_original(self):
+        return HtmlFormatter.a(href=self.url, content="original")
+
+    def get_tab_content(self):
+        #for i, c in enumerate(self.tab_content.contents):
+        #    print(i, c)
+        #print(str(self.tab_content))
+        #content = HtmlFormatter.pre(str(self.tab_content).replace('\r\n', '\n'))
+        # [<a title="[ Picture of the guitar chord : E ]" href="https://www.tabs4acoustic.com/images/accords/photo-e-022100.jpg" class="viewchord hl_crd chord_diag tabtooltip"><span><img src="https://www.tabs4acoustic.com/images/crd/E[0,2,2,1,0,0]-0.png" alt="E " /></span>E</a>]
+        return "toto"
+
+    def get_strumming_content(self):
+        return ""
+
+
+class GuitarTabFromUltimateGuitar(GuitarTab):
+    prefixes = 'https://tabs.ultimate-guitar.com/', 'https://www.ultimate-guitar.com/'
+
     def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, html_anchor):
         self.song_name = song_name
         self.artist_name = artist_name
@@ -292,7 +401,6 @@ class GuitarTab(object):
 
     @classmethod
     def from_url(cls, url):
-        print(url)
         soup = urlCache.get_soup(url)
 
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
@@ -327,44 +435,14 @@ class GuitarTab(object):
         )
 
     @classmethod
-    def from_list_url(cls, list_url='https://www.ultimate-guitar.com/top/tabs'):
+    def from_list_url(cls, list_url):
         soup = urlCache.get_soup(list_url)
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
         page_data = json_content['store']['page']['data']
         return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
 
-    def get_link(self, display_artist=True, display_type=True, prefix=""):
-        acoustic = "Acoustic " if self.is_acoustic else ""
-        artist_name = " - %s" % self.artist_name if display_artist else ""
-        type_name = " (%s%s)" % (acoustic, self.type_name) if display_type else ""
-        return HtmlFormatter.a(href="#" + self.html_anchor, content="%s%s%s%s" % (prefix, self.song_name, artist_name, type_name))
-
-    def get_header(self):
-        anchor = HtmlFormatter.a(name=self.html_anchor)
-        artist_link = HtmlFormatter.a(href=self.artist_url, content=self.artist_name)
-        src_link = HtmlFormatter.a(href=self.url, content="%s version %d from %s (rated %f / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes))
-        return """%s\n<h2 class="chapter">%s - %s (%s%s)</h2>\n%s<br />
-""" % (anchor, self.song_name, artist_link, "Acoustic " if self.is_acoustic else "", self.type_name, src_link)
-
-    def get_optional_field_content(self):
-        opt_fields = [
-            ('capo', 'Capo'),
-            ('tonality', 'Tonality'),
-            ('difficulty', 'Difficulty'),
-            ('tuning', 'Tuning'),
-        ]
-        s = ""
-        for opt_field, opt_name in opt_fields:
-            val = getattr(self, opt_field)
-            if val is not None:
-                s += "%s: %s<br />\n" % (opt_name, val)
-        return s
-
-    def get_chord_content(self):
-        if not self.chords:
-            return ""
-        alignment = max(len(c.name) for c in self.chords)
-        return HtmlFormatter.pre("\n".join(c.get_short_html_content(alignment) for c in self.chords))
+    def get_link_to_original(self):
+        return HtmlFormatter.a(href=self.url, content="%s version %d from %s (rated %f / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes))
 
     def get_tab_content(self):
         content = HtmlFormatter.pre(self.tab_content
@@ -377,6 +455,29 @@ class GuitarTab(object):
 
     def get_strumming_content(self):
         return "".join(s.get_html_content() for s in self.strummings)
+
+
+class GuitarTabGetter(object):
+
+    @classmethod
+    def get_class_for_url(cls, url):
+        print(url)
+        for class_ in (GuitarTabFromUltimateGuitar,
+                       GuitarTabFromGuitarTabDotCom,
+                       GuitarTabFromTabs4Acoustic,
+                       GuitarTabFromGuitarTabsDotCc):
+            for prefix in class_.prefixes:
+                if url.startswith(prefix):
+                    return class_
+        raise Exception("Unsupported URL %s" % url)
+
+    @classmethod
+    def from_url(cls, url):
+        return cls.get_class_for_url(url).from_url(url)
+
+    @classmethod
+    def from_list_url(cls, url):
+        return cls.get_class_for_url(url).from_list_url(url)
 
 
 def my_groupby(iterable, key=None):
@@ -406,15 +507,16 @@ start = "<a name=\"start\" />\n"
 
 def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
     if 1:
-        tabs = [GuitarTab.from_url(url) for url in urls]
+        tabs = [GuitarTabGetter.from_url(url) for url in urls]
     elif 0: # For debug purposes
-        tabs = GuitarTab.from_list_url()
+        tabs = GuitarTabGetter.from_list_url('https://www.ultimate-guitar.com/top/tabs')
     elif 0: # For debug purposes
         tabs = []
         for order in ('order=hitsdaily_desc', 'order=hitstotal_desc', 'order=rating_desc', ''):
             for type_ in ('type=all', 'type=official', 'type=chords', 'type=tabs', 'type=guitar%20pro', 'type=power', 'type=bass', 'type=ukulele',  ''):
                 url = "https://www.ultimate-guitar.com/top/tabs?" + order + '&' + type_
                 tabs.extend(GuitarTab.from_list_url(url))
+    tabs = [t for t in tabs  if t is not None]
     chords = Chords.get_all()
 
     with open(htmlfile, 'w+') as book:
