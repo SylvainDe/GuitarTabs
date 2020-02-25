@@ -290,7 +290,7 @@ class GuitarTab(object):
         artist_link = HtmlFormatter.a(href=self.artist_url, content=self.artist_name)
         return "%s\n%s%s<br />\n" % (
                 HtmlFormatter.a(name=self.html_anchor),
-                "<h2 class=\"chapter\">%s - %s (%s%s)</h2>\n" % (self.song_name, artist_link, acoustic, self.type_name),
+                HtmlFormatter.h(2, "%s - %s (%s%s)" % (self.song_name, artist_link, acoustic, self.type_name)),
                 self.get_link_to_original())
 
     def get_optional_field_content(self):
