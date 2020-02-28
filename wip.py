@@ -3,7 +3,8 @@ import urlfunctions
 import operator
 import subprocess
 import itertools
-import html
+
+import htmlformatter as HtmlFormatter
 
 # https://kdp.amazon.com/en_US/help/topic/G200673180 "Supported HTML Tags in Book Content "
 # http://www.amazon.com/kindleformat/kindlegen
@@ -87,62 +88,6 @@ URLS = [
 def write_json_to_file(json_data, filename='debug.json'):
     with open(filename, 'w+') as f:
         json.dump(json_data, f, indent=4, sort_keys=True)
-
-
-class HtmlFormatter(object):
-
-    @staticmethod
-    def string_to_html_id(s):
-        return html.escape(s, quote=True)
-
-    @staticmethod
-    def generic_tag(tag, content=None, on_open="", on_close="", **kwargs):
-        attrs = "".join(" %s=\"%s\"" % (k, v) for k, v in kwargs.items() if v is not None)
-        closing = " />" if content is None else ">%s%s</%s>" % (on_open, content, tag)
-        return "<%s%s%s%s" % (tag, attrs, closing, on_close)
-
-    @staticmethod
-    def h(level, content=None, **kwargs):
-        return HtmlFormatter.generic_tag(tag="h" + str(level), content=content, **kwargs, on_close="\n")
-
-    @staticmethod
-    def a(content=None, **kwargs):
-        return HtmlFormatter.generic_tag(tag="a", content=content, **kwargs)
-
-    @staticmethod
-    def pre(content=None, **kwargs):
-        return HtmlFormatter.generic_tag(tag="pre", content=content, **kwargs, on_close="\n")
-
-    @staticmethod
-    def link(content=None, **kwargs):
-        return HtmlFormatter.generic_tag(tag="link", content=content, **kwargs, on_close="\n")
-
-    @staticmethod
-    def title(content=None, **kwargs):
-        return HtmlFormatter.generic_tag(tag="title", content=content, **kwargs, on_close="\n")
-
-    @staticmethod
-    def meta(content=None, **kwargs):
-        return HtmlFormatter.generic_tag(tag="meta", content=content, **kwargs)
-
-    @staticmethod
-    def html(content=None, **kwargs):
-        return HtmlFormatter.generic_tag(tag="html", content=content, **kwargs, on_close="\n", on_open="\n")
-
-    @staticmethod
-    def head(content=None, **kwargs):
-        return HtmlFormatter.generic_tag(tag="head", content=content, **kwargs, on_close="\n", on_open="\n")
-
-    @staticmethod
-    def body(content=None, **kwargs):
-        return HtmlFormatter.generic_tag(tag="body", content=content, **kwargs, on_close="\n", on_open="\n")
-
-    doctype = "<!DOCTYPE html>\n"
-    pagebreak = generic_tag.__func__(tag="mbp:pagebreak", on_close="\n")
-    new_line = generic_tag.__func__(tag="br", on_close="\n")
-
-
-
 
 
 class Chords(object):
