@@ -517,6 +517,7 @@ def get_html_body(tabs, chords):
         heading(5, link(href="#toc_chords_by_name", content="By name")),
         heading(5, link(href="#toc_chords_by_type", content="By type")),
         heading(3, link(href="#toc_tabs") + link(href="#tabs", content="Tabs"))))
+    body.append(link(name="toc_tabs"))
     body.append(heading(4, link(name="toc_tabs_by_title") + "By title"))
     for t in sorted(tabs, key=GuitarTab.by_name):
         body.append(t.get_link())
