@@ -96,21 +96,53 @@ class HtmlFormatter(object):
         return html.escape(s, quote=True)
 
     @staticmethod
-    def h(level, s):
-        tag = "h" + str(level)
-        return "<%s>%s</%s>\n" % (tag, s, tag)
+    def generic_tag(tag, content=None, on_open="", on_close="", **kwargs):
+        attrs = "".join(" %s=\"%s\"" % (k, v) for k, v in kwargs.items() if v is not None)
+        closing = " />" if content is None else ">%s%s</%s>" % (on_open, content, tag)
+        return "<%s%s%s%s" % (tag, attrs, closing, on_close)
 
     @staticmethod
-    def pre(s):
-        return "<pre>%s</pre>\n" % s
+    def h(level, content=None, **kwargs):
+        return HtmlFormatter.generic_tag(tag="h" + str(level), content=content, **kwargs, on_close="\n")
 
     @staticmethod
-    def a(href=None, content=None, title=None, name=None):
-        title_used = "" if title is None else " title=\"%s\"" % title
-        name_used = "" if name is None else " name=\"%s\"" % name
-        href_used = "" if href is None else " href=\"%s\"" % href
-        closing = " />" if content is None else ">%s</a>" % content
-        return "<a%s%s%s%s" % (href_used, name_used, title_used, closing)
+    def a(content=None, **kwargs):
+        return HtmlFormatter.generic_tag(tag="a", content=content, **kwargs)
+
+    @staticmethod
+    def pre(content=None, **kwargs):
+        return HtmlFormatter.generic_tag(tag="pre", content=content, **kwargs, on_close="\n")
+
+    @staticmethod
+    def link(content=None, **kwargs):
+        return HtmlFormatter.generic_tag(tag="link", content=content, **kwargs, on_close="\n")
+
+    @staticmethod
+    def title(content=None, **kwargs):
+        return HtmlFormatter.generic_tag(tag="title", content=content, **kwargs, on_close="\n")
+
+    @staticmethod
+    def meta(content=None, **kwargs):
+        return HtmlFormatter.generic_tag(tag="meta", content=content, **kwargs)
+
+    @staticmethod
+    def html(content=None, **kwargs):
+        return HtmlFormatter.generic_tag(tag="html", content=content, **kwargs, on_close="\n", on_open="\n")
+
+    @staticmethod
+    def head(content=None, **kwargs):
+        return HtmlFormatter.generic_tag(tag="head", content=content, **kwargs, on_close="\n", on_open="\n")
+
+    @staticmethod
+    def body(content=None, **kwargs):
+        return HtmlFormatter.generic_tag(tag="body", content=content, **kwargs, on_close="\n", on_open="\n")
+
+    doctype = "<!DOCTYPE html>\n"
+    pagebreak = generic_tag.__func__(tag="mbp:pagebreak", on_close="\n")
+    new_line = generic_tag.__func__(tag="br", on_close="\n")
+
+
+
 
 
 class Chords(object):
@@ -196,11 +228,13 @@ class Chords(object):
         fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
         fret_width = max(len(f) for frets in fret_details for f in frets)
         content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
-        return "%s\n%s%s%s" % (
+        return "".join((
                     HtmlFormatter.a(name=self.html_anchor),
+                    "\n",
                     HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
                     HtmlFormatter.pre(content),
-                    debug)
+                    debug,
+                    HtmlFormatter.pagebreak))
 
     def get_short_html_content(self, alignment=10):
         padding = " " * (alignment - len(self.name))
@@ -288,10 +322,12 @@ class GuitarTab(object):
     def get_header(self):
         acoustic = "Acoustic " if self.is_acoustic else ""
         artist_link = HtmlFormatter.a(href=self.artist_url, content=self.artist_name)
-        return "%s\n%s%s<br />\n" % (
+        return "".join((
                 HtmlFormatter.a(name=self.html_anchor),
+                "\n",
                 HtmlFormatter.h(2, "%s - %s (%s%s)" % (self.song_name, artist_link, acoustic, self.type_name)),
-                self.get_link_to_original())
+                self.get_link_to_original(),
+                HtmlFormatter.new_line))
 
     def get_optional_field_content(self):
         opt_fields = [
@@ -304,7 +340,7 @@ class GuitarTab(object):
         for opt_field, opt_name in opt_fields:
             val = getattr(self, opt_field)
             if val is not None:
-                s += "%s: %s<br />\n" % (opt_name, val)
+                s += "%s: %s%s" % (opt_name, val, HtmlFormatter.new_line)
         return s
 
     def get_chord_content(self):
@@ -312,6 +348,18 @@ class GuitarTab(object):
             return ""
         alignment = max(len(c.name) for c in self.chords)
         return HtmlFormatter.pre("\n".join(c.get_short_html_content(alignment) for c in self.chords))
+
+    def get_html_content(self):
+        return "".join((
+                self.get_header(),
+                self.get_optional_field_content(),
+                self.get_strumming_content(),
+                self.get_chord_content(),
+                HtmlFormatter.pagebreak,
+                self.get_tab_content(),
+                self.get_link(prefix="Back to top of "),
+                HtmlFormatter.new_line,
+                HtmlFormatter.pagebreak))
 
     def get_link_to_original(self):
         raise NotImplementedError
@@ -494,28 +542,90 @@ def my_groupby(iterable, key=None):
     return itertools.groupby(sorted(iterable, key=key), key=key)
 
 
-header = """
-<!DOCTYPE html>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-<meta name='cover' content='empty.jpg'>
-<title>Tabs and Chords</title>
-<link rel="stylesheet" href="default.css" type="text/css" />
-</head>
-<body>
-<h1>Tabs and Chords</h1>"""
-# TODO: Add 'generated by'
+def get_html_head():
+    # TODO: These 2 meta tags are converted to HtmlFormatter yet
+    # as the keys cause various problems: "content" is ambiguous
+    # and "http-equiv" is not a valid Python identifier. It could
+    # be interesting to add support for a dictionnary of artitrary
+    # values - see how things are done in the find_xxx methods in
+    # beautifulsoup (it seems to be implemented in the __init___
+    # method of SoupStrainer)
+    return HtmlFormatter.head("<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\">\n" +
+      "<meta name='cover' content='empty.jpg'>\n" +
+      HtmlFormatter.title(content="Tabs and Chords") +
+      HtmlFormatter.link(rel="stylesheet", href="default.css", type="text/css"))
 
-footer = """
-</body>
-</html>
-"""
 
-pagebreak = "<mbp:pagebreak />\n"
-start = "<a name=\"start\" />\n"
+def get_html_body(tabs, chords):
+    heading = HtmlFormatter.h
+    link = HtmlFormatter.a
+    body = []
+    body.extend((
+        heading(1, "Tabs and Chords"), # TODO: Add 'generated by'
+        HtmlFormatter.pagebreak))
+    # table of content
+    body.extend((
+        link(id="TOC"),
+        "\n",
+        heading(2, "Table of contents"),
+        heading(3, link(href="#tabs", content="Meta table of content")),
+        heading(4, link(href="#toc_tabs", content="Tabs")),
+        heading(5, link(href="#toc_tabs_by_title", content="By title")),
+        heading(5, link(href="#toc_tabs_by_artist", content="By artist")),
+        heading(5, link(href="#toc_tabs_by_diff", content="By difficulty")),
+        heading(5, link(href="#toc_tabs_by_type", content="By type")),
+        heading(4, link(href="#toc_chords", content="Chords")),
+        heading(5, link(href="#toc_chords_by_name", content="By name")),
+        heading(5, link(href="#toc_chords_by_type", content="By type")),
+        heading(3, link(href="#toc_tabs") + link(href="#tabs", content="Tabs"))))
+    body.append(heading(4, link(name="toc_tabs_by_title") + "By title"))
+    for t in sorted(tabs, key=GuitarTab.by_name):
+        body.append(t.get_link())
+        body.append(HtmlFormatter.new_line)
+    body.append(heading(4, link(name="toc_tabs_by_artist") + "By artist"))
+    for artist, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_artist):
+        body.append(heading(5, artist))
+        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+            body.append(t.get_link(display_artist=False))
+            body.append(HtmlFormatter.new_line)
+    body.append(heading(4, link(name="toc_tabs_by_diff") + "By difficulty"))
+    for diff, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_difficulty):
+        body.append(heading(5, diff))
+        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+            body.append(t.get_link())
+            body.append(HtmlFormatter.new_line)
+    body.append(heading(4, link(name="toc_tabs_by_type") + "By type"))
+    for type_name, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_type):
+        body.append(heading(5, type_name))
+        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+            body.append(t.get_link(display_type=False))
+            body.append(HtmlFormatter.new_line)
+    body.append(heading(3, link(name="toc_chords") + link(href="#chords", content="Chords")))
+    body.append(heading(4, link(name="toc_chords_by_name") + "By name"))
+    for c in sorted(chords, key=Chords.by_name):
+        body.append(c.get_link(display_type=True))
+        body.append(HtmlFormatter.new_line)
+    body.append(heading(4, link(name="toc_chords_by_type") + "By type"))
+    for type_name, chords_grouped in my_groupby(chords, key=Chords.by_type):
+        body.append(heading(5, type_name))
+        for c in sorted(chords_grouped, key=Chords.by_name):
+            body.append(c.get_link(display_type=False))
+            body.append(HtmlFormatter.new_line)
+    body.append(HtmlFormatter.pagebreak)
+    body.append(link(name="start") + "\n")
+    # tab content
+    body.append(link(name="tabs"))
+    for t in sorted(tabs, key=GuitarTab.by_name):
+        body.append(t.get_html_content())
+    # chord content
+    body.append(link(name="chords"))
+    for c in sorted(chords, key=Chords.by_name):
+        body.append(c.get_html_content())
 
-def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
+    return HtmlFormatter.body("".join(body))
+
+
+def get_tabs(urls):
     if 1:
         tabs = [GuitarTabGetter.from_url(url) for url in urls]
     elif 0: # For debug purposes
@@ -526,79 +636,17 @@ def make_book(urls, htmlfile="wip_book.html", make_mobi=True):
             for type_ in ('type=all', 'type=official', 'type=chords', 'type=tabs', 'type=guitar%20pro', 'type=power', 'type=bass', 'type=ukulele',  ''):
                 url = "https://www.ultimate-guitar.com/top/tabs?" + order + '&' + type_
                 tabs.extend(GuitarTab.from_list_url(url))
-    tabs = [t for t in tabs  if t is not None]
-    chords = Chords.get_all()
+    return [t for t in tabs  if t is not None]
 
+
+def make_book(tabs, chords, htmlfile="wip_book.html", make_mobi=True):
+    html = HtmlFormatter.html(get_html_head() + get_html_body(tabs, chords))
     with open(htmlfile, 'w+') as book:
-        # header
-        book.write(header)
-        book.write(pagebreak)
-        # table of content
-        book.write("""<a id="TOC" />
-<h2>Table of contents</h2>
-<h3><a href="#tabs">Meta table of content</a></h3>
-<h4><a href="#toc_tabs">Tabs</a></h4>
-<h5><a href="#toc_tabs_by_title">By title</a></h5>
-<h5><a href="#toc_tabs_by_artist">By artist</a></h5>
-<h5><a href="#toc_tabs_by_diff">By difficulty</a></h5>
-<h5><a href="#toc_tabs_by_type">By type</a></h5>
-<h4><a href="#toc_chords">Chords</a></h4>
-<h5><a href="#toc_chords_by_name">By name</a></h5>
-<h5><a href="#toc_chords_by_type">By type</a></h5>
-<h3><a name="toc_tabs" />
-<a href="#tabs">Tabs</a></h3>
-""")
-        book.write("""<h4><a name="toc_tabs_by_title" />By title</h4>\n""")
-        for t in sorted(tabs, key=GuitarTab.by_name):
-            book.write(t.get_link() + "<br />\n")
-        book.write("""<h4><a name="toc_tabs_by_artist" />By artist</h4>\n""")
-        for artist, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_artist):
-            book.write("""<h5>%s</h5>\n""" % artist)
-            for t in sorted(tabs_grouped, key=GuitarTab.by_name):
-                book.write(t.get_link(display_artist=False) + "<br />\n")
-        book.write("""<h4><a name="toc_tabs_by_diff" />By difficulty</h4>\n""")
-        for diff, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_difficulty):
-            book.write("""<h5>%s</h5>\n""" % diff)
-            for t in sorted(tabs_grouped, key=GuitarTab.by_name):
-                book.write(t.get_link() + "<br />\n")
-        book.write("""<h4><a name="toc_tabs_by_type" />By type</h4>\n""")
-        for type_name, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_type):
-            book.write("""<h5>%s</h5>\n""" % type_name)
-            for t in sorted(tabs_grouped, key=GuitarTab.by_name):
-                book.write(t.get_link(display_type=False) + "<br />\n")
-        book.write("""<h3><a name="toc_chords" /><a href="#chords">Chords</a></h3>\n""")
-        book.write("""<h4><a name="toc_chords_by_name" />By name</h4>\n""")
-        for c in sorted(chords, key=Chords.by_name):
-            book.write(c.get_link(display_type=True) + "<br />\n")
-        book.write("""<h4><a name="toc_chords_by_type" />By type</h4>\n""")
-        for type_name, chords_grouped in my_groupby(chords, key=Chords.by_type):
-            book.write("""<h5>%s</h5>\n""" % type_name)
-            for c in sorted(chords_grouped, key=Chords.by_name):
-                book.write(c.get_link(display_type=False) + "<br />\n")
-        book.write(pagebreak)
-        book.write(start)
-        # tab content
-        book.write("""<a name="tabs" />""")
-        for t in sorted(tabs, key=GuitarTab.by_name):
-            book.write(t.get_header())
-            book.write(t.get_optional_field_content())
-            book.write(t.get_strumming_content())
-            book.write(t.get_chord_content())
-            book.write(pagebreak)
-            book.write(t.get_tab_content())
-            book.write(t.get_link(prefix="Back to top of ") + "<br />\n")
-            book.write(pagebreak)
-        # chord content
-        book.write("""<a name="chords" />""")
-        for c in sorted(chords, key=Chords.by_name):
-            book.write(c.get_html_content())
-            book.write(pagebreak)
-
-        # footer
-        book.write(footer)
-
+        book.write(HtmlFormatter.doctype + html)
     print("Wrote in %s" % htmlfile)
     if make_mobi:
         subprocess.call([KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile])
 
-make_book(URLS)
+tabs = get_tabs(URLS)
+chords = Chords.get_all()
+make_book(tabs, chords)
