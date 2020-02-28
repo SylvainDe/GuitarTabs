@@ -488,15 +488,9 @@ def my_groupby(iterable, key=None):
 
 
 def get_html_head():
-    # TODO: These 2 meta tags are converted to HtmlFormatter yet
-    # as the keys cause various problems: "content" is ambiguous
-    # and "http-equiv" is not a valid Python identifier. It could
-    # be interesting to add support for a dictionnary of artitrary
-    # values - see how things are done in the find_xxx methods in
-    # beautifulsoup (it seems to be implemented in the __init___
-    # method of SoupStrainer)
-    return HtmlFormatter.head("<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\">\n" +
-      "<meta name='cover' content='empty.jpg'>\n" +
+    return HtmlFormatter.head(
+	  HtmlFormatter.meta(attrs={'http-equiv': "Content-type", 'content': "text/html;charset=utf-8"}) +
+	  HtmlFormatter.meta(attrs={'name': "cover", 'content': "empty.jpg"}) +
       HtmlFormatter.title(content="Tabs and Chords") +
       HtmlFormatter.link(rel="stylesheet", href="default.css", type="text/css"))
 
