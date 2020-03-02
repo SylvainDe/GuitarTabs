@@ -489,8 +489,8 @@ def my_groupby(iterable, key=None):
 
 def get_html_head():
     return HtmlFormatter.head(
-	  HtmlFormatter.meta(attrs={'http-equiv': "Content-type", 'content': "text/html;charset=utf-8"}) +
-	  HtmlFormatter.meta(attrs={'name': "cover", 'content': "empty.jpg"}) +
+      HtmlFormatter.meta(attrs={'http-equiv': "Content-type", 'content': "text/html;charset=utf-8"}) +
+      HtmlFormatter.meta(attrs={'name': "cover", 'content': "empty.jpg"}) +
       HtmlFormatter.title(content="Tabs and Chords") +
       HtmlFormatter.link(rel="stylesheet", href="default.css", type="text/css"))
 
