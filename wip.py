@@ -33,6 +33,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-chords-1680129",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/something-ukulele-1801336",
     "https://tabs.ultimate-guitar.com/tab/neil-young/heart-of-gold-chords-56555",
+    "https://tabs.ultimate-guitar.com/tab/neil-young/harvest-moon-chords-73",
     "https://tabs.ultimate-guitar.com/tab/joan-baez/diamonds-and-rust-chords-1044414",
     "https://tabs.ultimate-guitar.com/tab/jean-jacques-goldman/comme-toi-chords-69704",
     "https://tabs.ultimate-guitar.com/tab/francis-cabrel/la-corrida-chords-995197",
@@ -260,9 +261,10 @@ class GuitarTab(object):
 
     def get_link(self, display_artist=True, display_type=True, prefix=""):
         acoustic = "Acoustic " if self.is_acoustic else ""
+        part = " " + self.part if self.part else ""
         artist_name = " - %s" % self.artist_name if display_artist else ""
         type_name = " (%s%s)" % (acoustic, self.type_name) if display_type else ""
-        return HtmlFormatter.a(href="#" + self.html_anchor, content="%s%s%s%s" % (prefix, self.song_name, artist_name, type_name))
+        return HtmlFormatter.a(href="#" + self.html_anchor, content="%s%s%s%s%s" % (prefix, self.song_name, part, artist_name, type_name))
 
     def get_header(self):
         acoustic = "Acoustic " if self.is_acoustic else ""
@@ -342,6 +344,7 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
 
     def __init__(self, song_name, artist_name, url, tab_content, chord_div):
         self.song_name = song_name
+        self.part = ""
         self.artist_name = artist_name
         self.url = url
         self.tab_content = tab_content
@@ -382,8 +385,9 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
 class GuitarTabFromUltimateGuitar(GuitarTab):
     prefixes = 'https://tabs.ultimate-guitar.com/', 'https://www.ultimate-guitar.com/'
 
-    def __init__(self, song_name, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, html_anchor):
+    def __init__(self, song_name, part, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, html_anchor):
         self.song_name = song_name
+        self.part = part
         self.artist_name = artist_name
         self.url = url
         self.artist_url = artist_url
@@ -418,6 +422,7 @@ class GuitarTabFromUltimateGuitar(GuitarTab):
         is_ukulele = tab['type_name'] == 'Ukulele'
         return cls(
             song_name = tab['song_name'],
+            part = tab['part'].capitalize(),
             artist_name = tab['artist_name'],
             url = url,
             artist_url = tab['artist_url'],
