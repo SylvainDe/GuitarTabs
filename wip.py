@@ -74,6 +74,10 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-chords-1457192",
     "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-tabs-2094741",
     "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-true-detective-theme-chords-1493932",
+    # Not implemented yet
+    "https://www.guitartabs.cc/tabs/b/beatles/blackbird_tab_ver_12.html",
+    "https://www.guitaretab.com/g/greta-van-fleet/389642.html",
+    "https://www.tabs4acoustic.com/en/guitar-tabs/the-eagles-tabs/hotel-california-acoustic-tab-67.html",
     # For testing purposes
     "https://tabs.ultimate-guitar.com/tab/nirvana/smells-like-teen-spirit-drums-859029",
     "https://tabs.ultimate-guitar.com/tab/metallica/nothing-else-matters-video-1024840",
@@ -320,6 +324,7 @@ class GuitarTab(object):
 
     @classmethod
     def from_url(cls, url):
+        print("GuitarTab.from_url(%s) returned None" % url)
         return None
 
     @classmethod
@@ -360,7 +365,7 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
         self.chords = ChordsFromTabs4Acoustic.from_html_div(chord_div)
 
     @classmethod
-    def from_url(cls, url):
+    def from_url_(cls, url):  # TODO: remove underscore when this really gets implemented
         soup = urlCache.get_soup(url)
         return cls(song_name='toto',
                    artist_name='titi',
