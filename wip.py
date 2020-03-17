@@ -64,6 +64,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-beatles/across-the-universe-chords-202167",
     "https://tabs.ultimate-guitar.com/tab/the-beatles/i-want-to-hold-your-hand-chords-457088",
     "https://tabs.ultimate-guitar.com/tab/nirvana/the-man-who-sold-the-world-chords-841325",
+    "https://tabs.ultimate-guitar.com/tab/nirvana/mtv-unplugged-in-new-york-chords-98258",
     "https://tabs.ultimate-guitar.com/tab/travis/sing-chords-1334",
     "https://tabs.ultimate-guitar.com/tab/travis/sing-tabs-2749659",
     "https://tabs.ultimate-guitar.com/tab/simon-garfunkel/the-sound-of-silence-chords-159157",
