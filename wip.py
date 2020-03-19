@@ -77,6 +77,9 @@ URLS = [
     # Not implemented yet
     "https://www.guitartabs.cc/tabs/b/beatles/blackbird_tab_ver_12.html",
     "https://www.guitaretab.com/g/greta-van-fleet/389642.html",
+    "https://www.guitaretab.com/r/rem/15914.html",
+    "https://www.guitaretab.com/r/rem/238402.html",
+    "https://www.guitaretab.com/r/rem/176094.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/the-eagles-tabs/hotel-california-acoustic-tab-67.html",
     # For testing purposes
     "https://tabs.ultimate-guitar.com/tab/nirvana/smells-like-teen-spirit-drums-859029",
@@ -290,7 +293,7 @@ class GuitarTab(object):
         ]
         s = ""
         for opt_field, opt_name in opt_fields:
-            val = getattr(self, opt_field)
+            val = getattr(self, opt_field) if hasattr(self, opt_field) else None
             if val is not None:
                 s += "%s: %s%s" % (opt_name, val, HtmlFormatter.new_line)
         return s
@@ -334,6 +337,56 @@ class GuitarTab(object):
 class GuitarTabFromGuitarTabDotCom(GuitarTab):
     prefixes = 'https://www.guitaretab.com/',
 
+    def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, html_anchor):
+        self.song_name = song_name
+        self.artist_name = artist_name
+        self.url = url
+        self.artist_url = artist_url
+        self.rating = rating
+        self.votes = votes
+        self.tab_content = tab_content
+        self.is_acoustic = False
+        self.part = ""
+        self.type_name = "Tab"  # TODO
+        self.difficulty = "Unknown"
+        self.html_anchor = html_anchor
+        self.chords = None
+
+    def get_link_to_original(self):
+        return HtmlFormatter.a(href=self.url, content="from tab (rated %s / %d votes)" % (self.rating, self.votes))
+
+    def get_strumming_content(self):
+        return ""
+
+    def get_tab_content(self):
+        content = self.tab_content
+        for t in content.find_all('div'):
+            t.unwrap()
+        for t in content.find_all('span', class_="js-tab-row"):
+            t.replace_with("".join(t.strings) + "\n")
+        return HtmlFormatter.pre("".join(content.strings))
+
+    @classmethod
+    def from_url(cls, url):
+        print(url)
+        soup = urlCache.get_soup(url)
+        json_content = json.loads(soup.find('script', type="application/ld+json").string)
+        by_artist = json_content['byArtist']
+        aggregate_rating = json_content['aggregateRating']
+        assert url == json_content['url']
+        print(json_content)
+        return cls(
+                song_name = json_content['name'],
+                artist_name = by_artist['name'],
+                url = url,
+                artist_url = by_artist['url'],
+                rating = aggregate_rating['ratingValue'],
+                votes = int(aggregate_rating['reviewCount']),
+                tab_content = soup.find('pre', class_="js-tab-fit-to-screen"),
+                html_anchor="toto")
+
+
+
 
 class GuitarTabFromGuitarTabsDotCc(GuitarTab):
     prefixes = 'https://www.guitartabs.cc/',
@@ -368,10 +421,10 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
     def from_url_(cls, url):  # TODO: remove underscore when this really gets implemented
         soup = urlCache.get_soup(url)
         return cls(song_name='toto',
-                   artist_name='titi',
-                   url=url,
-                   tab_content=soup.find(id='tab_zone').find(class_="small-12 column"),
-                   chord_div=soup.find(id="crd_zone"))
+            artist_name='titi',
+            url=url,
+            tab_content=soup.find(id='tab_zone').find(class_="small-12 column"),
+            chord_div=soup.find(id="crd_zone"))
 
     def get_link_to_original(self):
         return HtmlFormatter.a(href=self.url, content="original")
