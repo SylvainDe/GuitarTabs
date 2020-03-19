@@ -317,13 +317,13 @@ class GuitarTab(object):
                 HtmlFormatter.pagebreak)
 
     def get_link_to_original(self):
-        raise NotImplementedError
+        return HtmlFormatter.comment("No link to original (%s.get_link_to_original to be implemented)" % self.__class__.__name__)
 
     def get_tab_content(self):
-        raise NotImplementedError
+        return HtmlFormatter.comment("No tab content (%s.get_tab_content to be implemented)" % self.__class__.__name__)
 
     def get_strumming_content(self):
-        raise NotImplementedError
+        return HtmlFormatter.comment("No strumming content (%s.get_strumming_content to be implemented)" % self.__class__.__name__)
 
     @classmethod
     def from_url(cls, url):
@@ -355,7 +355,7 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
     def get_link_to_original(self):
         return HtmlFormatter.a(href=self.url, content="from tab (rated %s / %d votes)" % (self.rating, self.votes))
 
-    def get_strumming_content(self):
+    def get_strumming_content_(self): # TODO
         return ""
 
     def get_tab_content(self):
@@ -374,7 +374,6 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
         by_artist = json_content['byArtist']
         aggregate_rating = json_content['aggregateRating']
         assert url == json_content['url']
-        print(json_content)
         return cls(
                 song_name = json_content['name'],
                 artist_name = by_artist['name'],
@@ -437,7 +436,7 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
         # [<a title="[ Picture of the guitar chord : E ]" href="https://www.tabs4acoustic.com/images/accords/photo-e-022100.jpg" class="viewchord hl_crd chord_diag tabtooltip"><span><img src="https://www.tabs4acoustic.com/images/crd/E[0,2,2,1,0,0]-0.png" alt="E " /></span>E</a>]
         return "toto"
 
-    def get_strumming_content(self):
+    def get_strumming_content_(self): # TODO
         return ""
 
 

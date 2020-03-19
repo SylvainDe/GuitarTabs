@@ -83,6 +83,9 @@ def head(content=None, attrs=None, **kwargs):
 def body(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="body", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n")
 
+def comment(string):
+    return "<!-- %s -->\n" % string
+
 doctype = "<!DOCTYPE html>\n"
 pagebreak = HtmlTag(tag="mbp:pagebreak", on_close="\n")
 new_line = HtmlTag(tag="br", on_close="\n")
