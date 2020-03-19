@@ -3,6 +3,7 @@ import urlfunctions
 import operator
 import subprocess
 import itertools
+import re
 
 import htmlformatter as HtmlFormatter
 
@@ -337,7 +338,7 @@ class GuitarTab(object):
 class GuitarTabFromGuitarTabDotCom(GuitarTab):
     prefixes = 'https://www.guitaretab.com/',
 
-    def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, html_anchor):
+    def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, chords, html_anchor):
         self.song_name = song_name
         self.artist_name = artist_name
         self.url = url
@@ -345,12 +346,12 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
         self.rating = rating
         self.votes = votes
         self.tab_content = tab_content
+        self.chords = chords
         self.is_acoustic = False
         self.part = ""
         self.type_name = "Tab"  # TODO
         self.difficulty = "Unknown"
         self.html_anchor = html_anchor
-        self.chords = None
 
     def get_link_to_original(self):
         return HtmlFormatter.a(href=self.url, content="from tab (rated %s / %d votes)" % (self.rating, self.votes))
@@ -374,15 +375,24 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
         by_artist = json_content['byArtist']
         aggregate_rating = json_content['aggregateRating']
         assert url == json_content['url']
+        # Dirty extract of javascript values
+        js_prefix = "window.UGAPP.store.page = "
+        jscript = soup.find('script', text=re.compile(".*%s.*" % js_prefix)).string
+        json_raw = jscript[jscript.find(js_prefix) + len(js_prefix):].replace("'", '"')
+        for k in ('applicature', 'tabId', 'tokenName', 'tokenValue'):
+            json_raw = json_raw.replace("%s:" % k, '"%s":' % k)
+        json_content2 = json.loads(json_raw)
+        song_name = json_content['name']
         return cls(
-                song_name = json_content['name'],
+                song_name = song_name,
                 artist_name = by_artist['name'],
                 url = url,
                 artist_url = by_artist['url'],
                 rating = aggregate_rating['ratingValue'],
                 votes = int(aggregate_rating['reviewCount']),
                 tab_content = soup.find('pre', class_="js-tab-fit-to-screen"),
-                html_anchor="toto")
+                chords = Chords.from_raw_data(json_content2['applicature'], is_ukulele=False),
+                html_anchor = HtmlFormatter.string_to_html_id("tab" + str(json_content2['tabId']) + "-" + song_name))
 
 
 
@@ -478,8 +488,9 @@ class GuitarTabFromUltimateGuitar(GuitarTab):
         assert url == tab['tab_url']
 
         is_ukulele = tab['type_name'] == 'Ukulele'
+        song_name = tab['song_name']
         return cls(
-            song_name = tab['song_name'],
+            song_name = song_name,
             part = tab['part'].capitalize(),
             artist_name = tab['artist_name'],
             url = url,
@@ -497,7 +508,7 @@ class GuitarTabFromUltimateGuitar(GuitarTab):
             tab_content = tab_view['wiki_tab'].get('content', ''),
             chords = Chords.from_raw_data(tab_view['applicature'], is_ukulele),
             strummings = Strumming.from_raw_data(tab_view['strummings']),
-            html_anchor = HtmlFormatter.string_to_html_id("tab" + str(tab['id']) + "-" + tab['song_name']),
+            html_anchor = HtmlFormatter.string_to_html_id("tab" + str(tab['id']) + "-" + song_name),
         )
 
     @classmethod
