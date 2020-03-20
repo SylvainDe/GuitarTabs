@@ -4,6 +4,7 @@ import operator
 import subprocess
 import itertools
 import re
+import html as htmlmodule
 
 import htmlformatter as HtmlFormatter
 
@@ -526,6 +527,7 @@ class GuitarTabFromUltimateGuitar(GuitarTab):
             .replace('\r\n', '\n')
             .replace('[tab]', '')
             .replace('[/tab]', ''))
+        content = htmlmodule.escape(content)
         for c in self.chords:
             content = content.replace("[ch]%s[/ch]" % c.name, str(c.get_link(display_type=False)))
         return HtmlFormatter.pre(content)
