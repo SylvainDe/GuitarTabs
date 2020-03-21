@@ -373,7 +373,7 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
                 t.unwrap()
             else:
                 t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
-        return HtmlFormatter.pre(str(content))
+        return HtmlFormatter.pre("".join(str(t) for t in content.contents))
 
     @classmethod
     def from_url(cls, url):
