@@ -4,9 +4,9 @@ import operator
 import subprocess
 import itertools
 import re
+import urllib.parse
 import html as htmlmodule
 from bs4 import BeautifulSoup
-
 import htmlformatter as HtmlFormatter
 
 # https://kdp.amazon.com/en_US/help/topic/G200673180 "Supported HTML Tags in Book Content "
@@ -378,7 +378,6 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
 
     @classmethod
     def from_url(cls, url):
-        print(url)
         soup = urlCache.get_soup(url)
         json_content = json.loads(soup.find('script', type="application/ld+json").string)
         by_artist = json_content['byArtist']
@@ -406,6 +405,59 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
 
 class GuitarTabFromGuitarTabsDotCc(GuitarTab):
     prefixes = 'https://www.guitartabs.cc/',
+
+    def __init__(self, song_name, artist_name, type_name, url, version, tab_content, votes, artist_url, chords, html_anchor):
+        self.song_name = song_name
+        self.artist_name = artist_name
+        self.url = url
+        self.artist_url = artist_url
+        self.version = version
+        self.votes = votes
+        self.is_acoustic = False
+        self.part = ""
+        self.type_name = type_name
+        self.tab_content = tab_content
+        self.difficulty = "Unknown"
+        self.chords = chords
+        self.html_anchor = html_anchor
+
+    @classmethod
+    def from_url(cls, url):
+        print(url)
+        soup = urlCache.get_soup(url)
+        titles = soup.find_all(class_="rightbrdr t_title")
+        artist_url = urllib.parse.urljoin(url, titles[0].find('a')['href'])
+        version = int(str(titles[1].find('b').string))
+        type_name = titles[2].find('strong').string
+        votes = titles[3].string
+        tab_content = soup.find("div", class_="tabcont").find("font", style="line-height:normal").find("pre")
+        # Dirty extract of javascript values
+        js_prefix = "window.tpAd('exitCampaign', {songData: "
+        jscript = soup.find('script', text=re.compile(".*%s.*" % re.escape(js_prefix))).string
+        json_raw = jscript[jscript.find(js_prefix) + len(js_prefix):][:-5]
+        song_data = json.loads(json_raw)
+        return cls(
+            song_name = song_data['songName'],
+            artist_name = song_data['artistName'],
+            url = url,
+            artist_url = artist_url,
+            type_name = type_name,
+            version = version,
+            votes = votes,
+            tab_content = tab_content,
+            chords = [],
+            html_anchor = "html_anchor")
+
+    def get_link_to_original(self):
+        return HtmlFormatter.a(href=self.url, content="%s version %d (%s)" % (self.type_name, self.version, self.votes))
+
+    def get_tab_content(self):
+        content = self.tab_content
+        for t in content.find_all('span'):
+            t.decompose()
+        for t in content.find_all('a'):
+            t.replace_with(t.string)
+        return HtmlFormatter.pre("".join(str(t) for t in content.contents))
 
 class ChordsFromTabs4Acoustic(object):
 
