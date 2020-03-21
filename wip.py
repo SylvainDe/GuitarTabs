@@ -77,12 +77,16 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-chords-1457192",
     "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-tabs-2094741",
     "https://tabs.ultimate-guitar.com/tab/the-handsome-family/far-from-any-road-true-detective-theme-chords-1493932",
-    # Not implemented yet
-    "https://www.guitartabs.cc/tabs/b/beatles/blackbird_tab_ver_12.html",
     "https://www.guitaretab.com/g/greta-van-fleet/389642.html",
     "https://www.guitaretab.com/r/rem/15914.html",
     "https://www.guitaretab.com/r/rem/238402.html",
     "https://www.guitaretab.com/r/rem/176094.html",
+    # Not implemented yet
+    "https://www.guitartabs.cc/tabs/b/beatles/blackbird_tab_ver_12.html",
+    "https://www.guitartabs.cc/tabs/e/eagles/hotel_california_tab.html",
+    "https://www.guitartabs.cc/tabs/g/gotye/somebody_that_i_used_to_know_crd_ver_5.html",
+    "https://www.guitartabs.cc/tabs/a/adele/someone_like_you_crd.html",
+    "https://www.guitartabs.cc/tabs/a/adele/someone_like_you_tab_ver_2.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/the-eagles-tabs/hotel-california-acoustic-tab-67.html",
     # For testing purposes
     "https://tabs.ultimate-guitar.com/tab/nirvana/smells-like-teen-spirit-drums-859029",
