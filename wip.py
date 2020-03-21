@@ -5,6 +5,7 @@ import subprocess
 import itertools
 import re
 import html as htmlmodule
+from bs4 import BeautifulSoup
 
 import htmlformatter as HtmlFormatter
 
@@ -361,12 +362,18 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
         return ""
 
     def get_tab_content(self):
+        dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
         content = self.tab_content
-        for t in content.find_all('div'):
-            t.unwrap()
-        for t in content.find_all('span', class_="js-tab-row"):
-            t.replace_with("".join(t.strings) + "\n")
-        return HtmlFormatter.pre("".join(content.strings))
+        for t in content.find_all('span', class_="js-tab-row js-empty-tab-row"):
+            t.decompose()
+        for t in content.find_all(style="display: block"):
+            t.insert_after('\n')
+        for t in content.find_all():
+            if " ".join(t.attrs['class']) != "gt-chord js-tab-ch js-tapped":
+                t.unwrap()
+            else:
+                t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
+        return HtmlFormatter.pre(str(content))
 
     @classmethod
     def from_url(cls, url):
