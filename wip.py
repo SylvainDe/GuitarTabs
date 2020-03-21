@@ -81,13 +81,15 @@ URLS = [
     "https://www.guitaretab.com/r/rem/15914.html",
     "https://www.guitaretab.com/r/rem/238402.html",
     "https://www.guitaretab.com/r/rem/176094.html",
-    # Not implemented yet
     "https://www.guitartabs.cc/tabs/b/beatles/blackbird_tab_ver_12.html",
     "https://www.guitartabs.cc/tabs/e/eagles/hotel_california_tab.html",
     "https://www.guitartabs.cc/tabs/g/gotye/somebody_that_i_used_to_know_crd_ver_5.html",
     "https://www.guitartabs.cc/tabs/a/adele/someone_like_you_crd.html",
     "https://www.guitartabs.cc/tabs/a/adele/someone_like_you_tab_ver_2.html",
+    # Not implemented yet
     "https://www.tabs4acoustic.com/en/guitar-tabs/the-eagles-tabs/hotel-california-acoustic-tab-67.html",
+    "https://www.tabs4acoustic.com/en/guitar-tabs/jeff-buckley-tabs/hallelujah-acoustic-tab-213.html",
+    "https://www.tabs4acoustic.com/en/guitar-tabs/izrael-kamakawiwo-ole-tabs/over-the-rainbow-acoustic-tab-319.html",
     # For testing purposes
     "https://tabs.ultimate-guitar.com/tab/nirvana/smells-like-teen-spirit-drums-859029",
     "https://tabs.ultimate-guitar.com/tab/metallica/nothing-else-matters-video-1024840",
@@ -446,7 +448,7 @@ class GuitarTabFromGuitarTabsDotCc(GuitarTab):
             votes = votes,
             tab_content = tab_content,
             chords = [],
-            html_anchor = "html_anchor")
+            html_anchor = "html_anchor")  # TODO
 
     def get_link_to_original(self):
         return HtmlFormatter.a(href=self.url, content="%s version %d (%s)" % (self.type_name, self.version, self.votes))
@@ -486,8 +488,9 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
         self.chords = ChordsFromTabs4Acoustic.from_html_div(chord_div)
 
     @classmethod
-    def from_url_(cls, url):  # TODO: remove underscore when this really gets implemented
+    def from_url(cls, url):
         soup = urlCache.get_soup(url)
+        return None  # TODO: remove underscore when this really gets implemented
         return cls(song_name='toto',
             artist_name='titi',
             url=url,
