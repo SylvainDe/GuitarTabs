@@ -356,10 +356,7 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
         self.html_anchor = html_anchor
 
     def get_link_to_original(self):
-        return HtmlFormatter.a(href=self.url, content="from tab (rated %s / %d votes)" % (self.rating, self.votes))
-
-    def get_strumming_content_(self): # TODO
-        return ""
+        return HtmlFormatter.a(href=self.url, content="Version from guitartab.com (rated %s / %d votes)" % (self.rating, self.votes))
 
     def get_tab_content(self):
         dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
@@ -401,8 +398,6 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
                 tab_content = soup.find('pre', class_="js-tab-fit-to-screen"),
                 chords = Chords.from_raw_data(json_content2['applicature'], is_ukulele=False),
                 html_anchor = HtmlFormatter.string_to_html_id("tab" + str(json_content2['tabId']) + "-" + song_name))
-
-
 
 
 class GuitarTabFromGuitarTabsDotCc(GuitarTab):
