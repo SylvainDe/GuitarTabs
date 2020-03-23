@@ -4,6 +4,7 @@ import operator
 import subprocess
 import itertools
 import re
+import hashlib
 import urllib.parse
 import html as htmlmodule
 from bs4 import BeautifulSoup
@@ -276,7 +277,7 @@ class GuitarTab(object):
     by_difficulty = operator.attrgetter('difficulty')
     by_type = operator.attrgetter('type_name')
 
-    def __init__(self, url, song_name="Song Name", artist_name="Artist Name", artist_url="www.tab.com/artist/"):
+    def __init__(self, url, song_name, artist_name, artist_url, tab_id):
         self.url = url
         self.song_name = song_name
         self.artist_name = artist_name
@@ -288,7 +289,9 @@ class GuitarTab(object):
         self.tonality = None
         self.difficulty = "Unknown"
         self.tuning = None
-        self.html_anchor = str(abs(hash(url)) % (10 ** 8))
+        if tab_id is None:
+            tab_id = abs(int(hashlib.sha512(url.encode('utf-8')).hexdigest(), 16)) % (10 ** 8)
+        self.html_anchor = HtmlFormatter.string_to_html_id("tab" + str(tab_id) + "-" + song_name)
 
     def get_link(self, display_artist=True, display_type=True, prefix=""):
         acoustic = "Acoustic " if self.is_acoustic else ""
@@ -360,13 +363,12 @@ class GuitarTab(object):
 class GuitarTabFromGuitarTabDotCom(GuitarTab):
     prefixes = 'https://www.guitaretab.com/',
 
-    def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, chords, html_anchor):
-        super().__init__(url, song_name, artist_name, artist_url)
+    def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, chords, tab_id):
+        super().__init__(url, song_name, artist_name, artist_url, tab_id)
         self.rating = rating
         self.votes = votes
         self.tab_content = tab_content
         self.chords = chords
-        self.html_anchor = html_anchor
 
     def get_link_to_original(self):
         return HtmlFormatter.a(href=self.url, content="Version from guitartab.com (rated %s / %d votes)" % (self.rating, self.votes))
@@ -409,14 +411,14 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
                 votes = int(aggregate_rating['reviewCount']),
                 tab_content = soup.find('pre', class_="js-tab-fit-to-screen"),
                 chords = Chords.from_raw_data(json_content2['applicature'], is_ukulele=False),
-                html_anchor = HtmlFormatter.string_to_html_id("tab" + str(json_content2['tabId']) + "-" + song_name))
+                tab_id = json_content2['tabId'])
 
 
 class GuitarTabFromGuitarTabsDotCc(GuitarTab):
     prefixes = 'https://www.guitartabs.cc/',
 
     def __init__(self, song_name, artist_name, type_name, url, version, tab_content, votes, artist_url, chords):
-        super().__init__(url, song_name, artist_name, artist_url)
+        super().__init__(url, song_name, artist_name, artist_url, tab_id=None)
         self.version = version
         self.votes = votes
         self.type_name = type_name
@@ -472,7 +474,6 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
     def __init__(self, song_name, artist_name, url, tab_content, chord_div):
         super().__init__(url, song_name, artist_name)
         self.tab_content = tab_content
-        self.html_anchor = "TODO anchor"
         self.artist_url = "TODO artist url"
         self.chords = ChordsFromTabs4Acoustic.from_html_div(chord_div)
 
@@ -504,10 +505,9 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
 class GuitarTabFromUltimateGuitar(GuitarTab):
     prefixes = 'https://tabs.ultimate-guitar.com/', 'https://www.ultimate-guitar.com/'
 
-    def __init__(self, song_name, part, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, html_anchor):
-        super().__init__(url, song_name, artist_name)
+    def __init__(self, song_name, part, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, tab_id):
+        super().__init__(url, song_name, artist_name, artist_url, tab_id)
         self.part = part
-        self.artist_url = artist_url
         self.type_name = type_name
         self.version = version
         self.author = author
@@ -522,7 +522,6 @@ class GuitarTabFromUltimateGuitar(GuitarTab):
         self.tab_content = tab_content
         self.chords = chords
         self.strummings = strummings
-        self.html_anchor = html_anchor
 
     @classmethod
     def from_url(cls, url):
@@ -558,7 +557,7 @@ class GuitarTabFromUltimateGuitar(GuitarTab):
             tab_content = tab_view['wiki_tab'].get('content', ''),
             chords = Chords.from_raw_data(tab_view['applicature'], is_ukulele),
             strummings = Strumming.from_raw_data(tab_view['strummings']),
-            html_anchor = HtmlFormatter.string_to_html_id("tab" + str(tab['id']) + "-" + song_name),
+            tab_id = tab['id'],
         )
 
     @classmethod
