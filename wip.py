@@ -16,6 +16,10 @@ KINDLEGEN_PATH = 'Kindlegen/kindlegen'
 
 urlCache = urlfunctions.UrlCache("cache")
 
+# Debug flag to be able to disable retrieval of all tabs and corresponding logging
+# to be able to focus on a single getter class
+IN_DEV=False
+
 URLS = [
     "https://tabs.ultimate-guitar.com/tab/jeff-buckley/hallelujah-chords-198052",
     "https://tabs.ultimate-guitar.com/tab/oasis/wonderwall-chords-27596",
@@ -91,6 +95,7 @@ URLS = [
     "https://www.tabs4acoustic.com/en/guitar-tabs/the-eagles-tabs/hotel-california-acoustic-tab-67.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/jeff-buckley-tabs/hallelujah-acoustic-tab-213.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/izrael-kamakawiwo-ole-tabs/over-the-rainbow-acoustic-tab-319.html",
+    # "https://www.tabs4acoustic.com/en/free-riffs/led-zeppelin-black-dog-185.html",
     # For testing purposes
     "https://tabs.ultimate-guitar.com/tab/nirvana/smells-like-teen-spirit-drums-859029",
     "https://tabs.ultimate-guitar.com/tab/metallica/nothing-else-matters-video-1024840",
@@ -389,6 +394,8 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
 
     @classmethod
     def from_url(cls, url):
+        if IN_DEV:
+            return None
         soup = urlCache.get_soup(url)
         json_content = json.loads(soup.find('script', type="application/ld+json").string)
         by_artist = json_content['byArtist']
@@ -427,6 +434,8 @@ class GuitarTabFromGuitarTabsDotCc(GuitarTab):
 
     @classmethod
     def from_url(cls, url):
+        if IN_DEV:
+            return None
         soup = urlCache.get_soup(url)
         titles = soup.find_all(class_="rightbrdr t_title")
         artist_url = urllib.parse.urljoin(url, titles[0].find('a')['href'])
@@ -471,24 +480,35 @@ class ChordsFromTabs4Acoustic(object):
 class GuitarTabFromTabs4Acoustic(GuitarTab):
     prefixes = 'https://www.tabs4acoustic.com/',
 
-    def __init__(self, song_name, artist_name, url, tab_content, chord_div):
-        super().__init__(url, song_name, artist_name)
+    def __init__(self, song_name, artist_name, url, artist_url, tab_content, chord_div, author, strummings):
+        super().__init__(url, song_name, artist_name, artist_url, tab_id=None)
         self.tab_content = tab_content
-        self.artist_url = "TODO artist url"
         self.chords = ChordsFromTabs4Acoustic.from_html_div(chord_div)
+        self.author = author
+        self.strummings = strummings
 
     @classmethod
     def from_url(cls, url):
+        if IN_DEV:
+            return None
         soup = urlCache.get_soup(url)
-        return None  # TODO: remove when this really gets implemented
-        return cls(song_name='toto',
-            artist_name='titi',
+        breadcrumbs_links = soup.find("div", id="breadcrumbs").find_all('a')
+        song_link = breadcrumbs_links[3]
+        artist_link = breadcrumbs_links[2]
+        artist_str = artist_link.string
+        artist_name = artist_str[:artist_str.rfind(" ")]
+        tags = soup.find("div", id="tags")
+        return cls(song_name=song_link.string,
+            artist_name=artist_name,
             url=url,
+            artist_url=urllib.parse.urljoin(url, artist_link['href']),
             tab_content=soup.find(id='tab_zone').find(class_="small-12 column"),
-            chord_div=soup.find(id="crd_zone"))
+            chord_div=soup.find(id="crd_zone"),
+            author=soup.find("meta", attrs={'name': "author"})["content"],
+            strummings=soup.find("div", id="tab_rhy"))
 
     def get_link_to_original(self):
-        return HtmlFormatter.a(href=self.url, content="original")
+        return HtmlFormatter.a(href=self.url, content="%s from %s" % (self.type_name, self.author))
 
     def get_tab_content(self):
         #for i, c in enumerate(self.tab_content.contents):
@@ -525,6 +545,8 @@ class GuitarTabFromUltimateGuitar(GuitarTab):
 
     @classmethod
     def from_url(cls, url):
+        if IN_DEV:
+            return None
         soup = urlCache.get_soup(url)
 
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
@@ -588,7 +610,8 @@ class GuitarTabGetter(object):
 
     @classmethod
     def get_class_for_url(cls, url):
-        print(url)
+        if not IN_DEV:
+            print(url)
         for class_ in (GuitarTabFromUltimateGuitar,
                        GuitarTabFromGuitarTabDotCom,
                        GuitarTabFromTabs4Acoustic,
