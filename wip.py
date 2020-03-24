@@ -514,12 +514,19 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
         return HtmlFormatter.a(href=self.url, content="%s from %s" % (self.type_name, self.author))
 
     def get_tab_content(self):
+        content = self.tab_content
+        for t in content.find_all('span'):
+             t.unwrap()
+        for t in content.find_all('a'):
+             t.unwrap()
+        for t in content.find_all('img'):
+             t.unwrap()
         #for i, c in enumerate(self.tab_content.contents):
         #    print(i, c)
         #print(str(self.tab_content))
         #content = HtmlFormatter.pre(str(self.tab_content).replace('\r\n', '\n'))
         # [<a title="[ Picture of the guitar chord : E ]" href="https://www.tabs4acoustic.com/images/accords/photo-e-022100.jpg" class="viewchord hl_crd chord_diag tabtooltip"><span><img src="https://www.tabs4acoustic.com/images/crd/E[0,2,2,1,0,0]-0.png" alt="E " /></span>E</a>]
-        return ""
+        return HtmlFormatter.pre(str(content).replace("\r", "\n"))
 
     def get_strumming_content(self):
         content = self.strummings
