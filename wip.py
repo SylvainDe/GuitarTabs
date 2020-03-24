@@ -95,6 +95,9 @@ URLS = [
     "https://www.tabs4acoustic.com/en/guitar-tabs/the-eagles-tabs/hotel-california-acoustic-tab-67.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/jeff-buckley-tabs/hallelujah-acoustic-tab-213.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/izrael-kamakawiwo-ole-tabs/over-the-rainbow-acoustic-tab-319.html",
+    "https://www.tabs4acoustic.com/en/guitar-tabs/david-bowie-tabs/space-oddity-acoustic-tab-407.html",
+    "https://www.tabs4acoustic.com/en/guitar-tabs/ben-e-king-tabs/stand-by-me-acoustic-tab-442.html",
+    "https://www.tabs4acoustic.com/en/guitar-tabs/bob-marley-tabs/redemption-song-acoustic-tab-133.html",
     # "https://www.tabs4acoustic.com/en/free-riffs/led-zeppelin-black-dog-185.html",
     # For testing purposes
     "https://tabs.ultimate-guitar.com/tab/nirvana/smells-like-teen-spirit-drums-859029",
@@ -516,10 +519,19 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
         #print(str(self.tab_content))
         #content = HtmlFormatter.pre(str(self.tab_content).replace('\r\n', '\n'))
         # [<a title="[ Picture of the guitar chord : E ]" href="https://www.tabs4acoustic.com/images/accords/photo-e-022100.jpg" class="viewchord hl_crd chord_diag tabtooltip"><span><img src="https://www.tabs4acoustic.com/images/crd/E[0,2,2,1,0,0]-0.png" alt="E " /></span>E</a>]
-        return "toto"
-
-    def get_strumming_content_(self): # TODO
         return ""
+
+    def get_strumming_content(self):
+        content = self.strummings
+        for t in content.find_all('h3'):
+            t.decompose()
+        for t in content.find_all('span', class_="tab_help"):
+            t.decompose()
+        for t in content.find_all("br"):
+            t.replace_with("\n")
+        for t in content.find_all():
+             t.unwrap()
+        return HtmlFormatter.pre("".join(content.contents).strip()) # TODO: Get other info from tags
 
 
 class GuitarTabFromUltimateGuitar(GuitarTab):
