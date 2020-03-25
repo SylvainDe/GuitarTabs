@@ -483,12 +483,15 @@ class ChordsFromTabs4Acoustic(object):
 class GuitarTabFromTabs4Acoustic(GuitarTab):
     prefixes = 'https://www.tabs4acoustic.com/',
 
-    def __init__(self, song_name, artist_name, url, artist_url, tab_content, chord_div, author, strummings):
+    def __init__(self, song_name, artist_name, url, artist_url, tab_content, chord_div, author, strummings, key, timesig, tempo):
         super().__init__(url, song_name, artist_name, artist_url, tab_id=None)
         self.tab_content = tab_content
         self.chords = ChordsFromTabs4Acoustic.from_html_div(chord_div)
         self.author = author
         self.strummings = strummings
+        self.tonality = key
+        self.timesig = timesig
+        self.tempo = tempo
 
     @classmethod
     def from_url(cls, url):
@@ -500,7 +503,19 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
         artist_link = breadcrumbs_links[2]
         artist_str = artist_link.string
         artist_name = artist_str[:artist_str.rfind(" ")]
-        tags = soup.find("div", id="tags")
+        album, year, timesig, key, tempo = None, None, None, None, None
+        for t in soup.find("div", id="tags").find_all("a"):
+            href = t['href']
+            if "/album/" in href:
+                album = t.string
+            elif "/year/" in href:
+                year = t.string
+            elif "/time-signature/" in href:
+                timesig = t.string
+            elif "/key/" in href:
+                key = t.string
+            elif "/tempos/" in href:
+                tempo = t.string
         return cls(song_name=song_link.string,
             artist_name=artist_name,
             url=url,
@@ -508,7 +523,10 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
             tab_content=soup.find(id='tab_zone').find(class_="small-12 column"),
             chord_div=soup.find(id="crd_zone"),
             author=soup.find("meta", attrs={'name': "author"})["content"],
-            strummings=soup.find("div", id="tab_rhy"))
+            strummings=soup.find("div", id="tab_rhy"),
+            key=key,
+            timesig=timesig,
+            tempo=tempo)
 
     def get_link_to_original(self):
         return HtmlFormatter.a(href=self.url, content="%s from %s" % (self.type_name, self.author))
@@ -529,6 +547,7 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
         return HtmlFormatter.pre(str(content).replace("\r", "\n"))
 
     def get_strumming_content(self):
+        begin = "Tempo: %s, Time signature: %s\n" % (self.tempo, self.timesig)
         content = self.strummings
         for t in content.find_all('h3'):
             t.decompose()
@@ -538,7 +557,7 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
             t.replace_with("\n")
         for t in content.find_all():
              t.unwrap()
-        return HtmlFormatter.pre("".join(content.contents).strip()) # TODO: Get other info from tags
+        return HtmlFormatter.pre(begin + "".join(content.contents).strip())
 
 
 class GuitarTabFromUltimateGuitar(GuitarTab):
