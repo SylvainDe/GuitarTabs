@@ -295,6 +295,7 @@ class GuitarTab(object):
         self.is_acoustic = False
         self.capo = None
         self.tonality = None
+        self.key = None
         self.difficulty = "Unknown"
         self.tuning = None
         if tab_id is None:
@@ -322,6 +323,7 @@ class GuitarTab(object):
         opt_fields = [
             ('capo', 'Capo'),
             ('tonality', 'Tonality'),
+            ('key', 'Key'),
             ('difficulty', 'Difficulty'),
             ('tuning', 'Tuning'),
         ]
@@ -489,7 +491,7 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
         self.chords = ChordsFromTabs4Acoustic.from_html_div(chord_div)
         self.author = author
         self.strummings = strummings
-        self.tonality = key
+        self.key = key
         self.timesig = timesig
         self.tempo = tempo
 
