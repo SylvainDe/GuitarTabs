@@ -278,7 +278,7 @@ class Strumming(object):
                     len(self.measures),
                     lines))
 
-class GuitarTab(object):
+class AbstractGuitarTab(object):
 
     by_name = operator.attrgetter('song_name')
     by_artist = operator.attrgetter('artist_name')
@@ -363,14 +363,14 @@ class GuitarTab(object):
 
     @classmethod
     def from_url(cls, url):
-        print("GuitarTab.from_url(%s) returned None" % url)
+        print("%s.from_url(%s) returned None" % (cls.__name__, url))
         return None
 
     @classmethod
     def from_list_url(cls, list_url):
         return []
 
-class GuitarTabFromGuitarTabDotCom(GuitarTab):
+class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
     prefixes = 'https://www.guitaretab.com/',
 
     def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, chords, tab_id):
@@ -426,7 +426,7 @@ class GuitarTabFromGuitarTabDotCom(GuitarTab):
                 tab_id = json_content2['tabId'])
 
 
-class GuitarTabFromGuitarTabsDotCc(GuitarTab):
+class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
     prefixes = 'https://www.guitartabs.cc/',
 
     def __init__(self, song_name, artist_name, type_name, url, version, tab_content, votes, artist_url, chords):
@@ -482,7 +482,7 @@ class ChordsFromTabs4Acoustic(object):
         return []
 
 
-class GuitarTabFromTabs4Acoustic(GuitarTab):
+class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
     prefixes = 'https://www.tabs4acoustic.com/',
 
     def __init__(self, song_name, artist_name, url, artist_url, tab_content, chord_div, author, strummings, key, timesig, tempo):
@@ -562,7 +562,7 @@ class GuitarTabFromTabs4Acoustic(GuitarTab):
         return HtmlFormatter.pre(begin + "".join(content.contents).strip())
 
 
-class GuitarTabFromUltimateGuitar(GuitarTab):
+class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
     prefixes = 'https://tabs.ultimate-guitar.com/', 'https://www.ultimate-guitar.com/'
 
     def __init__(self, song_name, part, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, tab_id):
@@ -704,25 +704,25 @@ def get_html_body(tabs, chords):
     body.add(heading(3, link(href="#toc_tabs") + link(href="#tabs", content="Tabs")))
     body.add(link(name="toc_tabs"))
     body.add(heading(4, link(name="toc_tabs_by_title") + "By title"))
-    for t in sorted(tabs, key=GuitarTab.by_name):
+    for t in sorted(tabs, key=AbstractGuitarTab.by_name):
         body.add(t.get_link())
         body.add(HtmlFormatter.new_line)
     body.add(heading(4, link(name="toc_tabs_by_artist") + "By artist"))
-    for artist, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_artist):
+    for artist, tabs_grouped in my_groupby(tabs, key=AbstractGuitarTab.by_artist):
         body.add(heading(5, artist))
-        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+        for t in sorted(tabs_grouped, key=AbstractGuitarTab.by_name):
             body.add(t.get_link(display_artist=False))
             body.add(HtmlFormatter.new_line)
     body.add(heading(4, link(name="toc_tabs_by_diff") + "By difficulty"))
-    for diff, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_difficulty):
+    for diff, tabs_grouped in my_groupby(tabs, key=AbstractGuitarTab.by_difficulty):
         body.add(heading(5, diff))
-        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+        for t in sorted(tabs_grouped, key=AbstractGuitarTab.by_name):
             body.add(t.get_link())
             body.add(HtmlFormatter.new_line)
     body.add(heading(4, link(name="toc_tabs_by_type") + "By type"))
-    for type_name, tabs_grouped in my_groupby(tabs, key=GuitarTab.by_type):
+    for type_name, tabs_grouped in my_groupby(tabs, key=AbstractGuitarTab.by_type):
         body.add(heading(5, type_name))
-        for t in sorted(tabs_grouped, key=GuitarTab.by_name):
+        for t in sorted(tabs_grouped, key=AbstractGuitarTab.by_name):
             body.add(t.get_link(display_type=False))
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(name="toc_chords") + link(href="#chords", content="Chords")))
@@ -740,7 +740,7 @@ def get_html_body(tabs, chords):
     body.add(link(name="start") + "\n")
     # tab content
     body.add(link(name="tabs"))
-    for t in sorted(tabs, key=GuitarTab.by_name):
+    for t in sorted(tabs, key=AbstractGuitarTab.by_name):
         body.add(t.get_html_content())
     # chord content
     body.add(link(name="chords"))
@@ -760,7 +760,7 @@ def get_tabs(urls):
         for order in ('order=hitsdaily_desc', 'order=hitstotal_desc', 'order=rating_desc', ''):
             for type_ in ('type=all', 'type=official', 'type=chords', 'type=tabs', 'type=guitar%20pro', 'type=power', 'type=bass', 'type=ukulele',  ''):
                 url = "https://www.ultimate-guitar.com/top/tabs?" + order + '&' + type_
-                tabs.extend(GuitarTab.from_list_url(url))
+                tabs.extend(AbstractGuitarTab.from_list_url(url))
     return [t for t in tabs  if t is not None]
 
 
