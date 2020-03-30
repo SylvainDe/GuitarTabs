@@ -130,7 +130,7 @@ class AbstractChords(object):
         # Note: don't forget to call register_and_build_html_anchor
 
     def register_and_build_html_anchor(self):
-	    # To be called from constructor ONLY when all fields are initialised
+        # To be called from constructor ONLY when all fields are initialised
         index = self.register()
         self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if self.is_ukulele else "", str(index) if index else ""))
 
@@ -467,6 +467,9 @@ class ChordsFromGuitarTabsDotCc(AbstractChords):
         super().__init__(name=name, is_ukulele=is_ukulele, short_content=short_content)
         self.register_and_build_html_anchor()
 
+    def get_specific_content(self):
+        return HtmlFormatter.pre(self.short_content)
+
     @classmethod
     def from_javascript(cls, data, is_ukulele):
         chords = []
@@ -533,9 +536,23 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
 
 class ChordsFromTabs4Acoustic(AbstractChords):
 
-    def __init__(self, name, is_ukulele, short_content):
+    def __init__(self, name, is_ukulele, finger_pos):
+        short_content = "".join(finger_pos)
         super().__init__(name=name, is_ukulele=is_ukulele, short_content=short_content)
+        self.finger_pos = finger_pos
         self.register_and_build_html_anchor()
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+            self.name == other.name and
+            self.is_ukulele == other.is_ukulele and
+            self.short_content == other.short_content and
+            self.finger_pos == self.finger_pos) # Do not use html_anchor
+
+    def get_specific_content(self):
+        fret_width = max(len(fret) for fret in self.finger_pos)
+        content = "".join(f.rjust(1 + fret_width) for f in self.finger_pos).strip()
+        return HtmlFormatter.pre(content)
 
     @classmethod
     def from_html_div(cls, div, is_ukulele):
@@ -546,9 +563,9 @@ class ChordsFromTabs4Acoustic(AbstractChords):
             link = d.find('a')
             href, title = link['href'], link['title']
             # TODO: print(alt, src, href, title)
-            _, name, short_content_raw = alt.split(" ")
-            short_content = short_content_raw[1: -1].replace(",", "")
-            chords.append(cls(name, is_ukulele=is_ukulele, short_content=short_content) )
+            _, name, fingers = alt.split(" ")
+            finger_pos = fingers[1: -1].split(",")
+            chords.append(cls(name, is_ukulele=is_ukulele, finger_pos=finger_pos))
         return chords
 
 
