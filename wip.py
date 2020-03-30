@@ -315,7 +315,7 @@ class AbstractGuitarTab(object):
                 self.get_chord_content(),
                 HtmlFormatter.pagebreak,
                 self.get_tab_content(),
-                self.get_link(prefix="Back to top of "),
+                self.get_link(prefix="Back to top of ", display_type=False, display_src=False),
                 HtmlFormatter.new_line,
                 HtmlFormatter.pagebreak)
 
@@ -420,7 +420,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
         self.chords = chords
 
     def get_link_to_original(self):
-        return HtmlFormatter.a(href=self.url, content="Version from guitartab.com (rated %s / %d votes)" % (self.rating, self.votes))
+        return HtmlFormatter.a(href=self.url, content="Version from %s (rated %s / %d votes)" % (self.website, self.rating, self.votes))
 
     def get_tab_content(self):
         dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
@@ -529,7 +529,7 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
             chords = ChordsFromGuitarTabsDotCc.from_javascript(chords_jscript, is_ukulele=False))
 
     def get_link_to_original(self):
-        return HtmlFormatter.a(href=self.url, content="%s version %d (%s)" % (self.type_name, self.version, self.votes))
+        return HtmlFormatter.a(href=self.url, content="%s version %d from %s (%s)" % (self.type_name, self.version, self.website, self.votes))
 
     def get_tab_content(self):
         dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
