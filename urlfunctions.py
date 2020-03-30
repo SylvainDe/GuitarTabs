@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 # Avoid flooding the server with requests
 DELAY_BEFORE_REQUEST = 1
 
+
 def log(string):
     """Dirty logging function."""
     # TODO: https://docs.python.org/2/library/logging.html#logrecord-attributes
@@ -34,14 +35,20 @@ def urlopen_wrapper(url, referer=None):
     user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/534.30 (KHTML, like Gecko) Ubuntu/11.04 Chromium/12.0.742.112 Chrome/12.0.742.112 Safari/534.30'
     try:
         time.sleep(DELAY_BEFORE_REQUEST)
-        req = urllib.request.Request(url, headers={'User-Agent': user_agent, 'Accept': '*/*'})
+        req = urllib.request.Request(
+            url,
+            headers={'User-Agent': user_agent, 'Accept': '*/*'})
         if referer:
             req.add_header('Referer', referer)
         response = urllib.request.urlopen(req)
         if response.info().get('Content-Encoding') == 'gzip':
             return gzip.GzipFile(fileobj=response)
         return response
-    except (urllib.error.HTTPError, http.client.RemoteDisconnected, urllib.error.URLError, ConnectionResetError, ssl.CertificateError) as e:
+    except (urllib.error.HTTPError,
+            http.client.RemoteDisconnected,
+            urllib.error.URLError,
+            ConnectionResetError,
+            ssl.CertificateError) as e:
         print("Exception %s for url %s" % (e, url))
         raise
 
@@ -117,5 +124,3 @@ class UrlCache():
     def get_soup(self, url):
         content = self.get_content(url)
         return BeautifulSoup(content, "html.parser")
-
-

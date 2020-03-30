@@ -16,7 +16,7 @@ urlCache = urlfunctions.UrlCache("cache")
 
 # Debug flag to be able to disable retrieval of all tabs and corresponding logging
 # to be able to focus on a single getter class
-IN_DEV=False
+IN_DEV = False
 
 
 class AbstractGuitarTab(object):
@@ -60,11 +60,11 @@ class AbstractGuitarTab(object):
         acoustic = "Acoustic " if self.is_acoustic else ""
         artist_link = HtmlFormatter.a(href=self.artist_url, content=self.artist_name)
         return HtmlFormatter.HtmlGroup(
-                HtmlFormatter.a(name=self.html_anchor),
-                "\n",
-                HtmlFormatter.h(2, "%s - %s (%s%s)" % (self.song_name, artist_link, acoustic, self.type_name)),
-                self.get_link_to_original(),
-                HtmlFormatter.new_line)
+            HtmlFormatter.a(name=self.html_anchor),
+            "\n",
+            HtmlFormatter.h(2, "%s - %s (%s%s)" % (self.song_name, artist_link, acoustic, self.type_name)),
+            self.get_link_to_original(),
+            HtmlFormatter.new_line)
 
     def get_optional_field_content(self):
         opt_fields = [
@@ -89,15 +89,15 @@ class AbstractGuitarTab(object):
 
     def get_html_content(self):
         return HtmlFormatter.HtmlGroup(
-                self.get_header(),
-                self.get_optional_field_content(),
-                self.get_strumming_content(),
-                self.get_chord_content(),
-                HtmlFormatter.pagebreak,
-                self.get_tab_content(),
-                self.get_link(prefix="Back to top of ", display_type=False, display_src=False),
-                HtmlFormatter.new_line,
-                HtmlFormatter.pagebreak)
+            self.get_header(),
+            self.get_optional_field_content(),
+            self.get_strumming_content(),
+            self.get_chord_content(),
+            HtmlFormatter.pagebreak,
+            self.get_tab_content(),
+            self.get_link(prefix="Back to top of ", display_type=False, display_src=False),
+            HtmlFormatter.new_line,
+            HtmlFormatter.pagebreak)
 
     def get_link_to_original(self):
         return HtmlFormatter.a(href=self.url, content=self.get_text_for_link_to_original())
@@ -121,8 +121,6 @@ class AbstractGuitarTab(object):
         return []
 
 
-
-
 class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
     prefixes = 'https://www.guitaretab.com/',
     website = prefixes[0]
@@ -138,7 +136,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
         return "Version from %s (rated %s / %d votes)" % (self.website, self.rating, self.votes)
 
     def get_tab_content(self):
-        dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
+        dict_chord = {c.name: str(c.get_link(display_type=False)) for c in self.chords}
         content = self.tab_content
         for t in content.find_all('span', class_="js-tab-row js-empty-tab-row"):
             t.decompose()
@@ -169,17 +167,15 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
         json_content2 = json.loads(json_raw)
         song_name = json_content['name']
         return cls(
-                song_name = song_name,
-                artist_name = by_artist['name'],
-                url = url,
-                artist_url = by_artist['url'],
-                rating = aggregate_rating['ratingValue'],
-                votes = int(aggregate_rating['reviewCount']),
-                tab_content = soup.find('pre', class_="js-tab-fit-to-screen"),
-                chords = chords.ChordsFromApplicature.from_json_data(json_content2['applicature'], is_ukulele=False),
-                tab_id = json_content2['tabId'])
-
-
+            song_name=song_name,
+            artist_name=by_artist['name'],
+            url=url,
+            artist_url=by_artist['url'],
+            rating=aggregate_rating['ratingValue'],
+            votes=int(aggregate_rating['reviewCount']),
+            tab_content=soup.find('pre', class_="js-tab-fit-to-screen"),
+            chords=chords.ChordsFromApplicature.from_json_data(json_content2['applicature'], is_ukulele=False),
+            tab_id=json_content2['tabId'])
 
 
 class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
@@ -214,21 +210,21 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
         # Chords content
         chords_jscript = soup.find('script', text=re.compile(".*var chords.*")).string
         return cls(
-            song_name = song_data['songName'],
-            artist_name = song_data['artistName'],
-            url = url,
-            artist_url = artist_url,
-            type_name = type_name,
-            version = version,
-            votes = votes,
-            tab_content = tab_content,
-            chords = chords.ChordsFromGuitarTabsDotCc.from_javascript(chords_jscript, is_ukulele=False))
+            song_name=song_data['songName'],
+            artist_name=song_data['artistName'],
+            url=url,
+            artist_url=artist_url,
+            type_name=type_name,
+            version=version,
+            votes=votes,
+            tab_content=tab_content,
+            chords=chords.ChordsFromGuitarTabsDotCc.from_javascript(chords_jscript, is_ukulele=False))
 
     def get_text_for_link_to_original(self):
         return "%s version %d from %s (%s)" % (self.type_name, self.version, self.website, self.votes)
 
     def get_tab_content(self):
-        dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
+        dict_chord = {c.name: str(c.get_link(display_type=False)) for c in self.chords}
         content = self.tab_content
         for t in content.find_all('span'):
             t.decompose()
@@ -274,7 +270,8 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
                 key = t.string
             elif "/tempos/" in href:
                 tempo = t.string
-        return cls(song_name=song_link.string,
+        return cls(
+            song_name=song_link.string,
             artist_name=artist_name,
             url=url,
             artist_url=urllib.parse.urljoin(url, artist_link['href']),
@@ -290,12 +287,12 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         return "%s from %s" % (self.type_name, self.author)
 
     def get_tab_content(self):
-        dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
+        dict_chord = {c.name: str(c.get_link(display_type=False)) for c in self.chords}
         if self.tab_content is None:
             return "No tab content"
         content = self.tab_content.find(class_="small-12 column")
         for t in content.find_all('span'):
-             t.unwrap()
+            t.unwrap()
         for t in content.find_all('a'):
             str_content = list(t.strings)[0]
             if str_content in dict_chord:
@@ -303,7 +300,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
             else:
                 t.unwrap()
         for t in content.find_all('img'):
-             t.unwrap()
+            t.unwrap()
         return HtmlFormatter.pre(str(content).replace("\r", "\n"))
 
     def get_strumming_content(self):
@@ -318,9 +315,8 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         for t in content.find_all("br"):
             t.replace_with("\n")
         for t in content.find_all():
-             t.unwrap()
+            t.unwrap()
         return HtmlFormatter.pre(begin + "".join(content.contents).strip())
-
 
 
 class Strumming(object):
@@ -334,7 +330,7 @@ class Strumming(object):
 
     @classmethod
     def from_raw_data(cls, data):
-       return [cls(part=s['part'],
+        return [cls(part=s['part'],
                     measures=s['measures'],
                     bpm=s['bpm'],
                     is_triplet=s['is_triplet'],
@@ -342,15 +338,15 @@ class Strumming(object):
 
     def get_html_content(self):
         strum_values = {
-            1:   (' ', '↓'),
+            1: (' ', '↓'),
             101: (' ', '↑'),
             202: (' ', ' '),
-            3:   ('>', '↓'), # arrow with a small >
-            103: ('>', '↑'), # arrow with a small >
-            2:   ('x', '↓'), # arrow with a small x
-            102: ('x', '↑'), # arrow with a small x
+            3: ('>', '↓'),  # arrow with a small >
+            103: ('>', '↑'),  # arrow with a small >
+            2: ('x', '↓'),  # arrow with a small x
+            102: ('x', '↑'),  # arrow with a small x
             201: (' ', 'x'),
-            203: (' ', '⏸'), # the pause symbol
+            203: (' ', '⏸'),  # the pause symbol
         }
         width = 2
         values = [strum_values[m['measure']] for m in self.measures]
@@ -374,22 +370,19 @@ class Strumming(object):
             symbols = [beg.ljust(width, fill), end],
         patterns = [(s[0] for s in values),
                     (s[1] for s in values),
-                    ((str(1 + i//coef) if i % coef == 0 else '&' if (2*i % coef == 0) else '') for i in numbers)]
+                    ((str(1 + i // coef) if i % coef == 0 else '&' if (2 * i % coef == 0) else '') for i in numbers)]
         for symbol in symbols:
             patterns.append(s for s, _ in zip(itertools.cycle(symbol), numbers))
         patterns = ["".join(v.ljust(width) for v in p).rstrip() for p in patterns]
         lines = "\n".join(p for p in patterns if p)
         part = self.part if self.part else "All"
         return HtmlFormatter.pre("%s: %d bpm, triplet:%d, denuminator:%d, %d measures\n%s" % (
-                    part,
-                    self.bpm,
-                    self.is_triplet,
-                    self.denuminator,
-                    len(self.measures),
-                    lines))
-
-
-
+                                 part,
+                                 self.bpm,
+                                 self.is_triplet,
+                                 self.denuminator,
+                                 len(self.measures),
+                                 lines))
 
 
 class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
@@ -432,25 +425,25 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         is_ukulele = tab['type_name'] == 'Ukulele'
         song_name = tab['song_name']
         return cls(
-            song_name = song_name,
-            part = tab['part'].capitalize(),
-            artist_name = tab['artist_name'],
-            url = url,
-            artist_url = tab['artist_url'],
-            type_name = tab['type_name'],
-            version = tab['version'],
-            author = tab['username'],
-            rating = tab['rating'],
-            votes = tab['votes'],
-            is_acoustic = tab['recording']['is_acoustic'],
-            capo = tab_view_meta.get('capo', None),
-            tonality = tab_view_meta.get('tonality', None),
-            difficulty = tab_view_meta.get('difficulty', None),
-            tuning = tab_view_meta.get('tuning', dict()).get('name', None),
-            tab_content = tab_view['wiki_tab'].get('content', ''),
-            chords = chords.ChordsFromApplicature.from_json_data(tab_view['applicature'], is_ukulele),
-            strummings = Strumming.from_raw_data(tab_view['strummings']),
-            tab_id = tab['id'],
+            song_name=song_name,
+            part=tab['part'].capitalize(),
+            artist_name=tab['artist_name'],
+            url=url,
+            artist_url=tab['artist_url'],
+            type_name=tab['type_name'],
+            version=tab['version'],
+            author=tab['username'],
+            rating=tab['rating'],
+            votes=tab['votes'],
+            is_acoustic=tab['recording']['is_acoustic'],
+            capo=tab_view_meta.get('capo', None),
+            tonality=tab_view_meta.get('tonality', None),
+            difficulty=tab_view_meta.get('difficulty', None),
+            tuning=tab_view_meta.get('tuning', dict()).get('name', None),
+            tab_content=tab_view['wiki_tab'].get('content', ''),
+            chords=chords.ChordsFromApplicature.from_json_data(tab_view['applicature'], is_ukulele),
+            strummings=Strumming.from_raw_data(tab_view['strummings']),
+            tab_id=tab['id'],
         )
 
     @classmethod
@@ -465,9 +458,9 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
 
     def get_tab_content(self):
         content = (self.tab_content
-            .replace('\r\n', '\n')
-            .replace('[tab]', '')
-            .replace('[/tab]', ''))
+                   .replace('\r\n', '\n')
+                   .replace('[tab]', '')
+                   .replace('[/tab]', ''))
         content = htmlmodule.escape(content)
         for c in self.chords:
             content = content.replace("[ch]%s[/ch]" % c.name, str(c.get_link(display_type=False)))
@@ -475,5 +468,3 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
 
     def get_strumming_content(self):
         return "".join(str(s.get_html_content()) for s in self.strummings)
-
-

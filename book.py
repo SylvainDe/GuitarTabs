@@ -11,17 +11,16 @@ from chords import AbstractChords as Chords
 KINDLEGEN_PATH = 'Kindlegen/kindlegen'
 
 
-
 def my_groupby(iterable, key=None):
     return itertools.groupby(sorted(iterable, key=key), key=key)
 
 
 def get_html_head():
     return HtmlFormatter.head()\
-          .add(HtmlFormatter.meta(attrs={'http-equiv': "Content-type", 'content': "text/html;charset=utf-8"}))\
-          .add(HtmlFormatter.meta(attrs={'name': "cover", 'content': "empty.jpg"}))\
-          .add(HtmlFormatter.title(content="Tabs and Chords"))\
-          .add(HtmlFormatter.link(rel="stylesheet", href="default.css", type="text/css"))
+        .add(HtmlFormatter.meta(attrs={'http-equiv': "Content-type", 'content': "text/html;charset=utf-8"}))\
+        .add(HtmlFormatter.meta(attrs={'name': "cover", 'content': "empty.jpg"}))\
+        .add(HtmlFormatter.title(content="Tabs and Chords"))\
+        .add(HtmlFormatter.link(rel="stylesheet", href="default.css", type="text/css"))
 
 
 def get_html_body(tabs, chords):
@@ -105,5 +104,3 @@ def make_book(tabs, chords, htmlfile, make_mobi=True):
     print("Wrote in %s" % htmlfile)
     if make_mobi:
         subprocess.call([KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile])
-
-

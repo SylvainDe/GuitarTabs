@@ -1,10 +1,15 @@
 import htmlformatter as HtmlFormatter
 
+
 class AbstractChords(object):
 
     name_and_type_to_obj = dict()
-    by_name = lambda c: (c.name, c.is_ukulele)
-    by_type = lambda c: "Ukulele" if c.is_ukulele else "Guitar"
+
+    def by_name(self):
+        return (self.name, self.is_ukulele)
+
+    def by_type(self):
+        return "Ukulele" if self.is_ukulele else "Guitar"
 
     def __init__(self, name, is_ukulele, short_content):
         self.name = name
@@ -15,13 +20,16 @@ class AbstractChords(object):
     def register_and_build_html_anchor(self):
         # To be called from constructor ONLY when all fields are initialised
         index = self.register()
-        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if self.is_ukulele else "", str(index) if index else ""))
+        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (
+            self.name,
+            "-ukulele" if self.is_ukulele else "",
+            str(index) if index else ""))
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
-            self.name == other.name and
-            self.is_ukulele == other.is_ukulele and
-            self.short_content == other.short_content)
+                self.name == other.name and
+                self.is_ukulele == other.is_ukulele and
+                self.short_content == other.short_content)
 
     def register(self):
         key = (self.name, self.is_ukulele)
@@ -34,43 +42,50 @@ class AbstractChords(object):
 
     @classmethod
     def get_all(cls):
-        return [v for values in cls.name_and_type_to_obj.values() for v in values]
+        return [v
+                for values in cls.name_and_type_to_obj.values()
+                for v in values]
 
     def get_link(self, display_type):
         type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
-        return HtmlFormatter.a(href="#" + self.html_anchor, title=self.short_content, content=self.name + type_name)
+        return HtmlFormatter.a(
+            href="#" + self.html_anchor,
+            title=self.short_content,
+            content=self.name + type_name)
 
     def get_short_html_content(self, alignment=10):
         padding = " " * (alignment - len(self.name))
-        return "%s%s: %s" % (padding, self.get_link(display_type=False), self.short_content)
+        link = self.get_link(display_type=False)
+        return "%s%s: %s" % (padding, link, self.short_content)
 
     def get_html_content(self):
         type_name = " (Ukulele)" if self.is_ukulele else ""
         return HtmlFormatter.HtmlGroup(
-                    HtmlFormatter.a(name=self.html_anchor),
-                    "\n",
-                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
-                    self.get_specific_content(),
-                    HtmlFormatter.pagebreak)
+            HtmlFormatter.a(name=self.html_anchor),
+            "\n",
+            HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
+            self.get_specific_content(),
+            HtmlFormatter.pagebreak)
 
     def get_specific_content(self):
-        return HtmlFormatter.comment("TODO: No real content for %s.get_specific_content" % self.__class__.__name__)
-
+        return HtmlFormatter.comment(
+            "TODO: No real content for %s.get_specific_content" %
+            self.__class__.__name__)
 
 
 class ChordsFromApplicature(AbstractChords):
 
     def __init__(self, name, is_ukulele, details):
-        super().__init__(name=name, is_ukulele=is_ukulele, short_content=details[0]['id'])
+        super().__init__(name, is_ukulele, short_content=details[0]['id'])
         self.details = details
         self.register_and_build_html_anchor()
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
-            self.name == other.name and
-            self.is_ukulele == other.is_ukulele and
-            self.short_content == other.short_content and
-            self.details == other.details) # Do not use html_anchor
+                self.name == other.name and
+                self.is_ukulele == other.is_ukulele and
+                self.short_content == other.short_content and
+                self.details == other.details)  # Do not use html_anchor
 
     @classmethod
     def format_fingering_detail(cls, name, fingering):
@@ -124,14 +139,15 @@ class ChordsFromApplicature(AbstractChords):
             data = dict()
         if data == []:
             data = dict()
-        return sorted((cls(name, is_ukulele, details) for name, details in data.items()), key=cls.by_name)
-
+        return sorted(
+            (cls(name, is_ukulele, details) for name, details in data.items()),
+            key=cls.by_name)
 
 
 class ChordsFromGuitarTabsDotCc(AbstractChords):
 
     def __init__(self, name, is_ukulele, short_content):
-        super().__init__(name=name, is_ukulele=is_ukulele, short_content=short_content)
+        super().__init__(name, is_ukulele, short_content)
         self.register_and_build_html_anchor()
 
     def get_specific_content(self):
@@ -144,45 +160,45 @@ class ChordsFromGuitarTabsDotCc(AbstractChords):
             if "chords[" in line:
                 lst = line.split('"')
                 name, short_content = lst[1], lst[3]
-                chords.append(cls(name, is_ukulele=is_ukulele, short_content=short_content) )
+                chords.append(cls(name, is_ukulele, short_content))
         return chords
-
 
 
 class ChordsFromTabs4Acoustic(AbstractChords):
 
     def __init__(self, name, is_ukulele, finger_pos):
         short_content = "".join(finger_pos)
-        super().__init__(name=name, is_ukulele=is_ukulele, short_content=short_content)
+        super().__init__(name, is_ukulele, short_content)
         self.finger_pos = finger_pos
         self.register_and_build_html_anchor()
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
-            self.name == other.name and
-            self.is_ukulele == other.is_ukulele and
-            self.short_content == other.short_content and
-            self.finger_pos == self.finger_pos) # Do not use html_anchor
+                self.name == other.name and
+                self.is_ukulele == other.is_ukulele and
+                self.short_content == other.short_content and
+                self.finger_pos == self.finger_pos)  # Do not use html_anchor
 
     def get_specific_content(self):
         fret_width = max(len(fret) for fret in self.finger_pos)
-        content = "".join(f.rjust(1 + fret_width) for f in self.finger_pos).strip()
-        return HtmlFormatter.pre(content)
+        content = "".join(f.rjust(1 + fret_width) for f in self.finger_pos)
+        return HtmlFormatter.pre(content.strip())
+
+    @classmethod
+    def from_html_inner_div(cls, div, is_ukulele):
+        img = div.find('img')
+        alt, src = img['alt'], img['src']
+        link = div.find('a')
+        href, title = link['href'], link['title']
+        # TODO: print(alt, src, href, title)
+        _, name, fingers = alt.split(" ")
+        finger_pos = fingers[1: -1].split(",")
+        return cls(name, is_ukulele=is_ukulele, finger_pos=finger_pos)
 
     @classmethod
     def from_html_div(cls, div, is_ukulele):
         chords = []
         if div:
             for d in div.find_all('div', class_="small-3 column centered"):
-                img = d.find('img')
-                alt, src = img['alt'], img['src']
-                link = d.find('a')
-                href, title = link['href'], link['title']
-                # TODO: print(alt, src, href, title)
-                _, name, fingers = alt.split(" ")
-                finger_pos = fingers[1: -1].split(",")
-                chords.append(cls(name, is_ukulele=is_ukulele, finger_pos=finger_pos))
+                chords.append(cls.from_html_inner_div(d, is_ukulele))
         return chords
-
-
-

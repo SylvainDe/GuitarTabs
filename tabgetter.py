@@ -1,14 +1,15 @@
-from tabs import GuitarTabFromUltimateGuitar, GuitarTabFromGuitarTabDotCom, GuitarTabFromTabs4Acoustic, GuitarTabFromGuitarTabsDotCc
+import tabs
+
 
 class GuitarTabGetter(object):
 
     @classmethod
     def get_class_for_url(cls, url):
         print(url)
-        for class_ in (GuitarTabFromUltimateGuitar,
-                       GuitarTabFromGuitarTabDotCom,
-                       GuitarTabFromTabs4Acoustic,
-                       GuitarTabFromGuitarTabsDotCc):
+        for class_ in (tabs.GuitarTabFromUltimateGuitar,
+                       tabs.GuitarTabFromGuitarTabDotCom,
+                       tabs.GuitarTabFromTabs4Acoustic,
+                       tabs.GuitarTabFromGuitarTabsDotCc):
             for prefix in class_.prefixes:
                 if url.startswith(prefix):
                     return class_
@@ -21,6 +22,3 @@ class GuitarTabGetter(object):
     @classmethod
     def from_list_url(cls, url):
         return cls.get_class_for_url(url).from_list_url(url)
-
-
-

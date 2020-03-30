@@ -16,6 +16,7 @@ import html as htmlmodule
 def string_to_html_id(s):
     return htmlmodule.escape(s, quote=True)
 
+
 class HtmlGroup(object):
 
     def __init__(self, *iterable):
@@ -23,6 +24,7 @@ class HtmlGroup(object):
 
     def __str__(self):
         return "".join(str(e) for e in self.elts)
+
 
 class HtmlTag(object):
     def __init__(self, tag, content=None, on_open="", on_close="", attrs=None, **kwargs):
@@ -56,32 +58,42 @@ class HtmlTag(object):
     def __add__(self, other):
         return HtmlGroup(self, other)
 
+
 def h(level, content=None, attrs=None, **kwargs):
     return HtmlTag(tag="h" + str(level), content=content, attrs=attrs, **kwargs, on_close="\n")
+
 
 def a(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="a", content=content, attrs=attrs, **kwargs)
 
+
 def pre(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="pre", content=content, attrs=attrs, **kwargs, on_close="\n")
+
 
 def link(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="link", content=content, attrs=attrs, **kwargs, on_close="\n")
 
+
 def title(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="title", content=content, attrs=attrs, **kwargs, on_close="\n")
+
 
 def meta(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="meta", content=content, attrs=attrs, **kwargs, on_close="\n")
 
+
 def html(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="html", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n")
+
 
 def head(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="head", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n")
 
+
 def body(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="body", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n")
+
 
 def comment(string):
     return "<!-- %s -->\n" % string
