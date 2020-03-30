@@ -117,35 +117,33 @@ def write_json_to_file(json_data, filename='debug.json'):
         json.dump(json_data, f, indent=4, sort_keys=True)
 
 
-class Chords(object):
+class AbstractChords(object):
 
     name_and_type_to_obj = dict()
     by_name = lambda c: (c.name, c.is_ukulele)
     by_type = lambda c: "Ukulele" if c.is_ukulele else "Guitar"
 
-    def __init__(self, name, is_ukulele, details):
+    def __init__(self, name, is_ukulele, short_content):
         self.name = name
         self.is_ukulele = is_ukulele
-        self.details = details
-        self.index = self.register()
-        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(self.index) if self.index else ""))
+        self.short_content = short_content
+        # index = self.register()
+        # self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(index) if index else ""))
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+            self.name == other.name and
+            self.is_ukulele == other.is_ukulele and
+            self.short_content == other.short_content)
 
     def register(self):
         key = (self.name, self.is_ukulele)
         data = self.name_and_type_to_obj.setdefault(key, [])
-        for i, d in enumerate(data):
-            if d.details == self.details:
+        for i, obj in enumerate(data):
+            if self == obj:
                 return i
         data.append(self)
         return len(data) - 1
-
-    @classmethod
-    def from_raw_data(cls, data, is_ukulele):
-        if data is None:
-            data = dict()
-        if data == []:
-            data = dict()
-        return sorted((cls(name, is_ukulele, details) for name, details in data.items()), key=cls.by_name)
 
     @classmethod
     def get_all(cls):
@@ -153,64 +151,14 @@ class Chords(object):
 
     def get_link(self, display_type):
         type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
-        return HtmlFormatter.a(href="#" + self.html_anchor, title=self.details[0]['id'], content=self.name + type_name)
-
-    @classmethod
-    def format_fingering_detail(cls, name, fingering):
-        # WORK IN PROGRESS
-        # print(name, str(fingering))
-        frets = fingering['frets']
-        capos = fingering['listCapos']
-        fingers = fingering['fingers']
-        fret_offset = fingering['fret']
-        nb_strings = len(frets)
-        nb_frets = 5
-        width = 2
-        height = 1
-
-        top, mid, bottom, vert_lines = ("┍", "┯", "┑", "━"), ("├", "┼", "┤", "─"), ("└", "┴", "┘", "─"), ("│", "│", "│", " ")
-        symbols = []
-        symbols.append(top)
-        for i in range(nb_frets - 1):
-            symbols.extend([vert_lines] * height + [mid])
-        symbols.extend([vert_lines] * height + [bottom])
-        fretboard = [([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end]) for beg, mid, end, fill in symbols]
-
-        for j, (fr, fi) in enumerate(reversed(list(zip(frets, fingers)))):
-            if fr > 0:
-                assert fi in [0, 1, 2, 3, 4]
-                fi_str = str(fi)
-                if fret_offset:
-                    fr -= fret_offset - 1
-                i = 1 + ((fr - 1) * (height + 1)) + (height // 2)
-                fretboard[i][j] = fi_str + fretboard[i][j][len(fi_str):]
-            elif fr == 0:
-                assert fi == 0
-            elif fr == -1:
-                assert fi == 0
-            else:
-                assert False
-
-        return HtmlFormatter.pre("\n".join("".join(line) for line in fretboard))
-
-    def get_html_content(self):
-        type_name = " (Ukulele)" if self.is_ukulele else ""
-        debug = self.format_fingering_detail(self.name, self.details[0])
-        idx_width = len(str(len(self.details)))
-        fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
-        fret_width = max(len(f) for frets in fret_details for f in frets)
-        content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
-        return HtmlFormatter.HtmlGroup(
-                    HtmlFormatter.a(name=self.html_anchor),
-                    "\n",
-                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
-                    HtmlFormatter.pre(content),
-                    debug,
-                    HtmlFormatter.pagebreak)
+        return HtmlFormatter.a(href="#" + self.html_anchor, title=self.short_content, content=self.name + type_name)
 
     def get_short_html_content(self, alignment=10):
         padding = " " * (alignment - len(self.name))
-        return "%s%s: %s" % (padding, self.get_link(display_type=False), self.details[0]['id'])
+        return "%s%s: %s" % (padding, self.get_link(display_type=False), self.short_content)
+
+    def get_html_content(self):
+        raise NotImplementedError
 
 
 class Strumming(object):
@@ -277,6 +225,7 @@ class Strumming(object):
                     self.denuminator,
                     len(self.measures),
                     lines))
+
 
 class AbstractGuitarTab(object):
 
@@ -370,6 +319,85 @@ class AbstractGuitarTab(object):
     def from_list_url(cls, list_url):
         return []
 
+
+class ChordsFromApplicature(AbstractChords):
+
+    def __init__(self, name, is_ukulele, details):
+        super().__init__(name=name, is_ukulele=is_ukulele, short_content=details[0]['id'])
+        self.details = details
+        index = self.register()
+        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(index) if index else ""))
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+            self.name == other.name and
+            self.is_ukulele == other.is_ukulele and
+            self.short_content == other.short_content and
+            self.details == other.details) # Do not use html_anchor
+
+    @classmethod
+    def format_fingering_detail(cls, name, fingering):
+        # WORK IN PROGRESS
+        # print(name, str(fingering))
+        frets = fingering['frets']
+        capos = fingering['listCapos']
+        fingers = fingering['fingers']
+        fret_offset = fingering['fret']
+        nb_strings = len(frets)
+        nb_frets = 5
+        width = 2
+        height = 1
+
+        top, mid, bottom, vert_lines = ("┍", "┯", "┑", "━"), ("├", "┼", "┤", "─"), ("└", "┴", "┘", "─"), ("│", "│", "│", " ")
+        symbols = []
+        symbols.append(top)
+        for i in range(nb_frets - 1):
+            symbols.extend([vert_lines] * height + [mid])
+        symbols.extend([vert_lines] * height + [bottom])
+        fretboard = [([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end]) for beg, mid, end, fill in symbols]
+
+        for j, (fr, fi) in enumerate(reversed(list(zip(frets, fingers)))):
+            if fr > 0:
+                assert fi in [0, 1, 2, 3, 4]
+                fi_str = str(fi)
+                if fret_offset:
+                    fr -= fret_offset - 1
+                i = 1 + ((fr - 1) * (height + 1)) + (height // 2)
+                fretboard[i][j] = fi_str + fretboard[i][j][len(fi_str):]
+            elif fr == 0:
+                assert fi == 0
+            elif fr == -1:
+                assert fi == 0
+            else:
+                assert False
+
+        return HtmlFormatter.pre("\n".join("".join(line) for line in fretboard))
+
+    def get_html_content(self):
+        type_name = " (Ukulele)" if self.is_ukulele else ""
+        debug = self.format_fingering_detail(self.name, self.details[0])
+        idx_width = len(str(len(self.details)))
+        fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
+        fret_width = max(len(f) for frets in fret_details for f in frets)
+        content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
+        return HtmlFormatter.HtmlGroup(
+                    HtmlFormatter.a(name=self.html_anchor),
+                    "\n",
+                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
+                    HtmlFormatter.pre(content),
+                    debug,
+                    HtmlFormatter.pagebreak)
+
+    @classmethod
+    def from_json_data(cls, data, is_ukulele):
+        if data is None:
+            data = dict()
+        if data == []:
+            data = dict()
+        return sorted((cls(name, is_ukulele, details) for name, details in data.items()), key=cls.by_name)
+
+
+
 class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
     prefixes = 'https://www.guitaretab.com/',
 
@@ -422,9 +450,37 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
                 rating = aggregate_rating['ratingValue'],
                 votes = int(aggregate_rating['reviewCount']),
                 tab_content = soup.find('pre', class_="js-tab-fit-to-screen"),
-                chords = Chords.from_raw_data(json_content2['applicature'], is_ukulele=False),
+                chords = ChordsFromApplicature.from_json_data(json_content2['applicature'], is_ukulele=False),
                 tab_id = json_content2['tabId'])
 
+
+
+
+class ChordsFromGuitarTabsDotCc(AbstractChords):
+
+    def __init__(self, name, is_ukulele, short_content):
+        super().__init__(name=name, is_ukulele=is_ukulele, short_content=short_content)
+        index = self.register()
+        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(index) if index else ""))
+
+    def get_html_content(self):
+        type_name = " (Ukulele)" if self.is_ukulele else ""
+        return HtmlFormatter.HtmlGroup(
+                    HtmlFormatter.a(name=self.html_anchor),
+                    "\n",
+                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
+                    HtmlFormatter.comment("TODO: No real content for %s.get_html_content" % self.__class__.__name__),
+                    HtmlFormatter.pagebreak)
+
+    @classmethod
+    def from_javascript(cls, data, is_ukulele):
+        chords = []
+        for line in data.splitlines():
+            if "chords[" in line:
+                lst = line.split('"')
+                name, short_content = lst[1], lst[3]
+                chords.append(cls(name, is_ukulele=is_ukulele, short_content=short_content) )
+        return chords
 
 class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
     prefixes = 'https://www.guitartabs.cc/',
@@ -449,10 +505,13 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
         votes = titles[3].string
         tab_content = soup.find("div", class_="tabcont").find("font", style="line-height:normal").find("pre")
         # Dirty extract of javascript values
-        js_prefix = "window.tpAd('exitCampaign', {songData: "
-        jscript = soup.find('script', text=re.compile(".*%s.*" % re.escape(js_prefix))).string
-        json_raw = jscript[jscript.find(js_prefix) + len(js_prefix):][:-5]
-        song_data = json.loads(json_raw)
+        # Song metadata
+        song_js_prefix = "window.tpAd('exitCampaign', {songData: "
+        song_jscript = soup.find('script', text=re.compile(".*%s.*" % re.escape(song_js_prefix))).string
+        song_json_raw = song_jscript[song_jscript.find(song_js_prefix) + len(song_js_prefix):][:-5]
+        song_data = json.loads(song_json_raw)
+        # Chords content
+        chords_jscript = soup.find('script', text=re.compile(".*var chords.*")).string
         return cls(
             song_name = song_data['songName'],
             artist_name = song_data['artistName'],
@@ -462,33 +521,59 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
             version = version,
             votes = votes,
             tab_content = tab_content,
-            chords = [])
+            chords = ChordsFromGuitarTabsDotCc.from_javascript(chords_jscript, is_ukulele=False))
 
     def get_link_to_original(self):
         return HtmlFormatter.a(href=self.url, content="%s version %d (%s)" % (self.type_name, self.version, self.votes))
 
     def get_tab_content(self):
+        dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
         content = self.tab_content
         for t in content.find_all('span'):
             t.decompose()
         for t in content.find_all('a'):
-            t.replace_with(t.string)
+            t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
         return HtmlFormatter.pre("".join(str(t) for t in content.contents))
 
-class ChordsFromTabs4Acoustic(object):
+
+class ChordsFromTabs4Acoustic(AbstractChords):
+
+    def __init__(self, name, is_ukulele, short_content):
+        super().__init__(name=name, is_ukulele=is_ukulele, short_content=short_content)
+        index = self.register()
+        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(index) if index else ""))
+
+    def get_html_content(self):
+        type_name = " (Ukulele)" if self.is_ukulele else ""
+        return HtmlFormatter.HtmlGroup(
+                    HtmlFormatter.a(name=self.html_anchor),
+                    "\n",
+                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
+                    HtmlFormatter.comment("TODO: No real content for %s.get_html_content" % self.__class__.__name__),
+                    HtmlFormatter.pagebreak)
 
     @classmethod
-    def from_html_div(cls, div):
-        return []
+    def from_html_div(cls, div, is_ukulele):
+        chords = []
+        for d in div.find_all('div', class_="small-3 column centered"):
+            img = d.find('img')
+            alt, src = img['alt'], img['src']
+            link = d.find('a')
+            href, title = link['href'], link['title']
+            # TODO: print(alt, src, href, title)
+            _, name, short_content_raw = alt.split(" ")
+            short_content = short_content_raw[1: -1].replace(",", "")
+            chords.append(cls(name, is_ukulele=is_ukulele, short_content=short_content) )
+        return chords
 
 
 class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
     prefixes = 'https://www.tabs4acoustic.com/',
 
-    def __init__(self, song_name, artist_name, url, artist_url, tab_content, chord_div, author, strummings, key, timesig, tempo):
+    def __init__(self, song_name, artist_name, url, artist_url, tab_content, chords, author, strummings, key, timesig, tempo):
         super().__init__(url, song_name, artist_name, artist_url, tab_id=None)
         self.tab_content = tab_content
-        self.chords = ChordsFromTabs4Acoustic.from_html_div(chord_div)
+        self.chords = chords
         self.author = author
         self.strummings = strummings
         self.key = key
@@ -523,7 +608,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
             url=url,
             artist_url=urllib.parse.urljoin(url, artist_link['href']),
             tab_content=soup.find(id='tab_zone').find(class_="small-12 column"),
-            chord_div=soup.find(id="crd_zone"),
+            chords=ChordsFromTabs4Acoustic.from_html_div(soup.find(id="crd_zone"), is_ukulele=False),
             author=soup.find("meta", attrs={'name': "author"})["content"],
             strummings=soup.find("div", id="tab_rhy"),
             key=key,
@@ -534,18 +619,16 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         return HtmlFormatter.a(href=self.url, content="%s from %s" % (self.type_name, self.author))
 
     def get_tab_content(self):
+        dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
         content = self.tab_content
         for t in content.find_all('span'):
              t.unwrap()
         for t in content.find_all('a'):
-             t.unwrap()
-        for t in content.find_all('img'):
-             t.unwrap()
-        #for i, c in enumerate(self.tab_content.contents):
-        #    print(i, c)
-        #print(str(self.tab_content))
-        #content = HtmlFormatter.pre(str(self.tab_content).replace('\r\n', '\n'))
-        # [<a title="[ Picture of the guitar chord : E ]" href="https://www.tabs4acoustic.com/images/accords/photo-e-022100.jpg" class="viewchord hl_crd chord_diag tabtooltip"><span><img src="https://www.tabs4acoustic.com/images/crd/E[0,2,2,1,0,0]-0.png" alt="E " /></span>E</a>]
+            str_content = list(t.strings)[0]
+            if str_content in dict_chord:
+                t.replace_with(BeautifulSoup(dict_chord[str_content], "html.parser"))
+            else:
+                t.unwrap()
         return HtmlFormatter.pre(str(content).replace("\r", "\n"))
 
     def get_strumming_content(self):
@@ -617,7 +700,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             difficulty = tab_view_meta.get('difficulty', None),
             tuning = tab_view_meta.get('tuning', dict()).get('name', None),
             tab_content = tab_view['wiki_tab'].get('content', ''),
-            chords = Chords.from_raw_data(tab_view['applicature'], is_ukulele),
+            chords = ChordsFromApplicature.from_json_data(tab_view['applicature'], is_ukulele),
             strummings = Strumming.from_raw_data(tab_view['strummings']),
             tab_id = tab['id'],
         )
@@ -727,13 +810,13 @@ def get_html_body(tabs, chords):
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(name="toc_chords") + link(href="#chords", content="Chords")))
     body.add(heading(4, link(name="toc_chords_by_name") + "By name"))
-    for c in sorted(chords, key=Chords.by_name):
+    for c in sorted(chords, key=AbstractChords.by_name):
         body.add(c.get_link(display_type=True))
         body.add(HtmlFormatter.new_line)
     body.add(heading(4, link(name="toc_chords_by_type") + "By type"))
-    for type_name, chords_grouped in my_groupby(chords, key=Chords.by_type):
+    for type_name, chords_grouped in my_groupby(chords, key=AbstractChords.by_type):
         body.add(heading(5, type_name))
-        for c in sorted(chords_grouped, key=Chords.by_name):
+        for c in sorted(chords_grouped, key=AbstractChords.by_name):
             body.add(c.get_link(display_type=False))
             body.add(HtmlFormatter.new_line)
     body.add(HtmlFormatter.pagebreak)
@@ -744,7 +827,7 @@ def get_html_body(tabs, chords):
         body.add(t.get_html_content())
     # chord content
     body.add(link(name="chords"))
-    for c in sorted(chords, key=Chords.by_name):
+    for c in sorted(chords, key=AbstractChords.by_name):
         body.add(c.get_html_content())
 
     return body
@@ -773,5 +856,5 @@ def make_book(tabs, chords, htmlfile="wip_book.html", make_mobi=True):
         subprocess.call([KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile])
 
 tabs = get_tabs(URLS)
-chords = Chords.get_all()
+chords = AbstractChords.get_all()
 make_book(tabs, chords)
