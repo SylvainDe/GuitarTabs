@@ -320,7 +320,10 @@ class AbstractGuitarTab(object):
                 HtmlFormatter.pagebreak)
 
     def get_link_to_original(self):
-        return HtmlFormatter.comment("No link to original (%s.get_link_to_original to be implemented)" % self.__class__.__name__)
+        return HtmlFormatter.a(href=self.url, content=self.get_text_for_link_to_original())
+
+    def get_text_for_link_to_original(self):
+        return "From %s" % self.website
 
     def get_tab_content(self):
         return HtmlFormatter.comment("No tab content (%s.get_tab_content to be implemented)" % self.__class__.__name__)
@@ -419,8 +422,8 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
         self.tab_content = tab_content
         self.chords = chords
 
-    def get_link_to_original(self):
-        return HtmlFormatter.a(href=self.url, content="Version from %s (rated %s / %d votes)" % (self.website, self.rating, self.votes))
+    def get_text_for_link_to_original(self):
+        return "Version from %s (rated %s / %d votes)" % (self.website, self.rating, self.votes)
 
     def get_tab_content(self):
         dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
@@ -528,8 +531,8 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
             tab_content = tab_content,
             chords = ChordsFromGuitarTabsDotCc.from_javascript(chords_jscript, is_ukulele=False))
 
-    def get_link_to_original(self):
-        return HtmlFormatter.a(href=self.url, content="%s version %d from %s (%s)" % (self.type_name, self.version, self.website, self.votes))
+    def get_text_for_link_to_original(self):
+        return "%s version %d from %s (%s)" % (self.type_name, self.version, self.website, self.votes)
 
     def get_tab_content(self):
         dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
@@ -626,8 +629,8 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
             timesig=timesig,
             tempo=tempo)
 
-    def get_link_to_original(self):
-        return HtmlFormatter.a(href=self.url, content="%s from %s" % (self.type_name, self.author))
+    def get_text_for_link_to_original(self):
+        return "%s from %s" % (self.type_name, self.author)
 
     def get_tab_content(self):
         dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
@@ -728,8 +731,8 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         page_data = json_content['store']['page']['data']
         return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
 
-    def get_link_to_original(self):
-        return HtmlFormatter.a(href=self.url, content="%s version %d from %s (rated %f / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes))
+    def get_text_for_link_to_original(self):
+        return "%s version %d from %s (rated %f / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes)
 
     def get_tab_content(self):
         content = (self.tab_content
