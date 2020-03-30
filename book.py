@@ -104,4 +104,5 @@ def make_book(tabs, chords, htmlfile, make_mobi=True):
         book.write(HtmlFormatter.doctype + str(html))
     print("Wrote in %s" % htmlfile)
     if make_mobi:
-        subprocess.call([KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile])
+        cmd = [KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile]
+        subprocess.call(cmd)

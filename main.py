@@ -110,4 +110,4 @@ def get_tabs(urls):
 
 tabs = get_tabs(URLS)
 chords = Chords.get_all()
-make_book(tabs, chords, htmlfile="wip_book.html", make_mobi=0)
+make_book(tabs, chords, htmlfile="dest/wip_book.html", make_mobi=True)
