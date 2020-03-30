@@ -106,7 +106,7 @@ class UrlCache():
         rel_name = self.jsonCache.get(url, None)
         if rel_name is not None:
             with open(os.path.join(self.folder, rel_name), "rb") as f:
-                return f.read() 
+                return f.read()
         content = get_content(url)
         rel_name = str(hash(url)) + "_" + "".join(c if c.isalnum() else "-" for c in url)
         with open(os.path.join(self.folder, rel_name), "wb") as f:
