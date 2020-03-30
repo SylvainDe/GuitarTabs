@@ -39,6 +39,7 @@ def get_html_body(tabs, chords):
     body.add(heading(5, link(href="#toc_tabs_by_artist", content="By artist")))
     body.add(heading(5, link(href="#toc_tabs_by_diff", content="By difficulty")))
     body.add(heading(5, link(href="#toc_tabs_by_type", content="By type")))
+    body.add(heading(5, link(href="#toc_tabs_by_src", content="By source")))
     body.add(heading(4, link(href="#toc_chords", content="Chords")))
     body.add(heading(5, link(href="#toc_chords_by_name", content="By name")))
     body.add(heading(5, link(href="#toc_chords_by_type", content="By type")))
