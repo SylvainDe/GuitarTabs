@@ -91,14 +91,13 @@ URLS = [
     "https://www.guitartabs.cc/tabs/g/gotye/somebody_that_i_used_to_know_crd_ver_5.html",
     "https://www.guitartabs.cc/tabs/a/adele/someone_like_you_crd.html",
     "https://www.guitartabs.cc/tabs/a/adele/someone_like_you_tab_ver_2.html",
-    # Not implemented yet
     "https://www.tabs4acoustic.com/en/guitar-tabs/the-eagles-tabs/hotel-california-acoustic-tab-67.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/jeff-buckley-tabs/hallelujah-acoustic-tab-213.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/izrael-kamakawiwo-ole-tabs/over-the-rainbow-acoustic-tab-319.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/david-bowie-tabs/space-oddity-acoustic-tab-407.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/ben-e-king-tabs/stand-by-me-acoustic-tab-442.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/bob-marley-tabs/redemption-song-acoustic-tab-133.html",
-    # "https://www.tabs4acoustic.com/en/free-riffs/led-zeppelin-black-dog-185.html",
+    "https://www.tabs4acoustic.com/en/free-riffs/led-zeppelin-black-dog-185.html",
     # For testing purposes
     "https://tabs.ultimate-guitar.com/tab/nirvana/smells-like-teen-spirit-drums-859029",
     "https://tabs.ultimate-guitar.com/tab/metallica/nothing-else-matters-video-1024840",
@@ -557,15 +556,16 @@ class ChordsFromTabs4Acoustic(AbstractChords):
     @classmethod
     def from_html_div(cls, div, is_ukulele):
         chords = []
-        for d in div.find_all('div', class_="small-3 column centered"):
-            img = d.find('img')
-            alt, src = img['alt'], img['src']
-            link = d.find('a')
-            href, title = link['href'], link['title']
-            # TODO: print(alt, src, href, title)
-            _, name, fingers = alt.split(" ")
-            finger_pos = fingers[1: -1].split(",")
-            chords.append(cls(name, is_ukulele=is_ukulele, finger_pos=finger_pos))
+        if div:
+            for d in div.find_all('div', class_="small-3 column centered"):
+                img = d.find('img')
+                alt, src = img['alt'], img['src']
+                link = d.find('a')
+                href, title = link['href'], link['title']
+                # TODO: print(alt, src, href, title)
+                _, name, fingers = alt.split(" ")
+                finger_pos = fingers[1: -1].split(",")
+                chords.append(cls(name, is_ukulele=is_ukulele, finger_pos=finger_pos))
         return chords
 
 
@@ -609,7 +609,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
             artist_name=artist_name,
             url=url,
             artist_url=urllib.parse.urljoin(url, artist_link['href']),
-            tab_content=soup.find(id='tab_zone').find(class_="small-12 column"),
+            tab_content=soup.find(id='tab_zone'),
             chords=ChordsFromTabs4Acoustic.from_html_div(soup.find(id="crd_zone"), is_ukulele=False),
             author=soup.find("meta", attrs={'name': "author"})["content"],
             strummings=soup.find("div", id="tab_rhy"),
@@ -622,7 +622,9 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
 
     def get_tab_content(self):
         dict_chord = { c.name: str(c.get_link(display_type=False)) for c in self.chords }
-        content = self.tab_content
+        if self.tab_content is None:
+            return "No tab content"
+        content = self.tab_content.find(class_="small-12 column")
         for t in content.find_all('span'):
              t.unwrap()
         for t in content.find_all('a'):
@@ -636,6 +638,8 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
     def get_strumming_content(self):
         begin = "Tempo: %s, Time signature: %s\n" % (self.tempo, self.timesig)
         content = self.strummings
+        if content is None:
+            return "No strumming content"
         for t in content.find_all('h3'):
             t.decompose()
         for t in content.find_all('span', class_="tab_help"):
