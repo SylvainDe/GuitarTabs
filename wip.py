@@ -645,6 +645,8 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
                 t.replace_with(BeautifulSoup(dict_chord[str_content], "html.parser"))
             else:
                 t.unwrap()
+        for t in content.find_all('img'):
+             t.unwrap()
         return HtmlFormatter.pre(str(content).replace("\r", "\n"))
 
     def get_strumming_content(self):
