@@ -118,6 +118,7 @@ class AbstractGuitarTab(object):
 
     @classmethod
     def from_list_url(cls, list_url):
+        print("%s.from_url(%s) returned []" % (cls.__name__, list_url))
         return []
 
 
@@ -143,7 +144,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
         for t in content.find_all(style="display: block"):
             t.insert_after('\n')
         for t in content.find_all():
-            if " ".join(t.attrs['class']) != "gt-chord js-tab-ch js-tapped":
+            if " ".join(t.attrs.get('class', [])) != "gt-chord js-tab-ch js-tapped":
                 t.unwrap()
             else:
                 t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
@@ -177,6 +178,12 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
             chords=chords.ChordsFromApplicature.from_json_data(json_content2['applicature'], is_ukulele=False),
             tab_id=json_content2['tabId'])
 
+    @classmethod
+    def from_list_url(cls, list_url):
+        soup = urlCache.get_soup(list_url)
+        return [cls.from_url(urllib.parse.urljoin(list_url, a['href']))
+                for a in soup.find_all("a", class_="gt-link gt-link--primary")]
+
 
 class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
     prefixes = 'https://www.guitartabs.cc/',
@@ -208,7 +215,8 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
         song_json_raw = song_jscript[song_jscript.find(song_js_prefix) + len(song_js_prefix):][:-5]
         song_data = json.loads(song_json_raw)
         # Chords content
-        chords_jscript = soup.find('script', text=re.compile(".*var chords.*")).string
+        chords_jscript_tag = soup.find('script', text=re.compile(".*var chords.*"))
+        chords_jscript = chords_jscript_tag.string if chords_jscript_tag else ""
         return cls(
             song_name=song_data['songName'],
             artist_name=song_data['artistName'],
@@ -231,6 +239,12 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
         for t in content.find_all('a'):
             t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
         return HtmlFormatter.pre("".join(str(t) for t in content.contents))
+
+    @classmethod
+    def from_list_url(cls, list_url):
+        soup = urlCache.get_soup(list_url)
+        return [cls.from_url(urllib.parse.urljoin(list_url, a['href']))
+                for a in soup.find_all("a", class_="ryzh22")]
 
 
 class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
@@ -317,6 +331,16 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         for t in content.find_all():
             t.unwrap()
         return HtmlFormatter.pre(begin + "".join(content.contents).strip())
+
+    @classmethod
+    def from_list_url(cls, list_url):
+        soup = urlCache.get_soup(list_url)
+        hrefs = []
+        for tr in soup.find(id="page_content").find("table").find_all("tr"):
+            tds = tr.find_all("td")
+            if tds:
+                hrefs.append(tds[1].find("a")["href"])
+        return [cls.from_url(urllib.parse.urljoin(list_url, href)) for href in hrefs]
 
 
 class Strumming(object):

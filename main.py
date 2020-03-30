@@ -92,12 +92,19 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/frank-sinatra/fly-me-to-the-moon-ukulele-1351387",
 ]
 
+URL_LISTS = [
+    "https://www.ultimate-guitar.com/top/tabs",
+    "https://www.guitaretab.com/top_tabs.html",
+    "https://www.guitartabs.cc/top_tabs.html",
+    "https://www.tabs4acoustic.com/en/guitar-tabs/top-guitar-tabs.html",
+]
+
 
 def get_tabs(urls):
     if 1:
         tabs = [GuitarTabGetter.from_url(url) for url in urls]
     elif 0:  # For debug purposes
-        tabs = GuitarTabGetter.from_list_url('https://www.ultimate-guitar.com/top/tabs')
+        tabs = GuitarTabGetter.from_list_url(URL_LISTS[0])
     return [t for t in tabs if t is not None]
 
 

@@ -189,7 +189,10 @@ class ChordsFromTabs4Acoustic(AbstractChords):
         img = div.find('img')
         alt, src = img['alt'], img['src']
         link = div.find('a')
-        href, title = link['href'], link['title']
+        if link:
+            href, title = link['href'], link['title']
+        else:
+            href, title = None, None
         # TODO: print(alt, src, href, title)
         _, name, fingers = alt.split(" ")
         finger_pos = fingers[1: -1].split(",")
