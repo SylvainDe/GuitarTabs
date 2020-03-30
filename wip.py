@@ -127,8 +127,12 @@ class AbstractChords(object):
         self.name = name
         self.is_ukulele = is_ukulele
         self.short_content = short_content
-        # index = self.register()
-        # self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(index) if index else ""))
+        # Note: don't forget to call register_and_build_html_anchor
+
+    def register_and_build_html_anchor(self):
+	    # To be called from constructor ONLY when all fields are initialised
+        index = self.register()
+        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if self.is_ukulele else "", str(index) if index else ""))
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
@@ -158,7 +162,16 @@ class AbstractChords(object):
         return "%s%s: %s" % (padding, self.get_link(display_type=False), self.short_content)
 
     def get_html_content(self):
-        raise NotImplementedError
+        type_name = " (Ukulele)" if self.is_ukulele else ""
+        return HtmlFormatter.HtmlGroup(
+                    HtmlFormatter.a(name=self.html_anchor),
+                    "\n",
+                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
+                    self.get_specific_content(),
+                    HtmlFormatter.pagebreak)
+
+    def get_specific_content(self):
+        return HtmlFormatter.comment("TODO: No real content for %s.get_specific_content" % self.__class__.__name__)
 
 
 class Strumming(object):
@@ -325,8 +338,7 @@ class ChordsFromApplicature(AbstractChords):
     def __init__(self, name, is_ukulele, details):
         super().__init__(name=name, is_ukulele=is_ukulele, short_content=details[0]['id'])
         self.details = details
-        index = self.register()
-        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(index) if index else ""))
+        self.register_and_build_html_anchor()
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
@@ -373,20 +385,13 @@ class ChordsFromApplicature(AbstractChords):
 
         return HtmlFormatter.pre("\n".join("".join(line) for line in fretboard))
 
-    def get_html_content(self):
-        type_name = " (Ukulele)" if self.is_ukulele else ""
+    def get_specific_content(self):
         debug = self.format_fingering_detail(self.name, self.details[0])
         idx_width = len(str(len(self.details)))
         fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
         fret_width = max(len(f) for frets in fret_details for f in frets)
         content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
-        return HtmlFormatter.HtmlGroup(
-                    HtmlFormatter.a(name=self.html_anchor),
-                    "\n",
-                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
-                    HtmlFormatter.pre(content),
-                    debug,
-                    HtmlFormatter.pagebreak)
+        return HtmlFormatter.pre(content) + debug
 
     @classmethod
     def from_json_data(cls, data, is_ukulele):
@@ -460,17 +465,7 @@ class ChordsFromGuitarTabsDotCc(AbstractChords):
 
     def __init__(self, name, is_ukulele, short_content):
         super().__init__(name=name, is_ukulele=is_ukulele, short_content=short_content)
-        index = self.register()
-        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(index) if index else ""))
-
-    def get_html_content(self):
-        type_name = " (Ukulele)" if self.is_ukulele else ""
-        return HtmlFormatter.HtmlGroup(
-                    HtmlFormatter.a(name=self.html_anchor),
-                    "\n",
-                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
-                    HtmlFormatter.comment("TODO: No real content for %s.get_html_content" % self.__class__.__name__),
-                    HtmlFormatter.pagebreak)
+        self.register_and_build_html_anchor()
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
@@ -540,17 +535,7 @@ class ChordsFromTabs4Acoustic(AbstractChords):
 
     def __init__(self, name, is_ukulele, short_content):
         super().__init__(name=name, is_ukulele=is_ukulele, short_content=short_content)
-        index = self.register()
-        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (self.name, "-ukulele" if is_ukulele else "", str(index) if index else ""))
-
-    def get_html_content(self):
-        type_name = " (Ukulele)" if self.is_ukulele else ""
-        return HtmlFormatter.HtmlGroup(
-                    HtmlFormatter.a(name=self.html_anchor),
-                    "\n",
-                    HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
-                    HtmlFormatter.comment("TODO: No real content for %s.get_html_content" % self.__class__.__name__),
-                    HtmlFormatter.pagebreak)
+        self.register_and_build_html_anchor()
 
     @classmethod
     def from_html_div(cls, div, is_ukulele):
@@ -857,4 +842,4 @@ def make_book(tabs, chords, htmlfile="wip_book.html", make_mobi=True):
 
 tabs = get_tabs(URLS)
 chords = AbstractChords.get_all()
-make_book(tabs, chords)
+make_book(tabs, chords, make_mobi=0)
