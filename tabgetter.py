@@ -9,7 +9,9 @@ class GuitarTabGetter(object):
         for class_ in (tabs.GuitarTabFromUltimateGuitar,
                        tabs.GuitarTabFromGuitarTabDotCom,
                        tabs.GuitarTabFromTabs4Acoustic,
-                       tabs.GuitarTabFromGuitarTabsDotCc):
+                       tabs.GuitarTabFromGuitarTabsDotCc,
+                       tabs.GuitarTabFromEChords,
+                       tabs.GuitarTabFromSongsterr):
             for prefix in class_.prefixes:
                 if url.startswith(prefix):
                     return class_

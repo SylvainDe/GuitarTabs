@@ -493,3 +493,26 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
 
     def get_strumming_content(self):
         return "".join(str(s.get_html_content()) for s in self.strummings)
+
+
+# TODO
+class GuitarTabFromEChords(AbstractGuitarTab):
+    prefixes = 'https://www.e-chords.com/',
+    website = 'e-chords.com/'
+
+    @classmethod
+    def from_url(cls, url):
+        if IN_DEV:
+            return None
+        return None  # TODO
+
+
+class GuitarTabFromSongsterr(AbstractGuitarTab):
+    prefixes = 'https://www.songsterr.com/',
+    website = 'songsterr.com'
+
+    @classmethod
+    def from_url(cls, url):
+        if IN_DEV:
+            return None
+        return None  # TODO
