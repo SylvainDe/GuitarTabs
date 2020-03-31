@@ -52,8 +52,9 @@ class AbstractGuitarTab(object):
         if display_type or display_src:
             acoustic = "Acoustic " if self.is_acoustic else ""
             type_name = "%s%s" % (acoustic, self.type_name) if display_type else ""
-            src = " from %s" % self.src if display_src else ""
-            from_ = " (" + type_name + src + ")"
+            src = "from %s" % self.src if display_src else ""
+            space = " " if (display_type and display_src) else ""
+            from_ = " (" + type_name + space + src + ")"
         return HtmlFormatter.a(href="#" + self.html_anchor, content="%s%s%s%s%s" % (prefix, self.song_name, part, artist_name, from_))
 
     def get_header(self):
@@ -124,7 +125,7 @@ class AbstractGuitarTab(object):
 
 class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
     prefixes = 'https://www.guitaretab.com/',
-    website = prefixes[0]
+    website = 'guitaretab.com'
 
     def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, chords, tab_id):
         super().__init__(url, song_name, artist_name, artist_url, tab_id)
@@ -187,7 +188,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
 
 class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
     prefixes = 'https://www.guitartabs.cc/',
-    website = prefixes[0]
+    website = 'guitartabs.cc'
 
     def __init__(self, song_name, artist_name, type_name, url, version, tab_content, votes, artist_url, chords):
         super().__init__(url, song_name, artist_name, artist_url, tab_id=None)
@@ -249,7 +250,7 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
 
 class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
     prefixes = 'https://www.tabs4acoustic.com/',
-    website = prefixes[0]
+    website = 'tabs4acoustic.com'
 
     def __init__(self, song_name, artist_name, url, artist_url, tab_content, chords, author, strummings, key, timesig, tempo):
         super().__init__(url, song_name, artist_name, artist_url, tab_id=None)
@@ -411,7 +412,7 @@ class Strumming(object):
 
 class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
     prefixes = 'https://www.ultimate-guitar.com/', 'https://tabs.ultimate-guitar.com/'
-    website = prefixes[0]
+    website = 'ultimate-guitar.com'
 
     def __init__(self, song_name, part, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, tab_id):
         super().__init__(url, song_name, artist_name, artist_url, tab_id)
