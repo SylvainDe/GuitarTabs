@@ -1,4 +1,10 @@
 
-Trying collect tabs into an ebook (for Kindle) - WIP
+Collect tabs from various websites and group them into an ebook (for Kindle)
 
-I'll try to get inspiration from http://pnwanderer.com/2014/11/15/how-to-format-guitar-tabs-for-kindle-e-reader/
+Supported sources:
+ - https://www.tabs4acoustic.com
+ - https://www.guitaretab.com
+ - https://www.guitartabs.cc
+ - https://www.ultimate-guitar.com
+
+See also: http://pnwanderer.com/2014/11/15/how-to-format-guitar-tabs-for-kindle-e-reader/ (not from me).
