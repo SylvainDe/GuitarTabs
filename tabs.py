@@ -504,7 +504,13 @@ class GuitarTabFromEChords(AbstractGuitarTab):
     def from_url(cls, url):
         if IN_DEV:
             return None
+        soup = urlCache.get_soup(url)
         return None  # TODO
+
+    @classmethod
+    def from_list_url(cls, list_url):
+        soup = urlCache.get_soup(list_url)
+        return []  # [cls.from_url(p.find("a")["href"]) for p in soup.find_all("p", class_="nome-musica")]
 
 
 class GuitarTabFromSongsterr(AbstractGuitarTab):
@@ -515,4 +521,10 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
     def from_url(cls, url):
         if IN_DEV:
             return None
+        soup = urlCache.get_soup(url)
         return None  # TODO
+
+    @classmethod
+    def from_list_url(cls, list_url):
+        soup = urlCache.get_soup(list_url)
+        return [cls.from_url(urllib.parse.urljoin(list_url, a['href'])) for a in soup.find_all("a", class_="tab-link")]

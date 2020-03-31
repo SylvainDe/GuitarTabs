@@ -99,6 +99,8 @@ URL_LISTS = [
     "https://www.guitaretab.com/top_tabs.html",
     "https://www.guitartabs.cc/top_tabs.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/top-guitar-tabs.html",
+    "https://www.e-chords.com/chords",
+    "https://www.songsterr.com/a/wa/all",
 ]
 
 
