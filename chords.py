@@ -58,12 +58,12 @@ class AbstractChords(object):
         link = self.get_link(display_type=False)
         return "%s%s: %s" % (padding, link, self.short_content)
 
-    def get_html_content(self):
+    def get_html_content(self, heading_level):
         type_name = " (Ukulele)" if self.is_ukulele else ""
         return HtmlFormatter.HtmlGroup(
             HtmlFormatter.a(name=self.html_anchor),
             "\n",
-            HtmlFormatter.h(2, "%s%s" % (self.name, type_name)),
+            HtmlFormatter.heading(heading_level, "%s%s" % (self.name, type_name)),
             self.get_specific_content(),
             HtmlFormatter.pagebreak)
 

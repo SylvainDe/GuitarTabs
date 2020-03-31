@@ -57,13 +57,13 @@ class AbstractGuitarTab(object):
             from_ = " (" + type_name + space + src + ")"
         return HtmlFormatter.a(href="#" + self.html_anchor, content="%s%s%s%s%s" % (prefix, self.song_name, part, artist_name, from_))
 
-    def get_header(self):
+    def get_header(self, heading_level):
         acoustic = "Acoustic " if self.is_acoustic else ""
         artist_link = HtmlFormatter.a(href=self.artist_url, content=self.artist_name)
         return HtmlFormatter.HtmlGroup(
             HtmlFormatter.a(name=self.html_anchor),
             "\n",
-            HtmlFormatter.h(2, "%s - %s (%s%s)" % (self.song_name, artist_link, acoustic, self.type_name)),
+            HtmlFormatter.heading(heading_level, "%s - %s (%s%s)" % (self.song_name, artist_link, acoustic, self.type_name)),
             self.get_link_to_original(),
             HtmlFormatter.new_line)
 
@@ -88,9 +88,9 @@ class AbstractGuitarTab(object):
         alignment = max(len(c.name) for c in self.chords)
         return HtmlFormatter.pre("\n".join(c.get_short_html_content(alignment) for c in self.chords))
 
-    def get_html_content(self):
+    def get_html_content(self, heading_level):
         return HtmlFormatter.HtmlGroup(
-            self.get_header(),
+            self.get_header(heading_level),
             self.get_optional_field_content(),
             self.get_strumming_content(),
             self.get_chord_content(),

@@ -59,7 +59,7 @@ class HtmlTag(object):
         return HtmlGroup(self, other)
 
 
-def h(level, content=None, attrs=None, **kwargs):
+def heading(level, content=None, attrs=None, **kwargs):
     return HtmlTag(tag="h" + str(level), content=content, attrs=attrs, **kwargs, on_close="\n")
 
 
