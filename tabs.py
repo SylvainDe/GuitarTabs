@@ -21,11 +21,11 @@ IN_DEV = False
 
 class AbstractGuitarTab(object):
 
-    by_name = operator.attrgetter('song_name')
-    by_artist = operator.attrgetter('artist_name')
-    by_difficulty = operator.attrgetter('difficulty')
-    by_type = operator.attrgetter('type_name')
-    by_src = operator.attrgetter('src')
+    by_name = operator.attrgetter('song_name', 'url')
+    by_artist = operator.attrgetter('artist_name', 'song_name', 'url')
+    by_difficulty = operator.attrgetter('difficulty', 'song_name', 'url')
+    by_type = operator.attrgetter('type_name', 'song_name', 'url')
+    by_src = operator.attrgetter('src', 'song_name', 'url')
 
     def __init__(self, url, song_name, artist_name, artist_url, tab_id):
         self.url = url

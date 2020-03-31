@@ -161,7 +161,7 @@ class ChordsFromGuitarTabsDotCc(AbstractChords):
                 lst = line.split('"')
                 name, short_content = lst[1], lst[3]
                 chords.append(cls(name, is_ukulele, short_content))
-        return chords
+        return sorted(chords, key=cls.by_name)
 
 
 class ChordsFromTabs4Acoustic(AbstractChords):
@@ -204,4 +204,4 @@ class ChordsFromTabs4Acoustic(AbstractChords):
         if div:
             for d in div.find_all('div', class_="small-3 column centered"):
                 chords.append(cls.from_html_inner_div(d, is_ukulele))
-        return chords
+        return sorted(chords, key=cls.by_name)
