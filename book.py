@@ -10,6 +10,11 @@ from chords import AbstractChords as Chords
 # http://www.amazon.com/kindleformat/kindlegen
 KINDLEGEN_PATH = 'Kindlegen/kindlegen'
 
+# TODO: Handle path in a smart way: the path in the code should be the relative
+# path in the repo but the path in the generated html code should be relative to
+# the html file.
+CSS_FILE="default.css"
+COVER_FILE="empty.jpg"
 
 def my_groupby(iterable, key=None):
     return itertools.groupby(sorted(iterable, key=key), key=key)
@@ -18,9 +23,9 @@ def my_groupby(iterable, key=None):
 def get_html_head():
     return HtmlFormatter.head()\
         .add(HtmlFormatter.meta(attrs={'http-equiv': "Content-type", 'content': "text/html;charset=utf-8"}))\
-        .add(HtmlFormatter.meta(attrs={'name': "cover", 'content': "empty.jpg"}))\
+        .add(HtmlFormatter.meta(attrs={'name': "cover", 'content': COVER_FILE}))\
         .add(HtmlFormatter.title(content="Tabs and Chords"))\
-        .add(HtmlFormatter.link(rel="stylesheet", href="default.css", type="text/css"))
+        .add(HtmlFormatter.link(rel="stylesheet", href=CSS_FILE, type="text/css"))
 
 
 def get_html_body(tabs, chords):
