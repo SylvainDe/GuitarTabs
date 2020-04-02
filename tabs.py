@@ -501,11 +501,19 @@ class GuitarTabFromEChords(AbstractGuitarTab):
     prefixes = 'https://www.e-chords.com/',
     website = 'e-chords.com'
 
-    def __init__(self, url, song_name, artist_name, artist_url, tab_id, key, capo, difficulty):
+    def __init__(self, url, song_name, artist_name, artist_url, tab_id, key, capo, difficulty, tab_content):
         super().__init__(url, song_name, artist_name, artist_url, tab_id)
         self.key = key
         self.capo = capo
         self.difficulty = difficulty
+        self.tab_content = tab_content
+
+    def get_tab_content(self):
+        # TODO: Use chords
+        content = self.tab_content
+        for t in content.find_all():
+            t.unwrap()
+        return str(content)
 
     @classmethod
     def from_url(cls, url):
@@ -531,6 +539,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             key=raw_data['strKey'],
             capo=raw_data['keycapo'],
             difficulty=soup.find("span", style="color: #999;font-style:italic").string,
+            tab_content=soup.find("pre", id="core"),
         )
 
     @classmethod
