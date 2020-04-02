@@ -29,6 +29,7 @@ def get_html_head():
 
 
 def get_html_body(tabs, chords):
+    tabs.sort(key=Tab.by_name_and_url)  # Ensure consistent ordering
     show_titles_in_toc = True
     show_chords_in_toc = False
     heading = HtmlFormatter.heading
