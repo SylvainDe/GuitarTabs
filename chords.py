@@ -1,4 +1,5 @@
 import htmlformatter as HtmlFormatter
+import re
 
 
 class AbstractChords(object):
@@ -164,6 +165,39 @@ class ChordsFromGuitarTabsDotCc(AbstractChords):
         return sorted(chords, key=cls.by_name)
 
 
+class ChordsFromEChords(AbstractChords):
+
+    def __init__(self, name, is_ukulele, variations):
+        variations = [v.split(",") for v in variations.split()]
+        super().__init__(name, is_ukulele, short_content="".join(variations[0]))
+        self.variations = variations
+        self.register_and_build_html_anchor()
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self.name == other.name and
+                self.is_ukulele == other.is_ukulele and
+                self.short_content == other.short_content and
+                self.variations == other.variations)  # Do not use html_anchor
+
+    def get_specific_content(self):
+        fret_details = self.variations
+        idx_width = len(str(len(fret_details)))
+        fret_width = max(len(f) for frets in fret_details for f in frets)
+        content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
+        return HtmlFormatter.pre(content)
+
+    @classmethod
+    def from_javascript(cls, data, is_ukulele):
+        chords = []
+        for line in data.split(";"):
+            m = re.match("chords\[\"(.*)\"\].variations = '(.*)'", line)
+            if m:
+                name, variations = m.groups()
+                chords.append(cls(name, is_ukulele, variations))
+        return sorted(chords, key=cls.by_name)
+
+
 class ChordsFromTabs4Acoustic(AbstractChords):
 
     def __init__(self, name, is_ukulele, finger_pos):
@@ -177,7 +211,7 @@ class ChordsFromTabs4Acoustic(AbstractChords):
                 self.name == other.name and
                 self.is_ukulele == other.is_ukulele and
                 self.short_content == other.short_content and
-                self.finger_pos == self.finger_pos)  # Do not use html_anchor
+                self.finger_pos == other.finger_pos)  # Do not use html_anchor
 
     def get_specific_content(self):
         fret_width = max(len(fret) for fret in self.finger_pos)

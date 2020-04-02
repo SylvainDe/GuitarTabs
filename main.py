@@ -109,6 +109,8 @@ def get_tabs(urls):
         tabs = [GuitarTabGetter.from_url(url) for url in urls]
     elif 0:  # For debug purposes
         tabs = GuitarTabGetter.from_list_url(URL_LISTS[0])
+    else:
+        tabs = [GuitarTabGetter.from_url("https://www.e-chords.com/chords/eagles/hotel-california")]
     return [t for t in tabs if t is not None]
 
 

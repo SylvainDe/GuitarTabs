@@ -501,12 +501,13 @@ class GuitarTabFromEChords(AbstractGuitarTab):
     prefixes = 'https://www.e-chords.com/',
     website = 'e-chords.com'
 
-    def __init__(self, url, song_name, artist_name, artist_url, tab_id, key, capo, difficulty, tab_content):
+    def __init__(self, url, song_name, artist_name, artist_url, tab_id, key, capo, difficulty, tab_content, chords):
         super().__init__(url, song_name, artist_name, artist_url, tab_id)
         self.key = key
         self.capo = capo
         self.difficulty = difficulty
         self.tab_content = tab_content
+        self.chords = chords
 
     def get_tab_content(self):
         # TODO: Use chords
@@ -530,6 +531,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             re.findall("var ([^ ]*) = '([^']*)';", jscript) +
             re.findall("var ([^ ]*) = ([^'\";]*);", jscript))
         }
+        chords_jscript = jscript.splitlines()[-2]
         return cls(
             url=url,
             song_name=raw_data['title'],
@@ -540,6 +542,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             capo=raw_data['keycapo'],
             difficulty=soup.find("span", style="color: #999;font-style:italic").string,
             tab_content=soup.find("pre", id="core"),
+            chords=chords.ChordsFromEChords.from_javascript(chords_jscript, is_ukulele=False),
         )
 
     @classmethod
