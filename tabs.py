@@ -510,11 +510,14 @@ class GuitarTabFromEChords(AbstractGuitarTab):
         self.chords = chords
 
     def get_tab_content(self):
-        # TODO: Use chords
+        dict_chord = {c.name: str(c.get_link(display_type=False)) for c in self.chords}
         content = self.tab_content
         for t in content.find_all():
-            t.unwrap()
-        return str(content)
+            if t.name == 'u':
+                t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
+            else:
+                t.unwrap()
+        return HtmlFormatter.pre("".join(str(t) for t in content.contents))
 
     @classmethod
     def from_url(cls, url):
