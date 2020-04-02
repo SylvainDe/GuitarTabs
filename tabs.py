@@ -35,6 +35,7 @@ class AbstractGuitarTab(object):
         self.artist_url = artist_url
         self.type_name = "Tab"
         self.part = ""
+        self.chords = []
         self.is_acoustic = False
         self.capo = None
         self.tonality = None
@@ -496,22 +497,44 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         return "".join(str(s.get_html_content()) for s in self.strummings)
 
 
-# TODO
 class GuitarTabFromEChords(AbstractGuitarTab):
     prefixes = 'https://www.e-chords.com/',
     website = 'e-chords.com/'
+
+    def __init__(self, url, song_name, artist_name, artist_url, tab_id, key, capo):
+        super().__init__(url, song_name, artist_name, artist_url, tab_id)
+        self.key = key
+        self.capo = capo
 
     @classmethod
     def from_url(cls, url):
         if IN_DEV:
             return None
+        if url == "https://www.e-chords.com/chords/lewis-capaldi/someone-you-loved":
+            return None
         soup = urlCache.get_soup(url)
-        return None  # TODO
+        # Dirty extract of javascript values
+        js_prefix = "var base_href = "
+        jscript = soup.find('script', text=re.compile(".*%s.*" % js_prefix)).string
+        raw_data = {k:v for (k, v) in (
+            re.findall('var ([^ ]*) = "([^"]*)";', jscript) +
+            re.findall("var ([^ ]*) = '([^']*)';", jscript) +
+            re.findall("var ([^ ]*) = ([^'\";]*);", jscript))
+        }
+        return cls(
+            url=url,
+            song_name=raw_data['title'],
+            artist_name=raw_data['artist'],
+            artist_url= "https://www.e-chords.com/" + raw_data['cod_artist'],
+            tab_id=raw_data['idSong'],
+            key=raw_data['strKey'],
+            capo=raw_data['keycapo'],
+        )
 
     @classmethod
     def from_list_url(cls, list_url):
         soup = urlCache.get_soup(list_url)
-        return []  # [cls.from_url(p.find("a")["href"]) for p in soup.find_all("p", class_="nome-musica")]
+        return [cls.from_url(p.find("a")["href"]) for p in soup.find_all("p", class_="nome-musica")]
 
 
 class GuitarTabFromSongsterr(AbstractGuitarTab):

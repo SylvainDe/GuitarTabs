@@ -89,8 +89,8 @@ URLS = [
     "https://www.tabs4acoustic.com/en/guitar-tabs/izrael-kamakawiwo-ole-tabs/over-the-rainbow-acoustic-tab-319.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/jeff-buckley-tabs/hallelujah-acoustic-tab-213.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/the-eagles-tabs/hotel-california-acoustic-tab-67.html",
-    # TODO
     "https://www.e-chords.com/chords/eagles/hotel-california",
+    # TODO
     "https://www.songsterr.com/a/wsa/the-eagles-hotel-california-tab-s447t1",
 ]
 
