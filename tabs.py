@@ -311,9 +311,9 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         for t in content.find_all('span'):
             t.unwrap()
         for t in content.find_all('a'):
-            str_content = list(t.strings)[0]
-            if str_content in dict_chord:
-                t.replace_with(BeautifulSoup(dict_chord[str_content], "html.parser"))
+            v = dict_chord.get(list(t.strings)[0], None)
+            if v is not None:
+                t.replace_with(BeautifulSoup(v, "html.parser"))
             else:
                 t.unwrap()
         for t in content.find_all('img'):
@@ -514,7 +514,11 @@ class GuitarTabFromEChords(AbstractGuitarTab):
         content = self.tab_content
         for t in content.find_all():
             if t.name == 'u':
-                t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
+                v = dict_chord.get(t.string, None)
+                if v is not None:
+                    t.replace_with(BeautifulSoup(v, "html.parser"))
+                else:
+                    t.unwrap()
             else:
                 t.unwrap()
         return HtmlFormatter.pre("".join(str(t) for t in content.contents))
