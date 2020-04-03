@@ -501,13 +501,14 @@ class GuitarTabFromEChords(AbstractGuitarTab):
     prefixes = 'https://www.e-chords.com/',
     website = 'e-chords.com'
 
-    def __init__(self, url, song_name, artist_name, artist_url, tab_id, key, capo, difficulty, tab_content, chords):
+    def __init__(self, url, song_name, artist_name, artist_url, tab_id, key, capo, difficulty, tab_content, chords, type_name):
         super().__init__(url, song_name, artist_name, artist_url, tab_id)
         self.key = key
         self.capo = capo
         self.difficulty = difficulty
         self.tab_content = tab_content
         self.chords = chords
+        self.type_name = type_name
 
     def get_tab_content(self):
         dict_chord = {c.name: str(c.get_link(display_type=False)) for c in self.chords}
@@ -527,7 +528,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
     def from_url(cls, url):
         if IN_DEV:
             return None
-        if url == "https://www.e-chords.com/chords/lewis-capaldi/someone-you-loved":
+        if url in ("https://www.e-chords.com/chords/lewis-capaldi/someone-you-loved", "https://www.e-chords.com/tabs/ewan-dobson/time-2"):
             return None
         soup = urlCache.get_soup(url)
         # Dirty extract of javascript values
@@ -539,6 +540,11 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             re.findall("var ([^ ]*) = ([^'\";]*);", jscript))
         }
         chords_jscript = jscript.splitlines()[-2]
+        instrument = raw_data['typeInstrument']
+        type_name = raw_data['tipoTab']
+        if instrument != type_name:
+            type_name = instrument + " " + type_name
+        is_ukulele = (instrument == 'ukulele')
         return cls(
             url=url,
             song_name=raw_data['title'],
@@ -549,7 +555,8 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             capo=raw_data['keycapo'],
             difficulty=soup.find("span", style="color: #999;font-style:italic").string,
             tab_content=soup.find("pre", id="core"),
-            chords=chords.ChordsFromEChords.from_javascript(chords_jscript, is_ukulele=False),
+            chords=chords.ChordsFromEChords.from_javascript(chords_jscript, is_ukulele=is_ukulele),
+            type_name=type_name.title(),
         )
 
     @classmethod

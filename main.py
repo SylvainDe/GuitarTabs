@@ -90,6 +90,8 @@ URLS = [
     "https://www.tabs4acoustic.com/en/guitar-tabs/jeff-buckley-tabs/hallelujah-acoustic-tab-213.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/the-eagles-tabs/hotel-california-acoustic-tab-67.html",
     "https://www.e-chords.com/chords/eagles/hotel-california",
+    "https://www.e-chords.com/tabs/eagles/hotel-california",
+    "https://www.e-chords.com/ukulele/eagles/hotel-california",
     # TODO
     "https://www.songsterr.com/a/wsa/the-eagles-hotel-california-tab-s447t1",
 ]
@@ -100,6 +102,7 @@ URL_LISTS = [
     "https://www.guitartabs.cc/top_tabs.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/top-guitar-tabs.html",
     "https://www.e-chords.com/chords",
+    "https://www.e-chords.com/tabs",
     "https://www.songsterr.com/a/wa/all",
 ]
 
