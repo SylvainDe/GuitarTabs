@@ -136,13 +136,9 @@ class ChordsFromApplicature(AbstractChords):
 
     @classmethod
     def from_json_data(cls, data, is_ukulele):
-        if data is None:
-            data = dict()
-        if data == []:
-            data = dict()
-        return sorted(
-            (cls(name, is_ukulele, details) for name, details in data.items()),
-            key=cls.by_name)
+        if data:  # May be None or []
+            for name, details in data.items():
+                yield cls(name, is_ukulele, details)
 
 
 class ChordsFromGuitarTabsDotCc(AbstractChords):
@@ -156,13 +152,11 @@ class ChordsFromGuitarTabsDotCc(AbstractChords):
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
-        chords = []
         for line in data.splitlines():
             if "chords[" in line:
                 lst = line.split('"')
                 name, short_content = lst[1], lst[3]
-                chords.append(cls(name, is_ukulele, short_content))
-        return sorted(chords, key=cls.by_name)
+                yield cls(name, is_ukulele, short_content)
 
 
 class ChordsFromEChords(AbstractChords):
@@ -189,13 +183,11 @@ class ChordsFromEChords(AbstractChords):
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
-        chords = []
         for line in data.split(";"):
             m = re.match("chords\[\"(.*)\"\].variations = '(.*)'", line)
             if m:
                 name, variations = m.groups()
-                chords.append(cls(name, is_ukulele, variations))
-        return sorted(chords, key=cls.by_name)
+                yield cls(name, is_ukulele, variations)
 
 
 class ChordsFromTabs4Acoustic(AbstractChords):
@@ -234,8 +226,6 @@ class ChordsFromTabs4Acoustic(AbstractChords):
 
     @classmethod
     def from_html_div(cls, div, is_ukulele):
-        chords = []
         if div:
             for d in div.find_all('div', class_="small-3 column centered"):
-                chords.append(cls.from_html_inner_div(d, is_ukulele))
-        return sorted(chords, key=cls.by_name)
+                yield cls.from_html_inner_div(d, is_ukulele)

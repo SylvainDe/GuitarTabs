@@ -85,10 +85,11 @@ class AbstractGuitarTab(object):
         return s
 
     def get_chord_content(self):
-        if not self.chords:
+        sorted_chords = sorted(self.chords, key=chords.AbstractChords.by_name)
+        if not sorted_chords:
             return ""
-        alignment = max(len(c.name) for c in self.chords)
-        return HtmlFormatter.pre("\n".join(c.get_short_html_content(alignment) for c in self.chords))
+        alignment = max(len(c.name) for c in sorted_chords)
+        return HtmlFormatter.pre("\n".join(c.get_short_html_content(alignment) for c in sorted_chords))
 
     def get_html_content(self, heading_level):
         return HtmlFormatter.HtmlGroup(
@@ -178,7 +179,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
             rating=aggregate_rating['ratingValue'],
             votes=int(aggregate_rating['reviewCount']),
             tab_content=soup.find('pre', class_="js-tab-fit-to-screen"),
-            chords=chords.ChordsFromApplicature.from_json_data(json_content2['applicature'], is_ukulele=False),
+            chords=list(chords.ChordsFromApplicature.from_json_data(json_content2['applicature'], is_ukulele=False)),
             tab_id=json_content2['tabId'])
 
     @classmethod
@@ -229,7 +230,7 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
             version=version,
             votes=votes,
             tab_content=tab_content,
-            chords=chords.ChordsFromGuitarTabsDotCc.from_javascript(chords_jscript, is_ukulele=False))
+            chords=list(chords.ChordsFromGuitarTabsDotCc.from_javascript(chords_jscript, is_ukulele=False)))
 
     def get_text_for_link_to_original(self):
         return "%s version %d from %s (%s)" % (self.type_name, self.version, self.website, self.votes)
@@ -293,7 +294,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
             url=url,
             artist_url=urllib.parse.urljoin(url, artist_link['href']),
             tab_content=soup.find(id='tab_zone'),
-            chords=chords.ChordsFromTabs4Acoustic.from_html_div(soup.find(id="crd_zone"), is_ukulele=False),
+            chords=list(chords.ChordsFromTabs4Acoustic.from_html_div(soup.find(id="crd_zone"), is_ukulele=False)),
             author=soup.find("meta", attrs={'name': "author"})["content"],
             strummings=soup.find("div", id="tab_rhy"),
             key=key,
@@ -468,7 +469,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             difficulty=tab_view_meta.get('difficulty', None),
             tuning=tab_view_meta.get('tuning', dict()).get('name', None),
             tab_content=tab_view['wiki_tab'].get('content', ''),
-            chords=chords.ChordsFromApplicature.from_json_data(tab_view['applicature'], is_ukulele),
+            chords=list(chords.ChordsFromApplicature.from_json_data(tab_view['applicature'], is_ukulele)),
             strummings=Strumming.from_raw_data(tab_view['strummings']),
             tab_id=tab['id'],
         )
@@ -555,7 +556,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             capo=raw_data['keycapo'],
             difficulty=soup.find("span", style="color: #999;font-style:italic").string,
             tab_content=soup.find("pre", id="core"),
-            chords=chords.ChordsFromEChords.from_javascript(chords_jscript, is_ukulele=is_ukulele),
+            chords=list(chords.ChordsFromEChords.from_javascript(chords_jscript, is_ukulele=is_ukulele)),
             type_name=type_name.title(),
         )
 
