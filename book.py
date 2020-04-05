@@ -29,7 +29,9 @@ def get_html_head():
 
 
 def get_html_body(tabs, chords):
-    tabs.sort(key=Tab.by_name_and_url)  # Ensure consistent ordering
+    # Ensure consistent ordering
+    tabs.sort(key=Tab.by_name_and_url)
+    chords.sort(key=Chords.by_name)
     show_titles_in_toc = True
     show_chords_in_toc = False
     heading = HtmlFormatter.heading
@@ -43,12 +45,12 @@ def get_html_body(tabs, chords):
     body.add(heading(2, "Table of contents"))
     body.add(heading(3, link(href="#tabs", content="Tabs")))
     if show_titles_in_toc:
-        for t in sorted(tabs, key=Tab.by_name):
+        for t in tabs:
             body.add(t.get_link())
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(href="#chords", content="Chords")))
     if show_chords_in_toc:
-        for c in sorted(chords, key=Chords.by_name):
+        for c in chords:
             body.add(c.get_link(display_type=True))
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(href="#index_tabs", content="Tab Index")))
@@ -75,43 +77,43 @@ def get_html_body(tabs, chords):
     # Tab content
     body.add(link(name="tabs"))
     body.add(heading(2, "Tabs"))
-    for t in sorted(tabs, key=Tab.by_name):
+    for t in tabs:
         body.add(t.get_html_content(heading_level=3))
     # Chord content
     body.add(link(name="chords"))
     body.add(heading(2, "Chords"))
-    for c in sorted(chords, key=Chords.by_name):
+    for c in chords:
         body.add(c.get_html_content(heading_level=3))
     # Tab Index
     body.add(link(name="index_tabs"))
     body.add(heading(2, "Tab index"))
     if not show_titles_in_toc:
         body.add(heading(3, link(name="index_tabs_by_title") + "By title"))
-        for t in sorted(tabs, key=Tab.by_name):
+        for t in tabs:
             body.add(t.get_link())
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(name="index_tabs_by_artist") + "By artist"))
     for artist, tabs_grouped in my_groupby(tabs, key=Tab.by_artist):
         body.add(heading(4, artist))
-        for t in sorted(tabs_grouped, key=Tab.by_name):
+        for t in tabs_grouped:
             body.add(t.get_link(display_artist=False))
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(name="index_tabs_by_diff") + "By difficulty"))
     for diff, tabs_grouped in my_groupby(tabs, key=Tab.by_difficulty):
         body.add(heading(4, diff))
-        for t in sorted(tabs_grouped, key=Tab.by_name):
+        for t in tabs_grouped:
             body.add(t.get_link())
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(name="index_tabs_by_type") + "By type"))
     for type_name, tabs_grouped in my_groupby(tabs, key=Tab.by_type):
         body.add(heading(4, type_name))
-        for t in sorted(tabs_grouped, key=Tab.by_name):
+        for t in tabs_grouped:
             body.add(t.get_link(display_type=False))
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(name="index_tabs_by_src") + "By website"))
     for src, tabs_grouped in my_groupby(tabs, key=Tab.by_src):
         body.add(heading(4, src))
-        for t in sorted(tabs_grouped, key=Tab.by_name):
+        for t in tabs_grouped:
             body.add(t.get_link(display_src=False))
             body.add(HtmlFormatter.new_line)
     # Chord Index
@@ -119,13 +121,13 @@ def get_html_body(tabs, chords):
     body.add(heading(2, "Chord index"))
     if not show_chords_in_toc:
         body.add(heading(3, link(name="index_chords_by_title") + "By name"))
-        for c in sorted(chords, key=Chords.by_name):
+        for c in chords:
             body.add(c.get_link(display_type=True))
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(name="index_chords_by_type") + "By type"))
     for type_name, chords_grouped in my_groupby(chords, key=Chords.by_type):
         body.add(heading(4, type_name))
-        for c in sorted(chords_grouped, key=Chords.by_name):
+        for c in chords_grouped:
             body.add(c.get_link(display_type=False))
             body.add(HtmlFormatter.new_line)
     return body
