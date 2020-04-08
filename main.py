@@ -94,6 +94,8 @@ URLS = [
     "https://www.e-chords.com/ukulele/eagles/hotel-california",
     # TODO
     "https://www.songsterr.com/a/wsa/the-eagles-hotel-california-tab-s447t1",
+    "https://www.songsterr.com/a/wsa/led-zeppelin-kashmir-tab-s288t1",
+    "https://www.songsterr.com/a/wsa/david-bowie-space-oddity-tab-s365t1",
 ]
 
 URL_LISTS = [
