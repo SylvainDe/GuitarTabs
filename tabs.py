@@ -570,12 +570,42 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
     prefixes = 'https://www.songsterr.com/',
     website = 'songsterr.com'
 
+    def __init__(self, url, song_name, artist_name, artist_url, tab_id, tab_content, difficulty, capo):
+        super().__init__(url, song_name, artist_name, artist_url, tab_id)
+        self.tab_content = tab_content
+        self.difficulty = difficulty
+        self.capo = capo
+
     @classmethod
     def from_url(cls, url):
         if IN_DEV:
             return None
         soup = urlCache.get_soup(url)
-        return None  # TODO
+
+        json_content = json.loads(soup.find("script", id="state").string)
+        json_meta = json_content['meta']
+        json_route = json_content['route']
+        json_track = json_content['track']
+        json_data = json_content['data']
+        # json_lyrics = json_data['lyrics']
+        # if json_lyrics is not None:
+        #     print(len(json_lyrics))
+        #     for lyr in json_lyrics:
+        #         for beats in lyr['beats']:
+        #             for lyr2 in beats['lyrics']:
+        #                 print(lyr2['text'])
+        # Note: tuning is available: json_track['tuning']
+        # Note: bpm is available: json_data['part']['automations']['tempo']
+        return cls(
+            url=url,
+            song_name=json_meta["title"],
+            artist_name=json_meta["artist"],
+            artist_url="https://www.songsterr.com/a/wsa/foo-bar-a%s" % (json_meta["artistId"]),
+            tab_id="s%st%s" % (json_route["songId"], json_route["partId"]),
+            tab_content=soup.find('section', id="tablature"),
+            difficulty=json_track['difficulty'],
+            capo=json_data["part"]["capo"],
+    )
 
     @classmethod
     def from_list_url(cls, list_url):
