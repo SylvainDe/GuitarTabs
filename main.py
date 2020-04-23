@@ -100,6 +100,7 @@ URLS = [
 
 URL_LISTS = [
     "https://www.ultimate-guitar.com/top/tabs",
+    "https://www.ultimate-guitar.com/search.php?search_type=title&value=red%20hot%20chili%20peppers%20road%20trippin",
     "https://www.guitaretab.com/top_tabs.html",
     "https://www.guitartabs.cc/top_tabs.html",
     "https://www.tabs4acoustic.com/en/guitar-tabs/top-guitar-tabs.html",
