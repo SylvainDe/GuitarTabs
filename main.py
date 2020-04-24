@@ -109,6 +109,7 @@ URL_LISTS = [
     "https://www.tabs4acoustic.com/en/search.html?FindMe=stairway+to+heaven",
     "https://www.e-chords.com/chords",
     "https://www.e-chords.com/tabs",
+    "https://www.e-chords.com/search-all/road%20trippin",
     "https://www.songsterr.com/a/wa/all",
 ]
 
