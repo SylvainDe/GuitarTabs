@@ -111,6 +111,7 @@ URL_LISTS = [
     "https://www.e-chords.com/tabs",
     "https://www.e-chords.com/search-all/road%20trippin",
     "https://www.songsterr.com/a/wa/all",
+    "https://www.songsterr.com/?pattern=road+trippin",
 ]
 
 
