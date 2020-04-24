@@ -340,11 +340,18 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
     def from_list_url(cls, list_url):
         soup = urlCache.get_soup(list_url)
         hrefs = []
-        for tr in soup.find(id="page_content").find("table").find_all("tr"):
-            tds = tr.find_all("td")
-            if tds:
-                hrefs.append(tds[1].find("a")["href"])
-        return [cls.from_url(urllib.parse.urljoin(list_url, href)) for href in hrefs]
+        content = soup.find(id="page_content")
+        table = content.find("table")
+        if table:
+            for tr in table.find_all("tr"):
+                tds = tr.find_all("td")
+                if tds:
+                    hrefs.append(tds[1].find("a")["href"])
+            return [cls.from_url(urllib.parse.urljoin(cls.prefixes[0], href)) for href in hrefs]
+        else:
+            for a in content.find_all("a"):
+                hrefs.append(a["href"])
+        return [cls.from_url(urllib.parse.urljoin(cls.prefixes[0], href)) for href in hrefs]
 
 
 class Strumming(object):
