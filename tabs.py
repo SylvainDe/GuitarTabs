@@ -307,7 +307,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
     def get_tab_content(self):
         dict_chord = {c.name: str(c.get_link(display_type=False)) for c in self.chords}
         if self.tab_content is None:
-            return "No tab content"
+            return HtmlFormatter.pre("No tab content")
         content = self.tab_content.find(class_="small-12 column")
         for t in content.find_all('span'):
             t.unwrap()
@@ -325,7 +325,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         begin = "Tempo: %s, Time signature: %s\n" % (self.tempo, self.timesig)
         content = self.strummings
         if content is None:
-            return "No strumming content"
+            return HtmlFormatter.pre("No strumming content")
         for t in content.find_all('h3'):
             t.decompose()
         for t in content.find_all('span', class_="tab_help"):
