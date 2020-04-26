@@ -133,11 +133,18 @@ def get_html_body(tabs, chords):
     return body
 
 
-def make_book(tabs, chords, htmlfile, make_mobi=True):
+def make_book(tabs, chords, htmlfile, make_mobi=True, make_pdf=True):
     html = HtmlFormatter.html().add(get_html_head()).add(get_html_body(tabs, chords))
     with open(htmlfile, 'w+') as book:
         book.write(HtmlFormatter.doctype + str(html))
     print("Wrote in %s" % htmlfile)
+    if make_pdf:
+        pdf_file = "dest/wip_book.pdf"
+        # Various options from https://superuser.com/questions/592974/how-to-print-to-save-as-pdf-from-a-command-line-with-chrome-or-chromium
+        cmd = ["chromium-browser", "--headless", "--disable-gpu", "--print-to-pdf=" + pdf_file, htmlfile]
+        cmd = ["google-chrome",    "--headless", "--disable-gpu", "--print-to-pdf=" + pdf_file, htmlfile]
+        cmd = ["wkhtmltopdf", htmlfile, pdf_file]
+        subprocess.call(cmd)
     if make_mobi:
         cmd = [KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile]
         subprocess.call(cmd)
