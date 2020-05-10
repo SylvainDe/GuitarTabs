@@ -133,6 +133,13 @@ def get_html_body(tabs, chords):
     return body
 
 
+def subprocess_call(cmd):
+    cmd_str = " ".join(cmd)
+    print("%s begin" % cmd_str)
+    ret = subprocess.call(cmd)
+    print("%s returned %d" % (cmd_str, ret))
+
+
 def make_book(tabs, chords, htmlfile, make_mobi=True, make_pdf=True):
     html = HtmlFormatter.html().add(get_html_head()).add(get_html_body(tabs, chords))
     with open(htmlfile, 'w+') as book:
@@ -144,7 +151,7 @@ def make_book(tabs, chords, htmlfile, make_mobi=True, make_pdf=True):
         cmd = ["chromium-browser", "--headless", "--disable-gpu", "--print-to-pdf=" + pdf_file, htmlfile]
         cmd = ["google-chrome",    "--headless", "--disable-gpu", "--print-to-pdf=" + pdf_file, htmlfile]
         cmd = ["wkhtmltopdf", htmlfile, pdf_file]
-        subprocess.call(cmd)
+        subprocess_call(cmd)
     if make_mobi:
         cmd = [KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile]
-        subprocess.call(cmd)
+        subprocess_call(cmd)
