@@ -92,35 +92,45 @@ class ChordsFromApplicature(AbstractChords):
     def format_fingering_detail(cls, name, fingering):
         # WORK IN PROGRESS
         # print(name, str(fingering))
-        frets = fingering['frets']
+        frets = list(reversed(fingering['frets']))
+        fingers = list(reversed(fingering['fingers']))
         capos = fingering['listCapos']
-        fingers = fingering['fingers']
         fret_offset = fingering['fret']
         nb_strings = len(frets)
         nb_frets = 5
         width = 2
         height = 1
 
-        top, mid, bottom, vert_lines = ("┍", "┯", "┑", "━"), ("├", "┼", "┤", "─"), ("└", "┴", "┘", "─"), ("│", "│", "│", " ")
+        # Drawing:   (beg, mid, end, fill)
+        empty =      ("",  "",  " ", " ")
+        top =        ("┍", "┯", "┑", "━")
+        mid =        ("├", "┼", "┤", "─")
+        bottom =     ("└", "┴", "┘", "─")
+        vert_lines = ("│", "│", "│", " ")
         symbols = []
+        symbols.append(empty)
         symbols.append(top)
         for i in range(nb_frets - 1):
             symbols.extend([vert_lines] * height + [mid])
         symbols.extend([vert_lines] * height + [bottom])
         fretboard = [([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end]) for beg, mid, end, fill in symbols]
 
-        for j, (fr, fi) in enumerate(reversed(list(zip(frets, fingers)))):
+        row_start_index = 2
+        for j, (fr, fi) in enumerate(zip(frets, fingers)):
             if fr > 0:
                 assert fi in [0, 1, 2, 3, 4]
                 fi_str = str(fi)
                 if fret_offset:
                     fr -= fret_offset - 1
-                i = 1 + ((fr - 1) * (height + 1)) + (height // 2)
+                i = row_start_index + ((fr - 1) * (height + 1)) + (height // 2)
                 fretboard[i][j] = fi_str + fretboard[i][j][len(fi_str):]
             elif fr == 0:
                 assert fi == 0
             elif fr == -1:
                 assert fi == 0
+                fi_str = "x"
+                i = 0
+                fretboard[i][j] = fi_str + fretboard[i][j][len(fi_str):]
             else:
                 assert False
 
