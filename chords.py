@@ -12,11 +12,12 @@ class AbstractChords(object):
     def by_type(self):
         return "Ukulele" if self.is_ukulele else "Guitar"
 
-    def __init__(self, name, is_ukulele, short_content):
+    def __init__(self, name, is_ukulele, short_content, long_content):
         self.name = name
         self.is_ukulele = is_ukulele
         self.short_content = short_content
-        # Note: don't forget to call register_and_build_html_anchor
+        self.long_content = long_content
+        self.register_and_build_html_anchor()
 
     def register_and_build_html_anchor(self):
         # To be called from constructor ONLY when all fields are initialised
@@ -27,10 +28,17 @@ class AbstractChords(object):
             str(index) if index else ""))
 
     def __eq__(self, other):
+        """Implement comparison for AbstractChords.
+
+        Consider Chords object to be identical if all fields conrresponding
+        to content is equal. Additional generated data such as html_anchor
+        is ignored (comparison is actually used to store chords in lists,
+        get their index and thus, compute the html_anchor value."""
         return (isinstance(other, self.__class__) and
                 self.name == other.name and
                 self.is_ukulele == other.is_ukulele and
-                self.short_content == other.short_content)
+                self.short_content == other.short_content and
+                self.long_content == other.long_content)
 
     def __str__(self):
         return "%s(name:%s, is_ukulele:%d, short_content:%s)" % (
@@ -72,44 +80,11 @@ class AbstractChords(object):
             HtmlFormatter.a(name=self.html_anchor),
             "\n",
             HtmlFormatter.heading(heading_level, "%s%s" % (self.name, type_name)),
-            self.get_specific_content(),
+            self.long_content,
             HtmlFormatter.pagebreak)
-
-    def get_specific_content(self):
-        return HtmlFormatter.comment(
-            "TODO: No real content for %s.get_specific_content" %
-            self.__class__.__name__)
 
 
 class ChordsFromApplicature(AbstractChords):
-
-    def __init__(self, name, is_ukulele, details):
-        super().__init__(name, is_ukulele, short_content=details[0]['id'])
-        self.details = self.prune_details(details)
-        self.register_and_build_html_anchor()
-
-    def __eq__(self, other):
-        return (isinstance(other, self.__class__) and
-                self.name == other.name and
-                self.is_ukulele == other.is_ukulele and
-                self.short_content == other.short_content and
-                self.details == other.details)  # Do not use html_anchor
-
-    def __str__(self):
-        return "%s(name:%s, is_ukulele:%d, short_content:%s, details:%s)" % (
-                self.__class__.__name__,
-                self.name,
-                self.is_ukulele,
-                self.short_content,
-                self.details)
-
-    @classmethod
-    def prune_details(cls, details):
-        """Remove unused items from details."""
-        kept_keys = ['id', 'frets', 'fingers', 'fret']
-        # We could try to keep other values here to use them later on:
-        # 'listCapos', 'noteIndex', 'notes', 'type', 'baseDisplayNote'
-        return [{k: v for k, v in d.items() if k in kept_keys} for d in details]
 
     @classmethod
     def format_fingering_detail(cls, name, fingering):
@@ -158,10 +133,11 @@ class ChordsFromApplicature(AbstractChords):
 
         return HtmlFormatter.pre("\n".join("".join(line) for line in fretboard))
 
-    def get_specific_content(self):
-        debug = self.format_fingering_detail(self.name, self.details[0])
-        idx_width = len(str(len(self.details)))
-        fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in self.details]
+    @classmethod
+    def get_long_content(cls, name, details):
+        debug = cls.format_fingering_detail(name, details[0])
+        idx_width = len(str(len(details)))
+        fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in details]
         fret_width = max(len(f) for frets in fret_details for f in frets)
         content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
         return HtmlFormatter.pre(content) + debug
@@ -170,52 +146,33 @@ class ChordsFromApplicature(AbstractChords):
     def from_json_data(cls, data, is_ukulele):
         if data:  # May be None or []
             for name, details in data.items():
-                yield cls(name, is_ukulele, details)
+                short_content = details[0]['id']
+                long_content = cls.get_long_content(name, details)
+                yield cls(name, is_ukulele, short_content, long_content)
 
 
 class ChordsFromGuitarTabsDotCc(AbstractChords):
 
-    def __init__(self, name, is_ukulele, short_content):
-        super().__init__(name, is_ukulele, short_content)
-        self.register_and_build_html_anchor()
-
-    def get_specific_content(self):
-        return HtmlFormatter.pre(self.short_content)
+    @classmethod
+    def get_long_content(cls, short_content):
+        return HtmlFormatter.pre(short_content)
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
         for line in data.splitlines():
             if "chords[" in line:
+                # Extract and format data
                 lst = line.split('"')
                 name, short_content = lst[1], lst[3]
-                yield cls(name, is_ukulele, short_content)
+                long_content = cls.get_long_content(short_content)
+                yield cls(name, is_ukulele, short_content, long_content)
 
 
 class ChordsFromEChords(AbstractChords):
 
-    def __init__(self, name, is_ukulele, variations):
-        variations = [v.split(",") for v in variations.split()]
-        super().__init__(name, is_ukulele, short_content="".join(variations[0]))
-        self.variations = variations
-        self.register_and_build_html_anchor()
-
-    def __eq__(self, other):
-        return (isinstance(other, self.__class__) and
-                self.name == other.name and
-                self.is_ukulele == other.is_ukulele and
-                self.short_content == other.short_content and
-                self.variations == other.variations)  # Do not use html_anchor
-
-    def __str__(self):
-        return "%s(name:%s, is_ukulele:%d, short_content:%s, variations:%s)" % (
-                self.__class__.__name__,
-                self.name,
-                self.is_ukulele,
-                self.short_content,
-                self.variations)
-
-    def get_specific_content(self):
-        fret_details = self.variations
+    @classmethod
+    def get_long_content(cls, variations):
+        fret_details = variations
         idx_width = len(str(len(fret_details)))
         fret_width = max(len(f) for frets in fret_details for f in frets)
         content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
@@ -226,40 +183,29 @@ class ChordsFromEChords(AbstractChords):
         for line in data.split(";"):
             m = re.match("chords\[\"(.*)\"\].variations = '(.*)'", line)
             if m:
+                # Extract data
                 name, variations = m.groups()
-                yield cls(name, is_ukulele, variations)
+
+                # Format data
+                variations = [v.split(",") for v in variations.split()]
+                short_content = "".join(variations[0])
+                long_content = cls.get_long_content(variations)
+
+                # Initialise
+                yield cls(name, is_ukulele, short_content, long_content)
 
 
 class ChordsFromTabs4Acoustic(AbstractChords):
 
-    def __init__(self, name, is_ukulele, finger_pos):
-        short_content = "".join(finger_pos)
-        super().__init__(name, is_ukulele, short_content)
-        self.finger_pos = finger_pos
-        self.register_and_build_html_anchor()
-
-    def __eq__(self, other):
-        return (isinstance(other, self.__class__) and
-                self.name == other.name and
-                self.is_ukulele == other.is_ukulele and
-                self.short_content == other.short_content and
-                self.finger_pos == other.finger_pos)  # Do not use html_anchor
-
-    def __str__(self):
-        return "%s(name:%s, is_ukulele:%d, short_content:%s, finger_pos:%s)" % (
-                self.__class__.__name__,
-                self.name,
-                self.is_ukulele,
-                self.short_content,
-                self.finger_pos)
-
-    def get_specific_content(self):
-        fret_width = max(len(fret) for fret in self.finger_pos)
-        content = "".join(f.rjust(1 + fret_width) for f in self.finger_pos)
+    @classmethod
+    def get_long_content(cls, finger_pos):
+        fret_width = max(len(fret) for fret in finger_pos)
+        content = "".join(f.rjust(1 + fret_width) for f in finger_pos)
         return HtmlFormatter.pre(content.strip())
 
     @classmethod
     def from_html_inner_div(cls, div, is_ukulele):
+        # Extract data
         img = div.find('img')
         alt, src = img['alt'], img['src']
         link = div.find('a')
@@ -270,7 +216,13 @@ class ChordsFromTabs4Acoustic(AbstractChords):
         # TODO: print(alt, src, href, title)
         _, name, fingers = alt.split(" ")
         finger_pos = fingers[1: -1].split(",")
-        return cls(name, is_ukulele=is_ukulele, finger_pos=finger_pos)
+
+        # Format data
+        short_content = "".join(finger_pos)
+        long_content = cls.get_long_content(finger_pos)
+
+        # Initialise
+        return cls(name, is_ukulele, short_content, long_content)
 
     @classmethod
     def from_html_div(cls, div, is_ukulele):

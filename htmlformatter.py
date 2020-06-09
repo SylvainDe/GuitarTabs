@@ -25,6 +25,10 @@ class HtmlGroup(object):
     def __str__(self):
         return "".join(str(e) for e in self.elts)
 
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self.elts == other.elts)
+
 
 class HtmlTag(object):
     def __init__(self, tag, content=None, on_open="", on_close="", attrs=None, **kwargs):
@@ -44,6 +48,14 @@ class HtmlTag(object):
         else:
             self.content.append(elt)
         return self
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self.tag == other.tag and
+                self.attrs == other.attrs and
+                self.content == other.content and
+                self.on_open == other.on_open and
+                self.on_close == other.on_close)
 
     def __str__(self):
         attrs = "".join(" " + k + ("" if v is None else "=\"%s\"" % v)
