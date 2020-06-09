@@ -85,7 +85,7 @@ class ChordsFromApplicature(AbstractChords):
 
     def __init__(self, name, is_ukulele, details):
         super().__init__(name, is_ukulele, short_content=details[0]['id'])
-        self.details = details
+        self.details = self.prune_details(details)
         self.register_and_build_html_anchor()
 
     def __eq__(self, other):
@@ -104,12 +104,19 @@ class ChordsFromApplicature(AbstractChords):
                 self.details)
 
     @classmethod
+    def prune_details(cls, details):
+        """Remove unused items from details."""
+        kept_keys = ['id', 'frets', 'fingers', 'fret']
+        # We could try to keep other values here to use them later on:
+        # 'listCapos', 'noteIndex', 'notes', 'type', 'baseDisplayNote'
+        return [{k: v for k, v in d.items() if k in kept_keys} for d in details]
+
+    @classmethod
     def format_fingering_detail(cls, name, fingering):
         # WORK IN PROGRESS
         # print(name, str(fingering))
         frets = list(reversed(fingering['frets']))
         fingers = list(reversed(fingering['fingers']))
-        capos = fingering['listCapos']
         fret_offset = fingering['fret']
         nb_strings = len(frets)
         nb_frets = 5
