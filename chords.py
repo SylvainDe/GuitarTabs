@@ -166,7 +166,7 @@ class ChordsFromGuitarTabsDotCc(AbstractChords):
                 # Extract and format data
                 lst = line.split('"')
                 name, short_content = lst[1], lst[3]
-                long_content = HtmlFormatter.pre(short_content)
+                long_content = cls.pretty_format_chords_variations([short_content])
                 yield cls(name, is_ukulele, short_content, long_content)
 
 
