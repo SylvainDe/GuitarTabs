@@ -32,6 +32,13 @@ class AbstractChords(object):
                 self.is_ukulele == other.is_ukulele and
                 self.short_content == other.short_content)
 
+    def __str__(self):
+        return "%s(name:%s, is_ukulele:%d, short_content:%s)" % (
+                self.__class__.__name__,
+                self.name,
+                self.is_ukulele,
+                self.short_content)
+
     def register(self):
         key = (self.name, self.is_ukulele)
         data = self.name_and_type_to_obj.setdefault(key, [])
@@ -87,6 +94,14 @@ class ChordsFromApplicature(AbstractChords):
                 self.is_ukulele == other.is_ukulele and
                 self.short_content == other.short_content and
                 self.details == other.details)  # Do not use html_anchor
+
+    def __str__(self):
+        return "%s(name:%s, is_ukulele:%d, short_content:%s, details:%s)" % (
+                self.__class__.__name__,
+                self.name,
+                self.is_ukulele,
+                self.short_content,
+                self.details)
 
     @classmethod
     def format_fingering_detail(cls, name, fingering):
@@ -184,6 +199,14 @@ class ChordsFromEChords(AbstractChords):
                 self.short_content == other.short_content and
                 self.variations == other.variations)  # Do not use html_anchor
 
+    def __str__(self):
+        return "%s(name:%s, is_ukulele:%d, short_content:%s, variations:%s)" % (
+                self.__class__.__name__,
+                self.name,
+                self.is_ukulele,
+                self.short_content,
+                self.variations)
+
     def get_specific_content(self):
         fret_details = self.variations
         idx_width = len(str(len(fret_details)))
@@ -214,6 +237,14 @@ class ChordsFromTabs4Acoustic(AbstractChords):
                 self.is_ukulele == other.is_ukulele and
                 self.short_content == other.short_content and
                 self.finger_pos == other.finger_pos)  # Do not use html_anchor
+
+    def __str__(self):
+        return "%s(name:%s, is_ukulele:%d, short_content:%s, finger_pos:%s)" % (
+                self.__class__.__name__,
+                self.name,
+                self.is_ukulele,
+                self.short_content,
+                self.finger_pos)
 
     def get_specific_content(self):
         fret_width = max(len(fret) for fret in self.finger_pos)
