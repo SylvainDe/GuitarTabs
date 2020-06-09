@@ -83,13 +83,22 @@ class AbstractChords(object):
             self.long_content,
             HtmlFormatter.pagebreak)
 
+    @classmethod
+    def pretty_format_chords_variations(cls, fret_details):
+        """Format variations of a same chords: handle indices and alignment."""
+        idx_width = len(str(len(fret_details)))
+        fret_width = max(len(f) for frets in fret_details for f in frets)
+        return HtmlFormatter.pre(
+            "\n".join("%s:%s" % (
+                str(i).rjust(idx_width),
+                "".join(f.rjust(1 + fret_width) for f in frets)
+            )
+            for i, frets in enumerate(fret_details, start=1)))
 
 class ChordsFromApplicature(AbstractChords):
 
     @classmethod
-    def format_fingering_detail(cls, name, fingering):
-        # WORK IN PROGRESS
-        # print(name, str(fingering))
+    def format_fingering_detail(cls, fingering):
         frets = list(reversed(fingering['frets']))
         fingers = list(reversed(fingering['fingers']))
         fret_offset = fingering['fret']
@@ -134,28 +143,21 @@ class ChordsFromApplicature(AbstractChords):
         return HtmlFormatter.pre("\n".join("".join(line) for line in fretboard))
 
     @classmethod
-    def get_long_content(cls, name, details):
-        debug = cls.format_fingering_detail(name, details[0])
-        idx_width = len(str(len(details)))
+    def get_long_content(cls, details):
         fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in details]
-        fret_width = max(len(f) for frets in fret_details for f in frets)
-        content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
-        return HtmlFormatter.pre(content) + debug
+        return cls.pretty_format_chords_variations(fret_details) + \
+               cls.format_fingering_detail(details[0])
 
     @classmethod
     def from_json_data(cls, data, is_ukulele):
         if data:  # May be None or []
             for name, details in data.items():
                 short_content = details[0]['id']
-                long_content = cls.get_long_content(name, details)
+                long_content = cls.get_long_content(details)
                 yield cls(name, is_ukulele, short_content, long_content)
 
 
 class ChordsFromGuitarTabsDotCc(AbstractChords):
-
-    @classmethod
-    def get_long_content(cls, short_content):
-        return HtmlFormatter.pre(short_content)
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
@@ -164,19 +166,11 @@ class ChordsFromGuitarTabsDotCc(AbstractChords):
                 # Extract and format data
                 lst = line.split('"')
                 name, short_content = lst[1], lst[3]
-                long_content = cls.get_long_content(short_content)
+                long_content = HtmlFormatter.pre(short_content)
                 yield cls(name, is_ukulele, short_content, long_content)
 
 
 class ChordsFromEChords(AbstractChords):
-
-    @classmethod
-    def get_long_content(cls, variations):
-        fret_details = variations
-        idx_width = len(str(len(fret_details)))
-        fret_width = max(len(f) for frets in fret_details for f in frets)
-        content = "\n".join("%s:%s" % (str(i + 1).rjust(idx_width), "".join(f.rjust(1 + fret_width) for f in frets)) for i, frets in enumerate(fret_details))
-        return HtmlFormatter.pre(content)
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
@@ -189,19 +183,13 @@ class ChordsFromEChords(AbstractChords):
                 # Format data
                 variations = [v.split(",") for v in variations.split()]
                 short_content = "".join(variations[0])
-                long_content = cls.get_long_content(variations)
+                long_content = cls.pretty_format_chords_variations(variations)
 
                 # Initialise
                 yield cls(name, is_ukulele, short_content, long_content)
 
 
 class ChordsFromTabs4Acoustic(AbstractChords):
-
-    @classmethod
-    def get_long_content(cls, finger_pos):
-        fret_width = max(len(fret) for fret in finger_pos)
-        content = "".join(f.rjust(1 + fret_width) for f in finger_pos)
-        return HtmlFormatter.pre(content.strip())
 
     @classmethod
     def from_html_inner_div(cls, div, is_ukulele):
@@ -219,7 +207,7 @@ class ChordsFromTabs4Acoustic(AbstractChords):
 
         # Format data
         short_content = "".join(finger_pos)
-        long_content = cls.get_long_content(finger_pos)
+        long_content = cls.pretty_format_chords_variations([finger_pos])
 
         # Initialise
         return cls(name, is_ukulele, short_content, long_content)
