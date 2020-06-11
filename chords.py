@@ -17,10 +17,6 @@ class Chords(object):
         self.is_ukulele = is_ukulele
         self.short_content = short_content
         self.long_content = long_content
-        self.register_and_build_html_anchor()
-
-    def register_and_build_html_anchor(self):
-        # To be called from constructor ONLY when all fields are initialised
         index = self.register()
         self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (
             self.name,
@@ -33,7 +29,7 @@ class Chords(object):
         Consider Chords object to be identical if all fields conrresponding
         to content is equal. Additional generated data such as html_anchor
         is ignored (comparison is actually used to store chords in lists,
-        get their index and thus, compute the html_anchor value."""
+        get their index and thus, compute the html_anchor value)."""
         return (isinstance(other, self.__class__) and
                 self.name == other.name and
                 self.is_ukulele == other.is_ukulele and
@@ -95,7 +91,8 @@ class Chords(object):
             )
             for i, frets in enumerate(fret_details, start=1)))
 
-class ChordsFromApplicature():
+
+class ChordsGetterFromApplicature():
 
     @classmethod
     def format_fingering_detail(cls, fingering):
@@ -157,7 +154,7 @@ class ChordsFromApplicature():
                 yield Chords(name, is_ukulele, short_content, long_content)
 
 
-class ChordsFromGuitarTabsDotCc():
+class ChordsGetterFromGuitarTabsDotCc():
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
@@ -170,7 +167,7 @@ class ChordsFromGuitarTabsDotCc():
                 yield Chords(name, is_ukulele, short_content, long_content)
 
 
-class ChordsFromEChords():
+class ChordsGetterFromEChords():
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
@@ -189,7 +186,7 @@ class ChordsFromEChords():
                 yield Chords(name, is_ukulele, short_content, long_content)
 
 
-class ChordsFromTabs4Acoustic():
+class ChordsGetterFromTabs4Acoustic():
 
     @classmethod
     def from_html_inner_div(cls, div, is_ukulele):
