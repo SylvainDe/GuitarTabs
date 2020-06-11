@@ -85,7 +85,7 @@ class AbstractGuitarTab(object):
         return s
 
     def get_chord_content(self):
-        sorted_chords = sorted(self.chords, key=chords.AbstractChords.by_name)
+        sorted_chords = sorted(self.chords, key=chords.Chords.by_name)
         if not sorted_chords:
             return ""
         alignment = max(len(c.name) for c in sorted_chords)

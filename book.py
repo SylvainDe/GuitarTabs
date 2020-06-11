@@ -3,7 +3,7 @@ import itertools
 import htmlformatter as HtmlFormatter
 
 from tabs import AbstractGuitarTab as Tab
-from chords import AbstractChords as Chords
+from chords import Chords
 
 
 # https://kdp.amazon.com/en_US/help/topic/G200673180 "Supported HTML Tags in Book Content "

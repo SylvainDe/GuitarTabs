@@ -1,5 +1,5 @@
 from tabgetter import GuitarTabGetter
-from chords import AbstractChords as Chords
+from chords import Chords
 from book import make_book
 
 URLS = [

@@ -2,7 +2,7 @@ import htmlformatter as HtmlFormatter
 import re
 
 
-class AbstractChords(object):
+class Chords(object):
 
     name_and_type_to_obj = dict()
 
@@ -28,7 +28,7 @@ class AbstractChords(object):
             str(index) if index else ""))
 
     def __eq__(self, other):
-        """Implement comparison for AbstractChords.
+        """Implement comparison.
 
         Consider Chords object to be identical if all fields conrresponding
         to content is equal. Additional generated data such as html_anchor
@@ -95,7 +95,7 @@ class AbstractChords(object):
             )
             for i, frets in enumerate(fret_details, start=1)))
 
-class ChordsFromApplicature(AbstractChords):
+class ChordsFromApplicature():
 
     @classmethod
     def format_fingering_detail(cls, fingering):
@@ -145,7 +145,7 @@ class ChordsFromApplicature(AbstractChords):
     @classmethod
     def get_long_content(cls, details):
         fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in details]
-        return cls.pretty_format_chords_variations(fret_details) + \
+        return Chords.pretty_format_chords_variations(fret_details) + \
                cls.format_fingering_detail(details[0])
 
     @classmethod
@@ -154,10 +154,10 @@ class ChordsFromApplicature(AbstractChords):
             for name, details in data.items():
                 short_content = details[0]['id']
                 long_content = cls.get_long_content(details)
-                yield cls(name, is_ukulele, short_content, long_content)
+                yield Chords(name, is_ukulele, short_content, long_content)
 
 
-class ChordsFromGuitarTabsDotCc(AbstractChords):
+class ChordsFromGuitarTabsDotCc():
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
@@ -166,11 +166,11 @@ class ChordsFromGuitarTabsDotCc(AbstractChords):
                 # Extract and format data
                 lst = line.split('"')
                 name, short_content = lst[1], lst[3]
-                long_content = cls.pretty_format_chords_variations([short_content])
-                yield cls(name, is_ukulele, short_content, long_content)
+                long_content = Chords.pretty_format_chords_variations([short_content])
+                yield Chords(name, is_ukulele, short_content, long_content)
 
 
-class ChordsFromEChords(AbstractChords):
+class ChordsFromEChords():
 
     @classmethod
     def from_javascript(cls, data, is_ukulele):
@@ -183,13 +183,13 @@ class ChordsFromEChords(AbstractChords):
                 # Format data
                 variations = [v.split(",") for v in variations.split()]
                 short_content = "".join(variations[0])
-                long_content = cls.pretty_format_chords_variations(variations)
+                long_content = Chords.pretty_format_chords_variations(variations)
 
                 # Initialise
-                yield cls(name, is_ukulele, short_content, long_content)
+                yield Chords(name, is_ukulele, short_content, long_content)
 
 
-class ChordsFromTabs4Acoustic(AbstractChords):
+class ChordsFromTabs4Acoustic():
 
     @classmethod
     def from_html_inner_div(cls, div, is_ukulele):
@@ -207,10 +207,10 @@ class ChordsFromTabs4Acoustic(AbstractChords):
 
         # Format data
         short_content = "".join(finger_pos)
-        long_content = cls.pretty_format_chords_variations([finger_pos])
+        long_content = Chords.pretty_format_chords_variations([finger_pos])
 
         # Initialise
-        return cls(name, is_ukulele, short_content, long_content)
+        return Chords(name, is_ukulele, short_content, long_content)
 
     @classmethod
     def from_html_div(cls, div, is_ukulele):
