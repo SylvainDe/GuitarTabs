@@ -505,6 +505,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         content = htmlmodule.escape(content)
         for c in self.chords:
             content = content.replace("[ch]%s[/ch]" % c.name, str(c.get_link(display_type=False)))
+        content = "\n".join(l.rstrip() for l in content.splitlines())
         return HtmlFormatter.pre(content)
 
     def get_strumming_content(self):
