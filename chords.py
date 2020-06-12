@@ -137,7 +137,7 @@ class ChordsGetterFromApplicature():
             else:
                 assert False
 
-        return HtmlFormatter.pre("\n".join("".join(line) for line in fretboard))
+        return HtmlFormatter.pre("\n".join("".join(line).rstrip() for line in fretboard))
 
     @classmethod
     def get_long_content(cls, details):
