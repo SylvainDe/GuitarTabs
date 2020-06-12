@@ -319,7 +319,8 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
                 t.unwrap()
         for t in content.find_all('img'):
             t.unwrap()
-        return HtmlFormatter.pre(str(content).replace("\r", "\n"))
+        content = "\n".join(l.rstrip() for l in str(content).splitlines())
+        return HtmlFormatter.pre(content)
 
     def get_strumming_content(self):
         begin = "Tempo: %s, Time signature: %s\n" % (self.tempo, self.timesig)
