@@ -242,7 +242,9 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
             t.decompose()
         for t in content.find_all('a'):
             t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
-        return HtmlFormatter.pre("".join(str(t) for t in content.contents))
+        content = "".join(str(t) for i, t in enumerate(content.contents))
+        content = "\n".join(l.rstrip() for l in content.splitlines())
+        return HtmlFormatter.pre(content)
 
     @classmethod
     def from_list_url(cls, list_url):
