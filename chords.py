@@ -149,9 +149,10 @@ class ChordsGetterFromApplicature():
     def from_json_data(cls, data, is_ukulele):
         if data:  # May be None or []
             for name, details in data.items():
-                short_content = details[0]['id']
-                long_content = cls.get_long_content(details)
-                yield Chords(name, is_ukulele, short_content, long_content)
+                if details:
+                    short_content = details[0]['id']
+                    long_content = cls.get_long_content(details)
+                    yield Chords(name, is_ukulele, short_content, long_content)
 
 
 class ChordsGetterFromGuitarTabsDotCc():

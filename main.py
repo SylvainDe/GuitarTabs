@@ -39,6 +39,7 @@ URLS = [
     "https://tabs.ultimate-guitar.com/tab/nirvana/the-man-who-sold-the-world-chords-841325",
     "https://tabs.ultimate-guitar.com/tab/oasis/dont-look-back-in-anger-chords-6097",
     "https://tabs.ultimate-guitar.com/tab/oasis/wonderwall-chords-27596",
+    "https://tabs.ultimate-guitar.com/tab/paul-mccartney/live-and-let-die-chords-75237",
     "https://tabs.ultimate-guitar.com/tab/pink-floyd/wish-you-were-here-chords-44555",
     "https://tabs.ultimate-guitar.com/tab/pink-floyd/wish-you-were-here-tabs-984061",
     "https://tabs.ultimate-guitar.com/tab/queen/love-of-my-life-chords-340088",
@@ -101,6 +102,7 @@ URLS = [
 URL_LISTS = [
     "https://www.ultimate-guitar.com/top/tabs",
     "https://www.ultimate-guitar.com/search.php?search_type=title&value=red%20hot%20chili%20peppers%20road%20trippin",
+    "https://www.ultimate-guitar.com/collections/9787679/",
     "https://www.guitaretab.com/top_tabs.html",
     "https://www.guitaretab.com/fetch/?type=tab&query=red+hot+chili+peppers+road+trippin",
     "https://www.guitartabs.cc/top_tabs.html",

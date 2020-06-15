@@ -495,6 +495,8 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
         elif 'results' in page_data:
             return [cls.from_url(t['tab_url']) for t in page_data['results'] if "&" not in t['tab_url']]
+        elif 'songbook' in page_data:
+            return [cls.from_url(t['tab']['tab_url']) for t in page_data['songbook']['tabs']]
         else:
             raise NotImplementedError
 
