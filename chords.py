@@ -96,6 +96,8 @@ class ChordsGetterFromApplicature():
 
     @classmethod
     def format_fingering_detail(cls, fingering):
+        show_finger_number_on_tab = False
+        show_finger_number_below_tab = True
         frets = list(reversed(fingering['frets']))
         fingers = list(reversed(fingering['fingers']))
         fret_offset = fingering['fret']
@@ -116,24 +118,29 @@ class ChordsGetterFromApplicature():
         for i in range(nb_frets - 1):
             symbols.extend([vert_lines] * height + [mid])
         symbols.extend([vert_lines] * height + [bottom])
+        if show_finger_number_below_tab:
+            symbols.append(empty)
         fretboard = [([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end]) for beg, mid, end, fill in symbols]
+
+        def set_fretboard_content_by_position(s, i, j):
+            fretboard[i][j] = s + fretboard[i][j][len(s):]
 
         row_start_index = 2
         for j, (fr, fi) in enumerate(zip(frets, fingers)):
             if fr > 0:
                 assert fi in [0, 1, 2, 3, 4]
-                fi_str = str(fi)
                 if fret_offset:
                     fr -= fret_offset - 1
                 i = row_start_index + ((fr - 1) * (height + 1)) + (height // 2)
-                fretboard[i][j] = fi_str + fretboard[i][j][len(fi_str):]
+                fi_str = str(fi) if show_finger_number_on_tab else "O"
+                set_fretboard_content_by_position(fi_str, i, j)
+                if show_finger_number_below_tab:
+                    set_fretboard_content_by_position(str(fi), -1, j)
             elif fr == 0:
                 assert fi == 0
             elif fr == -1:
                 assert fi == 0
-                fi_str = "x"
-                i = 0
-                fretboard[i][j] = fi_str + fretboard[i][j][len(fi_str):]
+                set_fretboard_content_by_position("x", 0, j)
             else:
                 assert False
 
