@@ -130,7 +130,7 @@ class ChordsGetterFromApplicature():
             if fr > 0:
                 assert fi in [0, 1, 2, 3, 4]
                 if fret_offset:
-                    fr -= fret_offset - 1
+                    fr += 2 - fret_offset
                 i = row_start_index + ((fr - 1) * (height + 1)) + (height // 2)
                 fi_str = str(fi) if show_finger_number_on_tab else "O"
                 set_fretboard_content_by_position(fi_str, i, j)
