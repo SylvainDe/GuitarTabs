@@ -2,82 +2,121 @@ import htmlformatter as HtmlFormatter
 import re
 
 
-class Chords(object):
-
-    name_and_type_to_obj = dict()
-
-    def by_name(self):
-        return (self.name, self.is_ukulele)
-
-    def by_type(self):
-        return "Ukulele" if self.is_ukulele else "Guitar"
+class RawChordData(object):
+    """Raw data describing a chord object."""
 
     def __init__(self, name, is_ukulele, short_content, long_content):
         self.name = name
         self.is_ukulele = is_ukulele
         self.short_content = short_content
         self.long_content = long_content
-        index = self.register()
-        self.html_anchor = HtmlFormatter.string_to_html_id("chord%s%s%s" % (
-            self.name,
-            "-ukulele" if self.is_ukulele else "",
-            str(index) if index else ""))
+        self.str_id = "%s%s" % (name, "-ukulele" if is_ukulele else "")
 
     def __eq__(self, other):
-        """Implement comparison.
-
-        Consider Chords object to be identical if all fields conrresponding
-        to content is equal. Additional generated data such as html_anchor
-        is ignored (comparison is actually used to store chords in lists,
-        get their index and thus, compute the html_anchor value)."""
-        return (isinstance(other, self.__class__) and
-                self.name == other.name and
-                self.is_ukulele == other.is_ukulele and
-                self.short_content == other.short_content and
-                self.long_content == other.long_content)
+        """Implement comparison."""
+        return (
+            isinstance(other, self.__class__)
+            and self.name == other.name
+            and self.is_ukulele == other.is_ukulele
+            and self.short_content == other.short_content
+            and self.long_content == other.long_content
+            and self.str_id == other.str_id
+        )
 
     def __str__(self):
         return "%s(name:%s, is_ukulele:%d, short_content:%s)" % (
-                self.__class__.__name__,
-                self.name,
-                self.is_ukulele,
-                self.short_content)
+            self.__class__.__name__,
+            self.name,
+            self.is_ukulele,
+            self.short_content,
+        )
 
-    def register(self):
-        key = (self.name, self.is_ukulele)
-        data = self.name_and_type_to_obj.setdefault(key, [])
+    def get_title(self, display_type):
+        type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
+        return "%s%s" % (self.name, type_name)
+
+    def get_type(self):
+        return "Ukulele" if self.is_ukulele else "Guitar"
+
+
+class Chord(object):
+    """Chord wraps RawChordData and adds features which are not really
+    relevant to the Chord data as such but more relevant to the way we use
+    it. In particular:
+     - Chord objects are reused from different contexts (different tabs
+    using the same chord)
+     - An HTML anchor is generated for each chord. In order to do so, chords
+    are provided an index to be able to remove the ambiguity between chords
+    with similar descriptions but different underlying data (usually, the same
+    chord from different sources)."""
+
+    id_to_obj = dict()
+
+    def by_name(self):
+        return (self.raw.name, self.raw.is_ukulele)
+
+    def by_type(self):
+        return self.raw.get_type()
+
+    @classmethod
+    def get_from(cls, name, is_ukulele, short_content, long_content):
+        """Return a Chord object, either from the cache or newly created.
+
+        As we want to use a single Chord reference from different places,
+        a cache is created and queried to be able to either reuse already
+        existing object or to create a new one."""
+        raw = RawChordData(name, is_ukulele, short_content, long_content)
+        data = cls.id_to_obj.setdefault(raw.str_id, [])
         for i, obj in enumerate(data):
-            if self == obj:
-                return i
-        data.append(self)
-        return len(data) - 1
+            if raw == obj.raw:
+                return obj
+        new_obj = cls(raw, len(data))
+        data.append(new_obj)
+        return new_obj
+
+    def __init__(self, raw, index):
+        """Constructor for Chord object. (Use Chord.get_from instead)."""
+        self.raw = raw
+        self.html_anchor = HtmlFormatter.string_to_html_id(
+            "chord%s%s" % (self.raw.str_id, str(index) if index else "")
+        )
+
+    @property
+    def name(self):
+        return self.raw.name
+
+    def __eq__(self, other):
+        """Implement comparison.."""
+        return (
+            isinstance(other, self.__class__)
+            and self.raw == other.raw
+            and self.html_anchor == other.html_anchor
+        )
 
     @classmethod
     def get_all(cls):
-        return [v
-                for values in cls.name_and_type_to_obj.values()
-                for v in values]
+        return [v for values in cls.id_to_obj.values() for v in values]
 
     def get_link(self, display_type):
-        type_name = " (Ukulele)" if display_type and self.is_ukulele else ""
         return HtmlFormatter.a(
             href="#" + self.html_anchor,
-            title=self.short_content,
-            content=self.name + type_name)
+            title=self.raw.short_content,
+            content=self.raw.get_title(display_type),
+        )
 
     def get_short_html_content(self, alignment=10):
-        padding = " " * (alignment - len(self.name))
+        padding = " " * (alignment - len(self.raw.name))
         link = self.get_link(display_type=False)
-        return "%s%s: %s" % (padding, link, self.short_content)
+        return "%s%s: %s" % (padding, link, self.raw.short_content)
 
     def get_html_content(self, heading_level):
-        type_name = " (Ukulele)" if self.is_ukulele else ""
         return HtmlFormatter.HtmlGroup(
             HtmlFormatter.a(name=self.html_anchor),
             "\n",
-            HtmlFormatter.heading(heading_level, "%s%s" % (self.name, type_name)),
-            self.long_content,
-            HtmlFormatter.pagebreak)
+            HtmlFormatter.heading(heading_level, self.raw.get_title(display_type=True)),
+            self.raw.long_content,
+            HtmlFormatter.pagebreak,
+        )
 
     @classmethod
     def pretty_format_chords_variations(cls, fret_details):
@@ -149,7 +188,7 @@ class ChordsGetterFromApplicature():
     @classmethod
     def get_long_content(cls, details):
         fret_details = [["x" if f < 0 else str(f) for f in reversed(detail['frets'])] for detail in details]
-        return Chords.pretty_format_chords_variations(fret_details) + \
+        return Chord.pretty_format_chords_variations(fret_details) + \
                cls.format_fingering_detail(details[0])
 
     @classmethod
@@ -159,7 +198,7 @@ class ChordsGetterFromApplicature():
                 if details:
                     short_content = details[0]['id']
                     long_content = cls.get_long_content(details)
-                    yield Chords(name, is_ukulele, short_content, long_content)
+                    yield Chord.get_from(name, is_ukulele, short_content, long_content)
 
 
 class ChordsGetterFromGuitarTabsDotCc():
@@ -171,8 +210,8 @@ class ChordsGetterFromGuitarTabsDotCc():
                 # Extract and format data
                 lst = line.split('"')
                 name, short_content = lst[1], lst[3]
-                long_content = Chords.pretty_format_chords_variations([short_content])
-                yield Chords(name, is_ukulele, short_content, long_content)
+                long_content = Chord.pretty_format_chords_variations([short_content])
+                yield Chord.get_from(name, is_ukulele, short_content, long_content)
 
 
 class ChordsGetterFromEChords():
@@ -188,10 +227,10 @@ class ChordsGetterFromEChords():
                 # Format data
                 variations = [v.split(",") for v in variations.split()]
                 short_content = "".join(variations[0])
-                long_content = Chords.pretty_format_chords_variations(variations)
+                long_content = Chord.pretty_format_chords_variations(variations)
 
                 # Initialise
-                yield Chords(name, is_ukulele, short_content, long_content)
+                yield Chord.get_from(name, is_ukulele, short_content, long_content)
 
 
 class ChordsGetterFromTabs4Acoustic():
@@ -212,10 +251,10 @@ class ChordsGetterFromTabs4Acoustic():
 
         # Format data
         short_content = "".join(finger_pos)
-        long_content = Chords.pretty_format_chords_variations([finger_pos])
+        long_content = Chord.pretty_format_chords_variations([finger_pos])
 
         # Initialise
-        return Chords(name, is_ukulele, short_content, long_content)
+        return Chord.get_from(name, is_ukulele, short_content, long_content)
 
     @classmethod
     def from_html_div(cls, div, is_ukulele):

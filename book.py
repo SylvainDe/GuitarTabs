@@ -3,7 +3,7 @@ import itertools
 import htmlformatter as HtmlFormatter
 
 from tabs import AbstractGuitarTab as Tab
-from chords import Chords
+from chords import Chord
 
 
 # https://kdp.amazon.com/en_US/help/topic/G200673180 "Supported HTML Tags in Book Content "
@@ -31,7 +31,7 @@ def get_html_head():
 def get_html_body(tabs, chords):
     # Ensure consistent ordering
     tabs.sort(key=Tab.by_name_and_url)
-    chords.sort(key=Chords.by_name)
+    chords.sort(key=Chord.by_name)
     show_titles_in_toc = True
     show_chords_in_toc = False
     heading = HtmlFormatter.heading
@@ -125,7 +125,7 @@ def get_html_body(tabs, chords):
             body.add(c.get_link(display_type=True))
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(name="index_chords_by_type") + "By type"))
-    for type_name, chords_grouped in my_groupby(chords, key=Chords.by_type):
+    for type_name, chords_grouped in my_groupby(chords, key=Chord.by_type):
         body.add(heading(4, type_name))
         for c in chords_grouped:
             body.add(c.get_link(display_type=False))

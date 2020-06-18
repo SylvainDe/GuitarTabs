@@ -1,5 +1,5 @@
 from tabgetter import GuitarTabGetter
-from chords import Chords
+from chords import Chord
 from book import make_book
 
 URLS = [
@@ -128,5 +128,5 @@ def get_tabs(urls):
 
 
 tabs = get_tabs(URLS)
-chords = Chords.get_all()
+chords = Chord.get_all()
 make_book(tabs, chords, htmlfile="dest/wip_book.html", make_mobi=True)

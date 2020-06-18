@@ -85,7 +85,7 @@ class AbstractGuitarTab(object):
         return s
 
     def get_chord_content(self):
-        sorted_chords = sorted(self.chords, key=chords.Chords.by_name)
+        sorted_chords = sorted(self.chords, key=chords.Chord.by_name)
         if not sorted_chords:
             return ""
         alignment = max(len(c.name) for c in sorted_chords)
@@ -573,7 +573,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             capo=raw_data['keycapo'],
             difficulty=soup.find("span", style="color: #999;font-style:italic").string,
             tab_content=soup.find("pre", id="core"),
-            chords=list(chords.ChordsGetterFromEChords.from_javascript(chords_jscript, is_ukulele=is_ukulele)),
+            chords=list(chords.ChordsGetterFromEChords.from_javascript(chords_jscript, is_ukulele)),
             type_name=type_name.title(),
         )
 
