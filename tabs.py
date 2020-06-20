@@ -385,7 +385,7 @@ class Strumming(object):
             2: ('x', '↓'),  # arrow with a small x
             102: ('x', '↑'),  # arrow with a small x
             201: (' ', 'x'),
-            203: (' ', '⏸'),  # the pause symbol
+            203: (' ', '𝄥'),  # the pause symbol
         }
         width = 2
         values = [strum_values[m['measure']] for m in self.measures]
