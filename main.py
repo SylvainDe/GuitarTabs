@@ -116,6 +116,14 @@ URL_LISTS = [
     "https://www.songsterr.com/?pattern=road+trippin",
 ]
 
+URLS_ = [
+    "https://tabs.ultimate-guitar.com/tab/adele/someone-like-you-chords-1006751",
+    "https://tabs.ultimate-guitar.com/tab/elton-john/your-song-chords-29113",
+#    "https://tabs.ultimate-guitar.com/tab/pavement/wher-did-all-the-rock-go-chords-51930",
+#    "https://tabs.ultimate-guitar.com/tab/orquestra-imperial/rue-de-mes-souvenirs-chords-2818319",
+#    "https://tabs.ultimate-guitar.com/tab/maurane/mentir-chords-3026537",
+#    "https://tabs.ultimate-guitar.com/tab/michel-jonasz/les-cabarets-tziganes-chords-2300381",
+]
 
 def get_tabs(urls):
     if 1:
@@ -129,4 +137,4 @@ def get_tabs(urls):
 
 tabs = get_tabs(URLS)
 chords = Chord.get_all()
-make_book(tabs, chords, htmlfile="dest/wip_book.html", make_mobi=True)
+make_book(tabs, chords, htmlfile="dest/wip_book.html", make_mobi=0, make_pdf=0)

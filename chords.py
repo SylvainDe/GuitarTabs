@@ -171,6 +171,7 @@ class ChordsGetterFromApplicature():
     def format_fingering_detail(cls, fingering):
         show_finger_number_on_tab = False
         show_finger_number_below_tab = True
+        show_capo = True
         frets = list(reversed(fingering['frets']))
         fingers = list(reversed(fingering['fingers']))
         nb_strings = len(frets)
@@ -188,6 +189,7 @@ class ChordsGetterFromApplicature():
         mid =        ("├", "┼", "┤", "─")
         bottom =     ("└", "┴", "┘", "─")
         vert_lines = ("│", "│", "│", " ")
+        cap, cap_fill = "┿", "━"  # Or: "╪", "═"
         symbols = []
         symbols.append(empty)
         symbols.append(top)
@@ -198,27 +200,45 @@ class ChordsGetterFromApplicature():
             symbols.append(empty)
         fretboard = [([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end]) for beg, mid, end, fill in symbols]
 
-        def set_fretboard_content_by_position(s, i, j):
+        row_start_index = 2
+
+        def set_fretboard_content_by_abs_position(s, i, j):
             fretboard[i][j] = s + fretboard[i][j][len(s):]
 
-        row_start_index = 2
+        def set_fretboard_content_by_fret_position(s, fret, j):
+            i = row_start_index + ((fr - 1) * (height + 1)) + (height // 2)
+            set_fretboard_content_by_abs_position(s, i, j)
+
         for j, (fr, fi) in enumerate(zip(frets, fingers)):
             if fr > 0:
                 assert fi in [0, 1, 2, 3, 4]
-                i = row_start_index + ((fr - 1) * (height + 1)) + (height // 2)
                 fi_str = str(fi) if show_finger_number_on_tab else "O"
-                set_fretboard_content_by_position(fi_str, i, j)
+                set_fretboard_content_by_fret_position(fi_str, fr, j)
                 if show_finger_number_below_tab:
-                    set_fretboard_content_by_position(str(fi), -1, j)
+                    set_fretboard_content_by_abs_position(str(fi), -1, j)
             elif fr == 0:
                 assert fi == 0
             elif fr == -1:
                 assert fi == 0
-                set_fretboard_content_by_position("x", 0, j)
+                set_fretboard_content_by_abs_position("x", 0, j)
             else:
                 assert False
 
-        return HtmlFormatter.pre("\n".join("".join(line).rstrip() for line in fretboard))
+        capos = fingering['listCapos'] if show_capo else []
+        for capo in capos:
+            first_string = nb_strings - capo['lastString'] - 1
+            last_string = nb_strings - capo['startString'] - 1
+            capo_str = str(capo['finger']) if show_finger_number_on_tab else cap
+            fr = capo['fret']
+            i = row_start_index + ((fr - 1) * (height + 1)) + (height // 2)
+            for j in range(first_string, last_string + 1):
+                is_last = (j == last_string)
+                capo_ = capo_str if is_last else capo_str.ljust(width, cap_fill)
+                set_fretboard_content_by_fret_position(capo_, fr, j)
+
+        pre_fretboard = HtmlFormatter.pre("\n".join("".join(line).rstrip() for line in fretboard))
+        # pre_debug = HtmlFormatter.pre(str(fingering))
+        return pre_fretboard
 
     @classmethod
     def get_long_content(cls, details):
