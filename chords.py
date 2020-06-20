@@ -172,6 +172,7 @@ class ChordsGetterFromApplicature():
         show_finger_number_on_tab = False
         show_finger_number_below_tab = True
         show_capo = True
+        handle_fret_offset = True
         frets = list(reversed(fingering['frets']))
         fingers = list(reversed(fingering['fingers']))
         nb_strings = len(frets)
@@ -179,7 +180,11 @@ class ChordsGetterFromApplicature():
         # The value "fingering['fret']" could be use to try to display from a given
         # fret index like it is done on the websites but I'd rather make this
         # correct first
-        nb_frets = max(max(frets), 5)
+        fret_offset = fingering['fret'] if handle_fret_offset else 0
+        if fret_offset:
+            assert fret_offset > 1
+            fret_offset -= 1
+        nb_frets = max(max(frets) - fret_offset, 5)
         width = 2
         height = 1
 
@@ -198,14 +203,15 @@ class ChordsGetterFromApplicature():
         symbols.extend([vert_lines] * height + [bottom])
         if show_finger_number_below_tab:
             symbols.append(empty)
-        fretboard = [([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end]) for beg, mid, end, fill in symbols]
+        fretboard = [([beg.ljust(width, fill)] + [mid.ljust(width, fill)] * (nb_strings - 2) + [end] + [" "]) for beg, mid, end, fill in symbols]
 
         row_start_index = 2
 
         def set_fretboard_content_by_abs_position(s, i, j):
             fretboard[i][j] = s + fretboard[i][j][len(s):]
 
-        def set_fretboard_content_by_fret_position(s, fret, j):
+        def set_fretboard_content_by_fret_position(s, fr, j):
+            fr -= fret_offset
             i = row_start_index + ((fr - 1) * (height + 1)) + (height // 2)
             set_fretboard_content_by_abs_position(s, i, j)
 
@@ -230,11 +236,13 @@ class ChordsGetterFromApplicature():
             last_string = nb_strings - capo['startString'] - 1
             capo_str = str(capo['finger']) if show_finger_number_on_tab else cap
             fr = capo['fret']
-            i = row_start_index + ((fr - 1) * (height + 1)) + (height // 2)
             for j in range(first_string, last_string + 1):
                 is_last = (j == last_string)
                 capo_ = capo_str if is_last else capo_str.ljust(width, cap_fill)
                 set_fretboard_content_by_fret_position(capo_, fr, j)
+
+        if fret_offset:
+            set_fretboard_content_by_abs_position(" fret " + str(fret_offset + 1), row_start_index, -1)
 
         pre_fretboard = HtmlFormatter.pre("\n".join("".join(line).rstrip() for line in fretboard))
         # pre_debug = HtmlFormatter.pre(str(fingering))
