@@ -19,6 +19,10 @@ urlCache = urlfunctions.UrlCache("cache")
 IN_DEV = False
 
 
+def clean_whitespace(string):
+    return "\n".join(l.rstrip() for l in string.splitlines())
+
+
 class AbstractGuitarTab(object):
 
     by_name = operator.attrgetter('song_name')
@@ -154,8 +158,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
             else:
                 t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
         content = "".join(str(t) for t in content.contents)
-        content = "\n".join(l.rstrip() for l in content.splitlines())
-        return HtmlFormatter.pre(content)
+        return HtmlFormatter.pre(clean_whitespace(content))
 
     @classmethod
     def from_url(cls, url):
@@ -245,8 +248,7 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
         for t in content.find_all('a'):
             t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
         content = "".join(str(t) for t in content.contents)
-        content = "\n".join(l.rstrip() for l in content.splitlines())
-        return HtmlFormatter.pre(content)
+        return HtmlFormatter.pre(clean_whitespace(content))
 
     @classmethod
     def from_list_url(cls, list_url):
@@ -322,8 +324,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
                 t.unwrap()
         for t in content.find_all('img'):
             t.unwrap()
-        content = "\n".join(l.rstrip() for l in str(content).splitlines())
-        return HtmlFormatter.pre(content)
+        return HtmlFormatter.pre(clean_whitespace(str(content)))
 
     def get_strumming_content(self):
         begin = "Tempo: %s, Time signature: %s\n" % (self.tempo, self.timesig)
@@ -511,8 +512,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         content = htmlmodule.escape(content)
         for chord, link in dict_chord.items():
             content = content.replace("[ch]%s[/ch]" % chord, link)
-        content = "\n".join(l.rstrip() for l in content.splitlines())
-        return HtmlFormatter.pre(content)
+        return HtmlFormatter.pre(clean_whitespace(content))
 
     def get_strumming_content(self):
         return "".join(str(s.get_html_content()) for s in self.strummings)
