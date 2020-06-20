@@ -173,9 +173,12 @@ class ChordsGetterFromApplicature():
         show_finger_number_below_tab = True
         frets = list(reversed(fingering['frets']))
         fingers = list(reversed(fingering['fingers']))
-        fret_offset = fingering['fret']
         nb_strings = len(frets)
-        nb_frets = 5
+        # Display as many frets as needed and at least 5 for cosmetic reasons
+        # The value "fingering['fret']" could be use to try to display from a given
+        # fret index like it is done on the websites but I'd rather make this
+        # correct first
+        nb_frets = max(max(frets), 5)
         width = 2
         height = 1
 
@@ -202,8 +205,6 @@ class ChordsGetterFromApplicature():
         for j, (fr, fi) in enumerate(zip(frets, fingers)):
             if fr > 0:
                 assert fi in [0, 1, 2, 3, 4]
-                if fret_offset:
-                    fr += 2 - fret_offset
                 i = row_start_index + ((fr - 1) * (height + 1)) + (height // 2)
                 fi_str = str(fi) if show_finger_number_on_tab else "O"
                 set_fretboard_content_by_position(fi_str, i, j)
