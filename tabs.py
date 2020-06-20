@@ -521,8 +521,9 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         content = (self.tab_content
                    .replace('\r\n', '\n')
                    .replace('[tab]', '')
-                   .replace('[/tab]', ''))
-        content = htmlmodule.escape(content)
+                   .replace('[/tab]', '')
+                   .replace('>', '&gt;')
+                   .replace('<', '&lt;'))
         for chord, link in dict_chord.items():
             content = content.replace("[ch]%s[/ch]" % chord, link)
         return HtmlFormatter.pre(clean_whitespace(content))
