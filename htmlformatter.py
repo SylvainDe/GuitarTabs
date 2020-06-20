@@ -91,6 +91,14 @@ def title(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="title", content=content, attrs=attrs, **kwargs, on_close="\n")
 
 
+def li(content=None, attrs=None, **kwargs):
+    return HtmlTag(tag="li", content=content, attrs=attrs, **kwargs, on_close="\n")
+
+
+def ul(content=None, attrs=None, **kwargs):
+    return HtmlTag(tag="ul", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n")
+
+
 def meta(content=None, attrs=None, **kwargs):
     return HtmlTag(tag="meta", content=content, attrs=attrs, **kwargs, on_close="\n")
 

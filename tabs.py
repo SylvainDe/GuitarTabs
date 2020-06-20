@@ -46,6 +46,8 @@ class AbstractGuitarTab(object):
         if tab_id is None:
             tab_id = abs(int(hashlib.sha512(url.encode('utf-8')).hexdigest(), 16)) % (10 ** 8)
         self.html_anchor = HtmlFormatter.string_to_html_id("tab" + str(tab_id) + "-" + song_name)
+        for c in chords:
+            c.add_tab(self)
 
     def get_link(self, display_artist=True, display_type=True, display_src=True, prefix=""):
         part = " " + self.part if self.part else ""
@@ -66,7 +68,7 @@ class AbstractGuitarTab(object):
             HtmlFormatter.a(name=self.html_anchor),
             "\n",
             HtmlFormatter.heading(heading_level, "%s - %s (%s%s)" % (self.song_name, artist_link, acoustic, self.type_name)),
-            self.get_link_to_original(),
+            self.get_link_to_original(content=self.get_text_for_link_to_original()),
             HtmlFormatter.new_line)
 
     def get_optional_field_content(self):
@@ -103,8 +105,8 @@ class AbstractGuitarTab(object):
             HtmlFormatter.new_line,
             HtmlFormatter.pagebreak)
 
-    def get_link_to_original(self):
-        return HtmlFormatter.a(href=self.url, content=self.get_text_for_link_to_original())
+    def get_link_to_original(self, content):
+        return HtmlFormatter.a(href=self.url, content=content)
 
     def get_text_for_link_to_original(self):
         return "From %s" % self.website

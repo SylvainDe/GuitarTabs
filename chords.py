@@ -1,5 +1,11 @@
 import htmlformatter as HtmlFormatter
 import re
+import tabs
+
+# Having a list of tab using a given chord may be only slightly useful
+# to the user but it can be highly useful to the developer trying to
+# debug logic related to chords.
+DISPLAY_TAB_LIST_IN_CHORD_DESCR = True
 
 
 class RawChordData(object):
@@ -80,6 +86,10 @@ class Chord(object):
         self.html_anchor = HtmlFormatter.string_to_html_id(
             "chord%s%s" % (self.raw.str_id, str(index) if index else "")
         )
+        self.tabs = []
+
+    def add_tab(self, tab):
+        self.tabs.append(tab)
 
     @property
     def name(self):
@@ -91,6 +101,7 @@ class Chord(object):
             isinstance(other, self.__class__)
             and self.raw == other.raw
             and self.html_anchor == other.html_anchor
+            and self.tabs == other.tabs
         )
 
     @classmethod
@@ -109,12 +120,35 @@ class Chord(object):
         link = self.get_link(display_type=False)
         return "%s%s: %s" % (padding, link, self.raw.short_content)
 
+    def get_tab_list(self):
+        if not DISPLAY_TAB_LIST_IN_CHORD_DESCR or not self.tabs:
+            return ""
+        sorted_tabs = sorted(self.tabs, key=tabs.AbstractGuitarTab.by_name_and_url)
+        return HtmlFormatter.HtmlGroup(
+            "From:\n",
+            HtmlFormatter.ul(
+                HtmlFormatter.HtmlGroup(
+                    *(
+                        HtmlFormatter.li(
+                            HtmlFormatter.HtmlGroup(
+                                t.get_link(display_type=False, display_src=False),
+                                " from ",
+                                t.get_link_to_original(t.website),
+                            )
+                        )
+                        for t in sorted_tabs
+                    )
+                )
+            ),
+        )
+
     def get_html_content(self, heading_level):
         return HtmlFormatter.HtmlGroup(
             HtmlFormatter.a(name=self.html_anchor),
             "\n",
             HtmlFormatter.heading(heading_level, self.raw.get_title(display_type=True)),
             self.raw.long_content,
+            self.get_tab_list(),
             HtmlFormatter.pagebreak,
         )
 
