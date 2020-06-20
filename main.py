@@ -97,6 +97,19 @@ URLS = [
     "https://www.songsterr.com/a/wsa/the-eagles-hotel-california-tab-s447t1",
     "https://www.songsterr.com/a/wsa/led-zeppelin-kashmir-tab-s288t1",
     "https://www.songsterr.com/a/wsa/david-bowie-space-oddity-tab-s365t1",
+    "https://www.azchords.com/w/wings-tabs-4764/bandontherun-tabs-166604.html",
+    "https://www.azchords.com/b/beatles-tabs-410/herecomesthesun1-tabs-91569.html",
+    "https://www.azchords.com/b/beatles-tabs-410/herecomesthesun2-tabs-169997.html",
+    "https://www.azchords.com/g/georgeharrison-tabs-1628/herecomesthesun-tabs-219257.html",
+    "https://www.azchords.com/g/georgeharrison-tabs-1628/herecomesthesun-tabs-885931.html",
+    "https://www.guitartabsexplorer.com/mccartney-paul-Tabs/band-on-the-run-(ver2)-crd.php",
+    "https://www.guitartabsexplorer.com/mccartney-paul-Tabs/blackbird-tab.php",
+    "https://www.guitartabsexplorer.com/beatles-Tabs/come-together-btab.php",
+    # Tabs with chords from outter space
+    # "https://tabs.ultimate-guitar.com/tab/pavement/wher-did-all-the-rock-go-chords-51930",
+    # "https://tabs.ultimate-guitar.com/tab/orquestra-imperial/rue-de-mes-souvenirs-chords-2818319",
+    # "https://tabs.ultimate-guitar.com/tab/maurane/mentir-chords-3026537",
+    # "https://tabs.ultimate-guitar.com/tab/michel-jonasz/les-cabarets-tziganes-chords-2300381",
 ]
 
 URL_LISTS = [
@@ -114,15 +127,6 @@ URL_LISTS = [
     "https://www.e-chords.com/search-all/road%20trippin",
     "https://www.songsterr.com/a/wa/all",
     "https://www.songsterr.com/?pattern=road+trippin",
-]
-
-URLS_ = [
-    "https://tabs.ultimate-guitar.com/tab/adele/someone-like-you-chords-1006751",
-    "https://tabs.ultimate-guitar.com/tab/elton-john/your-song-chords-29113",
-#    "https://tabs.ultimate-guitar.com/tab/pavement/wher-did-all-the-rock-go-chords-51930",
-#    "https://tabs.ultimate-guitar.com/tab/orquestra-imperial/rue-de-mes-souvenirs-chords-2818319",
-#    "https://tabs.ultimate-guitar.com/tab/maurane/mentir-chords-3026537",
-#    "https://tabs.ultimate-guitar.com/tab/michel-jonasz/les-cabarets-tziganes-chords-2300381",
 ]
 
 def get_tabs(urls):

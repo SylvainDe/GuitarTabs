@@ -11,7 +11,9 @@ class GuitarTabGetter(object):
                        tabs.GuitarTabFromTabs4Acoustic,
                        tabs.GuitarTabFromGuitarTabsDotCc,
                        tabs.GuitarTabFromEChords,
-                       tabs.GuitarTabFromSongsterr):
+                       tabs.GuitarTabFromSongsterr,
+                       tabs.GuitarTabFromAzChords,
+                       tabs.GuitarTabFromGuitarTabsExplorer):
             for prefix in class_.prefixes:
                 if url.startswith(prefix):
                     return class_

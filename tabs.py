@@ -195,6 +195,19 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
                 for a in soup.find_all("a", class_="gt-link gt-link--primary")]
 
 
+class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
+    prefixes = 'https://www.guitartabsexplorer.com'
+    website = 'guitartabsexplorer.com'
+
+
+    @classmethod
+    def from_url(cls, url):
+        if IN_DEV:
+            return None
+        soup = urlCache.get_soup(url)
+        return None
+
+
 class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
     prefixes = 'https://www.guitartabs.cc/',
     website = 'guitartabs.cc'
@@ -641,3 +654,15 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
             urls = ["https://www.songsterr.com/a/wsa/foo-bar-s%st%d" % (s["songId"], 0) for s in json_search_songs]
             return [cls.from_url(url) for url in urls]
         return [cls.from_url(urllib.parse.urljoin(list_url, a['href'])) for a in soup.find_all("a", class_="tab-link")]
+
+
+class GuitarTabFromAzChords(AbstractGuitarTab):
+    prefixes = 'https://www.azchords.com/',
+    website = 'azchords.com'
+
+    @classmethod
+    def from_url(cls, url):
+        if IN_DEV:
+            return None
+        soup = urlCache.get_soup(url)
+        return None
