@@ -177,9 +177,6 @@ class ChordsGetterFromApplicature():
         fingers = list(reversed(fingering['fingers']))
         nb_strings = len(frets)
         # Display as many frets as needed and at least 5 for cosmetic reasons
-        # The value "fingering['fret']" could be use to try to display from a given
-        # fret index like it is done on the websites but I'd rather make this
-        # correct first
         fret_offset = fingering['fret'] if handle_fret_offset else 0
         if fret_offset:
             assert fret_offset > 1
