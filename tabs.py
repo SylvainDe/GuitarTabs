@@ -199,13 +199,55 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
     prefixes = 'https://www.guitartabsexplorer.com'
     website = 'guitartabsexplorer.com'
 
+    def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, chords, author, tab_id):
+        super().__init__(url, song_name, artist_name, artist_url, chords, tab_id)
+        self.rating = rating
+        self.votes = votes
+        self.tab_content = tab_content
+        self.author = author
+
+    def get_tab_content(self):
+        content = self.tab_content
+        for t in content.find_all('img'):
+            t.decompose()
+        for t in content.find_all('h2'):
+            t.decompose()
+        for t in content.find_all("div", class_="gptslot"):
+            t.decompose()
+        for t in content.find_all(class_="hide-for-print"):
+            t.decompose()
+        for t in content.find_all("span", class_="dropt"):
+            for t2 in t.find_all("span"):
+                t2.decompose()
+        for t in content.find_all():
+            t.unwrap()
+        content = "".join(str(t) for t in content.contents)
+        return HtmlFormatter.pre(clean_whitespace(content))
+
+    def get_text_for_link_to_original(self):
+        return "%s version from %s (rated %s / %d votes)" % (self.website, self.author, self.rating, self.votes)
 
     @classmethod
     def from_url(cls, url):
         if IN_DEV:
             return None
         soup = urlCache.get_soup(url)
-        return None
+        song_name = soup.find_all("span", itemprop="name")[-1].string
+        json_content = json.loads(soup.find('script', type="application/ld+json").string)
+        by_artist = json_content['byArtist']
+        aggregate_rating = json_content.get('aggregateRating', {'ratingValue': 0, 'ratingCount': 0})
+        author = json_content.get('author', {'name': 'Unknown'})
+        return cls(
+            song_name=song_name,
+            artist_name=by_artist['name'],
+            url=url,
+            author=author['name'],
+            artist_url=by_artist['url'],
+            rating=aggregate_rating['ratingValue'],
+            votes=int(aggregate_rating['ratingCount']),
+            tab_content=soup.find('article'),
+            chords=[],
+            tab_id=None)
 
 
 class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
@@ -511,7 +553,6 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             return [cls.from_url(t['tab']['tab_url']) for t in page_data['songbook']['tabs']]
         else:
             raise NotImplementedError
-
 
     def get_text_for_link_to_original(self):
         return "%s version %d from %s (rated %f / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes)
