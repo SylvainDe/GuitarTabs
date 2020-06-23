@@ -702,9 +702,38 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
     prefixes = 'https://www.azchords.com/',
     website = 'azchords.com'
 
+    def __init__(self, url, song_name, artist_name, artist_url, chords, version, rating, votes, tab_content):
+        super().__init__(url, song_name, artist_name, artist_url, chords, tab_id=None)
+        self.version = version
+        self.tab_content = tab_content
+        self.rating = rating
+        self.votes = votes
+
+    def get_tab_content(self):
+        content = self.tab_content
+        return HtmlFormatter.pre(clean_whitespace("".join(str(t) for t in content.contents)))
+
+    def get_text_for_link_to_original(self):
+        return "%s %s (rated %f / %d votes)" % (self.type_name, self.version, self.rating, self.votes)
+
     @classmethod
     def from_url(cls, url):
         if IN_DEV:
             return None
         soup = urlCache.get_soup(url)
-        return None
+        tab_content = soup.find("pre", id="content")
+        artist_link = soup.find("a", class_="h2link pull-left")
+        version = soup.find("span", class_="muted").string.replace("(", "").replace(")", "")
+        aggregate_rating = soup.find("span", itemprop="aggregateRating")
+        return cls(
+            url=url,
+            song_name=aggregate_rating.find(itemprop='name')["content"],
+            artist_name=artist_link.string,
+            artist_url=urllib.parse.urljoin(url, artist_link['href']),
+            chords=[],
+            version=version,
+            rating=float(aggregate_rating.find(itemprop='ratingValue')["content"]),
+            votes=int(aggregate_rating.find(itemprop='ratingCount')["content"]),
+            tab_content=tab_content,
+        )
+
