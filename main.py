@@ -127,6 +127,9 @@ URL_LISTS = [
     "https://www.songsterr.com/a/wa/all",
     "https://www.songsterr.com/?pattern=road+trippin",
     "https://www.azchords.com/b/beatles-tabs-410.html",
+    "https://www.guitartabsexplorer.com/content/Top+guitar+tabs.php",
+    "https://www.guitartabsexplorer.com/beatles-Tabs/1/",
+    "https://www.guitartabsexplorer.com/beatles-Tabs/1/chords/",
 ]
 
 def get_tabs(urls):

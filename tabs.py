@@ -233,8 +233,12 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
             return None
         soup = urlCache.get_soup(url)
         song_name = soup.find_all("span", itemprop="name")[-1].string
-        json_content = json.loads(soup.find('script', type="application/ld+json").string)
-        by_artist = json_content['byArtist']
+        ld_json = soup.find('script', type="application/ld+json")
+        try:
+            json_content = json.loads(ld_json.string)
+        except json.decoder.JSONDecodeError:
+            json_content = dict()
+        by_artist = json_content.get('byArtist', {'url': '#', 'name': 'Unknown'})
         aggregate_rating = json_content.get('aggregateRating', {'ratingValue': 0, 'ratingCount': 0})
         author = json_content.get('author', {'name': 'Unknown'})
         return cls(
@@ -248,6 +252,19 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
             tab_content=soup.find('article'),
             chords=[],
             tab_id=None)
+
+    @classmethod
+    def from_list_url(cls, list_url):
+        soup = urlCache.get_soup(list_url)
+        table = soup.find("table", class_="hover stack")
+        if table:
+            hrefs = [l['href'] for l in table.find_all("a")]
+            return [cls.from_url(urllib.parse.urljoin(list_url, href)) for href in hrefs]
+        div = soup.find("div", class_='cell small-12 medium-9')
+        if div:
+            hrefs = [l['href'] for l in div.find_all("a")]
+            return [cls.from_url(urllib.parse.urljoin(list_url, href)) for href in hrefs]
+        return []
 
 
 class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
