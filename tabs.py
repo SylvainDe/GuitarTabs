@@ -233,11 +233,8 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
             return None
         soup = urlCache.get_soup(url)
         song_name = soup.find_all("span", itemprop="name")[-1].string
-        ld_json = soup.find('script', type="application/ld+json")
-        try:
-            json_content = json.loads(ld_json.string)
-        except json.decoder.JSONDecodeError:
-            json_content = dict()
+        ld_json = soup.find('script', type="application/ld+json").string.replace("\r", "")
+        json_content = json.loads(ld_json)
         by_artist = json_content.get('byArtist', {'url': '#', 'name': 'Unknown'})
         aggregate_rating = json_content.get('aggregateRating', {'ratingValue': 0, 'ratingCount': 0})
         author = json_content.get('author', {'name': 'Unknown'})
