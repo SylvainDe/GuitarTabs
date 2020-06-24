@@ -737,3 +737,11 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
             tab_content=tab_content,
         )
 
+    @classmethod
+    def from_list_url(cls, list_url):
+        soup = urlCache.get_soup(list_url)
+        rows = soup.find("tbody", {"data-link":"row"})
+        links = rows.find_all("a")
+        hrefs = [l['href'] for l in links]
+        return [cls.from_url(urllib.parse.urljoin(list_url, href)) for href in hrefs if href != "#"]
+

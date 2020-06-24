@@ -126,15 +126,15 @@ URL_LISTS = [
     "https://www.e-chords.com/search-all/road%20trippin",
     "https://www.songsterr.com/a/wa/all",
     "https://www.songsterr.com/?pattern=road+trippin",
+    "https://www.azchords.com/b/beatles-tabs-410.html",
 ]
 
 def get_tabs(urls):
+    tabs = []
     if 1:
         tabs = [GuitarTabGetter.from_url(url) for url in urls]
-    elif 0:  # For debug purposes
-        tabs = GuitarTabGetter.from_list_url(URL_LISTS[0])
     else:
-        tabs = [GuitarTabGetter.from_url("https://www.e-chords.com/chords/eagles/hotel-california")]
+        tabs = GuitarTabGetter.from_list_url(URL_LISTS[0])
     return [t for t in tabs if t is not None]
 
 
