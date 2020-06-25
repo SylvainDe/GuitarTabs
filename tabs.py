@@ -617,12 +617,14 @@ class GuitarTabFromEChords(AbstractGuitarTab):
     def from_url(cls, url):
         if IN_DEV:
             return None
-        if url in ("https://www.e-chords.com/chords/lewis-capaldi/someone-you-loved", "https://www.e-chords.com/tabs/ewan-dobson/time-2", "https://www.e-chords.com/tabs/mick-jagger/wandering-spirit"):
-            return None
         soup = urlCache.get_soup(url)
         # Dirty extract of javascript values
         js_prefix = "var base_href = "
-        jscript = soup.find('script', text=re.compile(".*%s.*" % js_prefix)).string
+        jscript_tag = soup.find('script', text=re.compile(".*%s.*" % js_prefix))
+        if not jscript_tag:
+            print("Could not find javascript tag in %s" % url)
+            return None
+        jscript = jscript_tag.string
         raw_data = {k:v for (k, v) in (
             re.findall('var ([^ ]*) = "([^"]*)";', jscript) +
             re.findall("var ([^ ]*) = '([^']*)';", jscript) +
