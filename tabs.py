@@ -617,7 +617,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
     def from_url(cls, url):
         if IN_DEV:
             return None
-        if url in ("https://www.e-chords.com/chords/lewis-capaldi/someone-you-loved", "https://www.e-chords.com/tabs/ewan-dobson/time-2"):
+        if url in ("https://www.e-chords.com/chords/lewis-capaldi/someone-you-loved", "https://www.e-chords.com/tabs/ewan-dobson/time-2", "https://www.e-chords.com/tabs/mick-jagger/wandering-spirit"):
             return None
         soup = urlCache.get_soup(url)
         # Dirty extract of javascript values
@@ -665,7 +665,8 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
     def __init__(self, url, song_name, artist_name, artist_url, chords, tab_id, tab_content, difficulty, capo):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id)
         self.tab_content = tab_content
-        self.difficulty = difficulty
+        if difficulty is not None:
+            self.difficulty = difficulty
         self.capo = capo
 
     @classmethod
@@ -696,7 +697,7 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
             chords=[],
             tab_id="s%st%s" % (json_route["songId"], json_route["partId"]),
             tab_content=soup.find('section', id="tablature"),
-            difficulty=json_track['difficulty'],
+            difficulty=json_track.get('difficulty', None),
             capo=json_data["part"]["capo"],
     )
 

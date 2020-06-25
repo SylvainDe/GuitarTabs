@@ -136,8 +136,14 @@ def get_tabs(urls):
     tabs = []
     if 1:
         tabs = [GuitarTabGetter.from_url(url) for url in urls]
+    elif 0:
+        tabs = [t for u in URL_LISTS for t in GuitarTabGetter.from_list_url(u) ]
+    elif 0:
+        tabs = [GuitarTabGetter.from_url("TODO")]
+    elif 0:
+        tabs = [GuitarTabGetter.from_list_url("TODO")]
     else:
-        tabs = GuitarTabGetter.from_list_url(URL_LISTS[0])
+        tabs = []
     return [t for t in tabs if t is not None]
 
 
