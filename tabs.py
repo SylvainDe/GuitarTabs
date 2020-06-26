@@ -314,8 +314,11 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
         content = self.tab_content
         for t in content.find_all('span'):
             t.decompose()
-        for t in content.find_all('a'):
-            t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
+        for t in content.find_all():
+            if t.name == 'a':
+                t.replace_with(BeautifulSoup(dict_chord[t.string], "html.parser"))
+            else:
+                t.unwrap()
         content = "".join(str(t) for t in content.contents)
         return HtmlFormatter.pre(clean_whitespace(content))
 
