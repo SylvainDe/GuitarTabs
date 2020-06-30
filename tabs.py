@@ -349,9 +349,12 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         soup = urlCache.get_soup(url)
         breadcrumbs_links = soup.find("div", id="breadcrumbs").find_all('a')
         song_link = breadcrumbs_links[3]
-        artist_link = breadcrumbs_links[2]
-        artist_str = artist_link.string
-        artist_name = artist_str[:artist_str.rfind(" ")]
+        song_name = song_link.string
+        artist_link = soup.find("div", id="tags").find_all("a")[0]
+        artist_name = artist_link.string
+        prefix = artist_name + " - "
+        if song_name.startswith(prefix):
+            song_name = song_name[len(prefix):]
         album, year, timesig, key, tempo = None, None, None, None, None
         for t in soup.find("div", id="tags").find_all("a"):
             href = t['href']
@@ -366,7 +369,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
             elif "/tempos/" in href:
                 tempo = t.string
         return cls(
-            song_name=song_link.string,
+            song_name=song_name,
             artist_name=artist_name,
             url=url,
             artist_url=urllib.parse.urljoin(url, artist_link['href']),
