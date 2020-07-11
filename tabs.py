@@ -196,7 +196,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
 
 
 class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
-    prefixes = 'https://www.guitartabsexplorer.com'
+    prefixes = 'https://www.guitartabsexplorer.com',
     website = 'guitartabsexplorer.com'
 
     def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, chords, author, tab_id):
