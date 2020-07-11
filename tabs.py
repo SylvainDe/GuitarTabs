@@ -768,3 +768,73 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
         hrefs = [l['href'] for l in links]
         return [cls.from_url(urllib.parse.urljoin(list_url, href)) for href in hrefs if href != "#"]
 
+
+class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
+    prefixes = 'https://www.boiteachansons.net/',
+    website = 'boiteachansons.net'
+
+    def __init__(self, url, song_name, artist_name, artist_url, chords, author, version, rating, votes, key, tab_content):
+        super().__init__(url, song_name, artist_name, artist_url, chords, tab_id=None)
+        self.author = author
+        self.version = version
+        self.rating = rating
+        self.votes = votes
+        self.key = key
+        self.tab_content = tab_content
+
+    def get_tab_content(self):
+        # It is a bit tricky, chords are described on the same lines are lyrics
+        content = self.tab_content
+        for t in content.find_all("div", class_="pLgn"):
+            t.insert_after('\n')
+        for t in content.find_all():
+            t.unwrap()
+        content = "".join(str(t) for t in content.contents)
+        return HtmlFormatter.pre(clean_whitespace(content))
+
+    def get_text_for_link_to_original(self):
+        return "%s version %s from %s (rated %s / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes)
+
+    @classmethod
+    def from_url(cls, url):
+        if IN_DEV:
+            return None
+        print(url)
+        soup = urlCache.get_soup(url)
+        song_name = soup.find("span", class_="sChansonTitre").string
+        artist_link = soup.find("a", id="aLienArtiste")
+        contrib_links = soup.find("div", class_="dInfoContribution").find_all("a")
+        len_contrib_links = len(contrib_links)
+        if len_contrib_links == 0:
+           author, version = "Unknown", "Unknown"
+        elif len_contrib_links == 1:
+            author, version = contrib_links[0].string, "1.0"
+        else:
+            author, version = contrib_links[-2].string, contrib_links[-1].string
+        key = soup.find("span", class_="sTonalElmtSlct")
+        tab_content = soup.find("div", class_="divPartition")
+        divEvalLabel = soup.find("div", id="divEvalLabel").string
+        rating, sep, votes = divEvalLabel.partition(" (")
+        if sep:
+            votes = float(votes[:-1])
+        else:
+            rating = "Unknown"
+            votes = 0
+        return cls(
+            url=url,
+            song_name=song_name,
+            artist_name=artist_link.string,
+            artist_url=urllib.parse.urljoin(url, artist_link['href']),
+            chords=[],
+            author=author,
+            version=version,
+            rating=rating,
+            votes=votes,
+            key=key.string if key else None,
+            tab_content=tab_content)
+
+    @classmethod
+    def from_list_url(cls, list_url):
+        soup = urlCache.get_soup(list_url)
+        return [cls.from_url(urllib.parse.urljoin(list_url, li.find('a')['href'])) for li in soup.find_all("li", class_="liElementLstPartitions")]
+

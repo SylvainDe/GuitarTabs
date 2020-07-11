@@ -9,5 +9,6 @@ Supported sources:
  - https://www.songsterr.com
  - https://www.azchords.com
  - https://www.guitartabsexplorer.com
+ - https://www.boiteachansons.net
 
 See also: http://pnwanderer.com/2014/11/15/how-to-format-guitar-tabs-for-kindle-e-reader/ (not from me).

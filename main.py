@@ -104,6 +104,7 @@ URLS = [
     "https://www.guitartabsexplorer.com/mccartney-paul-Tabs/band-on-the-run-(ver2)-crd.php",
     "https://www.guitartabsexplorer.com/mccartney-paul-Tabs/blackbird-tab.php",
     "https://www.guitartabsexplorer.com/beatles-Tabs/come-together-btab.php",
+    "https://www.boiteachansons.net/Partitions/Joan-Baez/Diamonds-and-Rust.php",
     # Tabs with chords from outter space
     # "https://tabs.ultimate-guitar.com/tab/pavement/wher-did-all-the-rock-go-chords-51930",
     # "https://tabs.ultimate-guitar.com/tab/orquestra-imperial/rue-de-mes-souvenirs-chords-2818319",
@@ -130,6 +131,11 @@ URL_LISTS = [
     "https://www.guitartabsexplorer.com/content/Top+guitar+tabs.php",
     "https://www.guitartabsexplorer.com/beatles-Tabs/1/",
     "https://www.guitartabsexplorer.com/beatles-Tabs/1/chords/",
+    "https://www.boiteachansons.net/Partitions/nouveautes.php",
+    "https://www.boiteachansons.net/Partitions/top50Chansons.php",
+    "https://www.boiteachansons.net/Partitions/index.php?aleatoire",
+    "https://www.boiteachansons.net/Partitions/index.php?lettre=Z",
+    "https://www.boiteachansons.net/Artistes/The-Beatles.php",
 ]
 
 def get_tabs(urls):

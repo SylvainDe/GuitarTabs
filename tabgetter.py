@@ -13,6 +13,7 @@ class GuitarTabGetter(object):
                        tabs.GuitarTabFromEChords,
                        tabs.GuitarTabFromSongsterr,
                        tabs.GuitarTabFromAzChords,
+                       tabs.GuitarTabFromBoiteAChansons,
                        tabs.GuitarTabFromGuitarTabsExplorer):
             for prefix in class_.prefixes:
                 if url.startswith(prefix):
