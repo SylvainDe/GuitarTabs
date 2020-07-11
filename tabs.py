@@ -799,8 +799,11 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
     def from_url(cls, url):
         if IN_DEV:
             return None
-        print(url)
         soup = urlCache.get_soup(url)
+        tab_content = soup.find("div", class_="divPartition")
+        if tab_content is None:
+            print("No content for %s" % url)
+            return None
         song_name = soup.find("span", class_="sChansonTitre").string
         artist_link = soup.find("a", id="aLienArtiste")
         contrib_links = soup.find("div", class_="dInfoContribution").find_all("a")
@@ -812,7 +815,6 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
         else:
             author, version = contrib_links[-2].string, contrib_links[-1].string
         key = soup.find("span", class_="sTonalElmtSlct")
-        tab_content = soup.find("div", class_="divPartition")
         divEvalLabel = soup.find("div", id="divEvalLabel").string
         rating, sep, votes = divEvalLabel.partition(" (")
         if sep:
