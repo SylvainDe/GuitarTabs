@@ -18,7 +18,6 @@ def string_to_html_id(s):
 
 
 class HtmlGroup(object):
-
     def __init__(self, *iterable):
         self.elts = tuple(iterable)
 
@@ -26,12 +25,33 @@ class HtmlGroup(object):
         return "".join(str(e) for e in self.elts)
 
     def __eq__(self, other):
-        return (isinstance(other, self.__class__) and
-                self.elts == other.elts)
+        return isinstance(other, self.__class__) and self.elts == other.elts
 
 
 class HtmlTag(object):
-    def __init__(self, tag, content=None, on_open="", on_close="", attrs=None, **kwargs):
+
+    empty_elements = {
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "keygen",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
+        "mbp:pagebreak",
+    }
+
+    def __init__(
+        self, tag, content=None, on_open="", on_close="", attrs=None, **kwargs
+    ):
         self.tag = tag
         self.attrs = dict()
         if attrs:
@@ -50,20 +70,25 @@ class HtmlTag(object):
         return self
 
     def __eq__(self, other):
-        return (isinstance(other, self.__class__) and
-                self.tag == other.tag and
-                self.attrs == other.attrs and
-                self.content == other.content and
-                self.on_open == other.on_open and
-                self.on_close == other.on_close)
+        return (
+            isinstance(other, self.__class__)
+            and self.tag == other.tag
+            and self.attrs == other.attrs
+            and self.content == other.content
+            and self.on_open == other.on_open
+            and self.on_close == other.on_close
+        )
 
     def __str__(self):
-        attrs = "".join(" " + k + ("" if v is None else "=\"%s\"" % v)
-                        for k, v in self.attrs.items())
-        if self.content is None:
+        attrs = "".join(
+            " " + k + ("" if v is None else '="%s"' % v) for k, v in self.attrs.items()
+        )
+        content = self.content
+        if content is None and self.tag in self.empty_elements:
             closing = " />"
         else:
-            content = "".join(str(elt) for elt in self.content)
+            content = [] if content is None else content
+            content = "".join(str(elt) for elt in content)
             closing = ">%s%s</%s>" % (self.on_open, content, self.tag)
         return "<%s%s%s%s" % (self.tag, attrs, closing, self.on_close)
 
@@ -72,7 +97,9 @@ class HtmlTag(object):
 
 
 def heading(level, content=None, attrs=None, **kwargs):
-    return HtmlTag(tag="h" + str(level), content=content, attrs=attrs, **kwargs, on_close="\n")
+    return HtmlTag(
+        tag="h" + str(level), content=content, attrs=attrs, **kwargs, on_close="\n"
+    )
 
 
 def a(content=None, attrs=None, **kwargs):
@@ -96,7 +123,9 @@ def li(content=None, attrs=None, **kwargs):
 
 
 def ul(content=None, attrs=None, **kwargs):
-    return HtmlTag(tag="ul", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n")
+    return HtmlTag(
+        tag="ul", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n"
+    )
 
 
 def meta(content=None, attrs=None, **kwargs):
@@ -104,19 +133,26 @@ def meta(content=None, attrs=None, **kwargs):
 
 
 def html(content=None, attrs=None, **kwargs):
-    return HtmlTag(tag="html", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n")
+    return HtmlTag(
+        tag="html", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n"
+    )
 
 
 def head(content=None, attrs=None, **kwargs):
-    return HtmlTag(tag="head", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n")
+    return HtmlTag(
+        tag="head", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n"
+    )
 
 
 def body(content=None, attrs=None, **kwargs):
-    return HtmlTag(tag="body", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n")
+    return HtmlTag(
+        tag="body", content=content, attrs=attrs, **kwargs, on_close="\n", on_open="\n"
+    )
 
 
 def comment(string):
     return "<!-- %s -->\n" % string
+
 
 doctype = "<!DOCTYPE html>\n"
 pagebreak = HtmlTag(tag="mbp:pagebreak", on_close="\n")
