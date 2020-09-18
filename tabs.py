@@ -650,7 +650,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             tab_id=raw_data['idSong'],
             key=raw_data['strKey'],
             capo=raw_data['keycapo'],
-            difficulty=soup.find("span", style="color: #999;font-style:italic").string,
+            difficulty=soup.find("span", class_="dificulty").string,
             tab_content=soup.find("pre", id="core"),
             chords=list(chords.ChordsGetterFromEChords.from_javascript(chords_jscript, is_ukulele)),
             type_name=type_name.title(),
