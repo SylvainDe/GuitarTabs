@@ -534,7 +534,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         tab_view_meta = tab_view['meta']
         if tab_view_meta == []:
             tab_view_meta = {}
-        assert url == tab['tab_url']
+        url2 = tab['tab_url']  # May differ from url when page is moved
 
         is_ukulele = tab['type_name'] == 'Ukulele'
         song_name = tab['song_name']
@@ -542,7 +542,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             song_name=song_name,
             part=tab['part'].capitalize(),
             artist_name=tab['artist_name'],
-            url=url,
+            url=url2,
             artist_url=tab['artist_url'],
             type_name=tab['type_name'],
             version=tab['version'],
@@ -804,8 +804,16 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
         if tab_content is None:
             print("No content for %s" % url)
             return None
-        song_name = soup.find("span", class_="sChansonTitre").string
-        artist_link = soup.find("a", id="aLienArtiste")
+
+        song_name = soup.find("p", class_="pAmzTitre")
+        if song_name is None:
+            song_name = soup.find("div", class_="dTitreChanson")
+        artist_link = soup.find("div", id="dTitreNomArtiste").find("a")
+        artist_name = soup.find("p", class_="pAmzArtiste")
+        if artist_name is not None:
+            artist_name_str = artist_name.string
+        else:
+            artist_name_str = artist_link.string.strip()
         contrib_links = soup.find("div", class_="dInfoContribution").find_all("a")
         len_contrib_links = len(contrib_links)
         if len_contrib_links == 0:
@@ -815,17 +823,17 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
         else:
             author, version = contrib_links[-2].string, contrib_links[-1].string
         key = soup.find("span", class_="sTonalElmtSlct")
-        divEvalLabel = soup.find("div", id="divEvalLabel").string
-        rating, sep, votes = divEvalLabel.partition(" (")
-        if sep:
-            votes = float(votes[:-1])
-        else:
-            rating = "Unknown"
-            votes = 0
+        # divEvalLabel = soup.find("div", id="divEvalLabel").string
+        # rating, sep, votes = divEvalLabel.partition(" (")
+        # if sep:
+        #     votes = float(votes[:-1])
+        # else:
+        rating = "Unknown"
+        votes = 0
         return cls(
             url=url,
-            song_name=song_name,
-            artist_name=artist_link.string,
+            song_name=song_name.string,
+            artist_name=artist_name_str,
             artist_url=urllib.parse.urljoin(url, artist_link['href']),
             chords=[],
             author=author,

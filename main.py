@@ -105,6 +105,7 @@ URLS = [
     "https://www.guitartabsexplorer.com/mccartney-paul-Tabs/blackbird-tab.php",
     "https://www.guitartabsexplorer.com/beatles-Tabs/come-together-btab.php",
     "https://www.boiteachansons.net/Partitions/Joan-Baez/Diamonds-and-Rust.php",
+    "https://www.boiteachansons.net/partitions/maxime-le-forestier/san-francisco",
     # Tabs with chords from outter space
     # "https://tabs.ultimate-guitar.com/tab/pavement/wher-did-all-the-rock-go-chords-51930",
     # "https://tabs.ultimate-guitar.com/tab/orquestra-imperial/rue-de-mes-souvenirs-chords-2818319",
