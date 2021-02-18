@@ -642,6 +642,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
         if instrument != type_name:
             type_name = instrument + " " + type_name
         is_ukulele = (instrument == 'ukulele')
+        difficulty = soup.find("span", class_="dificulty")
         return cls(
             url=url,
             song_name=raw_data['title'],
@@ -650,7 +651,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             tab_id=raw_data['idSong'],
             key=raw_data['strKey'],
             capo=raw_data['keycapo'],
-            difficulty=soup.find("span", class_="dificulty").string,
+            difficulty=difficulty.string if difficulty is not None else "Unknown",
             tab_content=soup.find("pre", id="core"),
             chords=list(chords.ChordsGetterFromEChords.from_javascript(chords_jscript, is_ukulele)),
             type_name=type_name.title(),
