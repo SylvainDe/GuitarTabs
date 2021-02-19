@@ -128,8 +128,8 @@ class AbstractGuitarTab(object):
 
     @classmethod
     def from_list_url(cls, list_url):
-        print(url)
-        return cls.from_list_url_and_soup(url, urlCache.get_soup(url))
+        print(list_url)
+        return cls.from_list_url_and_soup(list_url, urlCache.get_soup(list_url))
 
     @classmethod
     def from_url_and_soup(cls, url, soup):
