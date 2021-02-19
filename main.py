@@ -132,11 +132,11 @@ URL_LISTS = [
     "https://www.guitartabsexplorer.com/content/Top+guitar+tabs.php",
     "https://www.guitartabsexplorer.com/beatles-Tabs/1/",
     "https://www.guitartabsexplorer.com/beatles-Tabs/1/chords/",
-    "https://www.boiteachansons.net/Partitions/nouveautes.php",
-    "https://www.boiteachansons.net/Partitions/top50Chansons.php",
-    "https://www.boiteachansons.net/Partitions/index.php?aleatoire",
-    "https://www.boiteachansons.net/Partitions/index.php?lettre=Z",
-    "https://www.boiteachansons.net/Artistes/The-Beatles.php",
+    "https://www.boiteachansons.net/partitions/nouveautes",
+    "https://www.boiteachansons.net/partitions/top50Chansons",
+    "https://www.boiteachansons.net/partitions/aleatoire",
+    "https://www.boiteachansons.net/partitions/Z",
+    "https://www.boiteachansons.net/artistes/the-beatles",
 ]
 
 def get_tabs(urls):

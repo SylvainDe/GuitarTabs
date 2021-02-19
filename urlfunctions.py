@@ -124,3 +124,7 @@ class UrlCache():
     def get_soup(self, url):
         content = self.get_content(url)
         return BeautifulSoup(content, "html.parser")
+
+    def get_json(self, url):
+        content = self.get_content(url)
+        return json.loads(content.decode())

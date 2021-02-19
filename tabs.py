@@ -837,5 +837,15 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
 
     @classmethod
     def from_list_url_and_soup(cls, list_url, soup):
-        return [cls.from_url(urllib.parse.urljoin(list_url, li.find('a')['href'])) for li in soup.find_all("li", class_="liElementLstPartitions")]
+        div_liste_partition = soup.find("div", id="dListePartitions")
+        if div_liste_partition:
+            src_liste_partition = div_liste_partition.get("source", None)
+            if src_liste_partition is not None:
+                return cls.from_json_url(src_liste_partition)
+        return [cls.from_url(urllib.parse.urljoin(list_url, li.find('a')['href']))
+                for li in soup.find_all("li", class_="liElementLstPartitions")]
 
+    @classmethod
+    def from_json_url(cls, json_url):
+        return [cls.from_url("%spartitions/%s/%s" % (cls.prefixes[0], e["aFich"], e["cFich"]))
+                for e in urlCache.get_json(json_url)]
