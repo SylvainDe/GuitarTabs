@@ -5,7 +5,6 @@ class GuitarTabGetter(object):
 
     @classmethod
     def get_class_for_url(cls, url):
-        print(url)
         for class_ in (tabs.GuitarTabFromUltimateGuitar,
                        tabs.GuitarTabFromGuitarTabDotCom,
                        tabs.GuitarTabFromTabs4Acoustic,
