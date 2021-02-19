@@ -716,7 +716,7 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
         script_state = soup.find("script", id="state")
         if script_state:
             json_content = json.loads(script_state.string)
-            json_search_songs = json_content["search"]["songs"]
+            json_search_songs = json_content["songs"]["songs"]
             urls = ["https://www.songsterr.com/a/wsa/foo-bar-s%st%d" % (s["songId"], 0) for s in json_search_songs]
             return [cls.from_url(url) for url in urls]
         return [cls.from_url(urllib.parse.urljoin(list_url, a['href'])) for a in soup.find_all("a", class_="tab-link")]
