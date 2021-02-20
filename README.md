@@ -1,14 +1,15 @@
 
 Collect tabs from various websites and group them into an ebook (for Kindle)
 
-Supported sources:
- - https://www.tabs4acoustic.com
- - https://www.guitaretab.com
- - https://www.guitartabs.cc
- - https://www.ultimate-guitar.com
- - https://www.songsterr.com
- - https://www.azchords.com
- - https://www.guitartabsexplorer.com
- - https://www.boiteachansons.net
+| Source \ Supported features | Basic content | Chord aligned | Chord short description | Chord long description |
+|-----------------------------|---------------|---------------|-------------------------|------------------------|
+| azchords.com                | Yes           | Yes           |                         |                        |
+| boiteachansons.net          | Yes           |               |                         |                        |
+| e-chords.com                | Yes           | Yes           | Yes                     | Yes                    |
+| guitaretab.com              | Yes           | Yes           |                         |                        |
+| guitartabs.cc               | Yes           | Yes           | Yes                     |                        |
+| guitartabsexplorer.com      | Yes           | Yes           |                         |                        |
+| songsterr.com               |               |               |                         |                        |
+| tabs4acoustic.com           | Yes           | Yes           | Yes                     |                        |
+| ultimate-guitar.com         | Yes           | Yes           | Yes                     | Yes                    |
 
-See also: http://pnwanderer.com/2014/11/15/how-to-format-guitar-tabs-for-kindle-e-reader/ (not from me).
