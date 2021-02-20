@@ -6,7 +6,7 @@ Collect tabs from various websites and group them into an ebook (for Kindle)
 | azchords.com                | Yes           | Yes           |                         |                        |
 | boiteachansons.net          | Yes           |               |                         |                        |
 | e-chords.com                | Yes           | Yes           | Yes                     | Yes                    |
-| guitaretab.com              | Yes           | Yes           |                         |                        |
+| guitaretab.com              | Yes           | Yes           | Yes                     | Yes                    |
 | guitartabs.cc               | Yes           | Yes           | Yes                     |                        |
 | guitartabsexplorer.com      | Yes           | Yes           |                         |                        |
 | songsterr.com               |               |               |                         |                        |
