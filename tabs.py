@@ -243,7 +243,7 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
         ld_json = soup.find('script', type="application/ld+json").string.replace("\r", "")
         json_content = json.loads(ld_json)
         by_artist = json_content.get('byArtist', {'url': '#', 'name': 'Unknown'})
-        aggregate_rating = json_content.get('aggregateRating', {'ratingValue': 0, 'ratingCount': 0})
+        aggregate_rating = json_content.get('aggregateRating', {'ratingValue': 0, 'reviewCount': 0})
         author = json_content.get('author', {'name': 'Unknown'})
         return cls(
             song_name=song_name,
@@ -252,7 +252,7 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
             author=author['name'],
             artist_url=by_artist['url'],
             rating=aggregate_rating['ratingValue'],
-            votes=int(aggregate_rating['ratingCount']),
+            votes=int(aggregate_rating['reviewCount']),
             tab_content=soup.find('article'),
             chords=[],
             tab_id=None)
