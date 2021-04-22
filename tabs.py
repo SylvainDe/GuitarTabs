@@ -702,7 +702,7 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
             tab_id="s%st%s" % (json_route["songId"], json_route["partId"]),
             tab_content=soup.find('section', id="tablature"),
             difficulty=json_track.get('difficulty', None),
-            capo=json_data["part"]["capo"],
+            capo=json_data.get("part", dict()).get("capo", None),
     )
 
     @classmethod
