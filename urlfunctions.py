@@ -102,6 +102,14 @@ class JsonCache(object):
         with open(json_filepath, 'w+') as f:
             json.dump(data, f, indent=4, sort_keys=True)
 
+    @staticmethod
+    def save_data_in_tmp(data):
+        """Unrelated function. Can be useful for debugging purposes."""
+        import tempfile
+        f = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.json')
+        print(f.name)
+        json.dump(data, f, indent=4, sort_keys=True)
+
 
 class UrlCache():
     def __init__(self, folder):

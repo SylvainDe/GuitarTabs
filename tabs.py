@@ -681,9 +681,10 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
             return None
         json_content = json.loads(soup.find("script", id="state").string)
         json_meta = json_content['meta']
+        json_current = json_meta['current']
         json_route = json_content['route']
-        json_track = json_content['track']
-        json_data = json_content['data']
+        json_track = json_current['tracks'][0]
+        #json_data = json_content['data']
         # json_lyrics = json_data['lyrics']
         # if json_lyrics is not None:
         #     print(len(json_lyrics))
@@ -695,14 +696,14 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
         # Note: bpm is available: json_data['part']['automations']['tempo']
         return cls(
             url=url,
-            song_name=json_meta["title"],
-            artist_name=json_meta["artist"],
-            artist_url="https://www.songsterr.com/a/wsa/foo-bar-a%s" % (json_meta["artistId"]),
+            song_name=json_current["title"],
+            artist_name=json_current["artist"],
+            artist_url="https://www.songsterr.com/a/wsa/foo-bar-a%s" % (json_current["artistId"]),
             chords=[],
             tab_id="s%st%s" % (json_route["songId"], json_route["partId"]),
             tab_content=soup.find('section', id="tablature"),
             difficulty=json_track.get('difficulty', None),
-            capo=json_data.get("part", dict()).get("capo", None),
+            capo=None,
     )
 
     @classmethod
