@@ -391,7 +391,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         dict_chord = {c.name: str(c.get_link(display_type=False)) for c in self.chords}
         if self.tab_content is None:
             return HtmlFormatter.pre("No tab content")
-        content = self.tab_content.find(class_="small-12 column")
+        content = self.tab_content.find('pre', class_="small-12 column")
         for t in content.find_all('span'):
             t.unwrap()
         for t in content.find_all('a'):
