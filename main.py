@@ -75,6 +75,7 @@ URLS = [
     "https://www.guitaretab.com/r/rem/15914.html",
     "https://www.guitaretab.com/r/rem/176094.html",
     "https://www.guitaretab.com/r/rem/238402.html",
+    "https://www.guitaretab.com/v/vines/48728.html",
     "https://www.guitartabs.cc/tabs/a/adele/someone_like_you_crd.html",
     "https://www.guitartabs.cc/tabs/a/adele/someone_like_you_tab_ver_2.html",
     "https://www.guitartabs.cc/tabs/b/beatles/blackbird_tab_ver_12.html",

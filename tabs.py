@@ -176,7 +176,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
             return None
         json_content = json.loads(soup.find('script', type="application/ld+json").string)
         by_artist = json_content['byArtist']
-        aggregate_rating = json_content['aggregateRating']
+        aggregate_rating = json_content.get('aggregateRating', dict())
         assert url == json_content['url']
         # Dirty extract of javascript values
         js_prefix = "window.UGAPP.store.page = "
@@ -191,8 +191,8 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
             artist_name=by_artist['name'],
             url=url,
             artist_url=by_artist['url'],
-            rating=aggregate_rating['ratingValue'],
-            votes=int(aggregate_rating['reviewCount']),
+            rating=aggregate_rating.get('ratingValue'),
+            votes=int(aggregate_rating.get('reviewCount', "0")),
             tab_content=soup.find('pre', class_="js-tab-fit-to-screen"),
             chords=list(chords.ChordsGetterFromApplicature.from_json_data(json_content2['applicature'], is_ukulele=False)),
             tab_id=json_content2['tabId'])
