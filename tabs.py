@@ -711,8 +711,8 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
         script_state = soup.find("script", id="state")
         if script_state:
             json_content = json.loads(script_state.string)
-            json_search_songs = json_content["songs"]["songs"]
-            urls = ["https://www.songsterr.com/a/wsa/foo-bar-s%st%d" % (s["songId"], 0) for s in json_search_songs]
+            json_search_songs = json_content["songs"]["songs"]["list"]
+            urls = ["https://www.songsterr.com/a/wsa/foo-bar-tab-s%s" % (s["songId"], ) for s in json_search_songs]
             return [cls.from_url(url) for url in urls]
         return [cls.from_url(urllib.parse.urljoin(list_url, a['href'])) for a in soup.find_all("a", class_="tab-link")]
 
@@ -848,5 +848,5 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
 
     @classmethod
     def from_json_url(cls, json_url):
-        return [cls.from_url("%spartitions/%s/%s" % (cls.prefixes[0], e["aFich"], e["cFich"]))
+        return [cls.from_url(("%spartitions/%s/%s" % (cls.prefixes[0], e["aFich"], e["cFich"])).encode("ascii", "backslashreplace").decode())
                 for e in urlCache.get_json(json_url)]
