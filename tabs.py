@@ -529,7 +529,10 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             return None
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
         page_data = json_content['store']['page']['data']
-        tab = page_data['tab']
+        tab = page_data.get('tab', None)
+        if tab is None:
+            print("Could not find tab in %s" % url)
+            return None
         tab_view = page_data['tab_view']
         tab_view_meta = tab_view['meta']
         if tab_view_meta == []:
@@ -566,11 +569,14 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         page_data = json_content['store']['page']['data']
         if 'tabs' in page_data:
             return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
+        elif 'other_tabs' in page_data:
+            return [cls.from_url(t['tab_url']) for t in page_data['other_tabs']]
         elif 'results' in page_data:
             return [cls.from_url(t['tab_url']) for t in page_data['results'] if "&" not in t['tab_url']]
         elif 'songbook' in page_data:
             return [cls.from_url(t['tab']['tab_url']) for t in page_data['songbook']['tabs']]
         else:
+            # urlfunctions.JsonCache.save_data_in_tmp(page_data)
             raise NotImplementedError
 
     def get_text_for_link_to_original(self):
