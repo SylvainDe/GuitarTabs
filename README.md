@@ -15,4 +15,22 @@ Collect tabs from various websites and group them into an ebook (for Kindle)
 
 The files in dest correspond to the output with the file url_test_list.txt.
 
-TODO: Add usage.
+Usage
+-----
+
+python main.py -h
+usage: main.py [-h] [--mobi] [--pdf] [--tabfile TABFILE] [--listfile LISTFILE] [--output OUTPUT]
+
+Download tabs and generate HTML and/or PDF and/or Mobi files
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --mobi, -m            Generate mobi file
+  --pdf, -p             Generate pdf file
+  --tabfile TABFILE, -t TABFILE
+                        File containing URL for tabs
+  --listfile LISTFILE, -l LISTFILE
+                        File containing URL for lists of tabs
+  --output OUTPUT, -o OUTPUT
+                        File containing URL for lists of tabs (".html" suffix not required)
+

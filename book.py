@@ -1,5 +1,6 @@
 import subprocess
 import itertools
+import pathlib
 import htmlformatter as HtmlFormatter
 
 from tabs import AbstractGuitarTab as Tab
@@ -140,18 +141,25 @@ def subprocess_call(cmd):
     print("%s returned %d" % (cmd_str, ret))
 
 
-def make_book(tabs, chords, htmlfile, make_mobi=True, make_pdf=True):
+def make_book(tabs, chords, base_filename, make_mobi=True, make_pdf=True):
+    # File name handling
+    if base_filename.endswith(".html"):
+        base_filename = base_filename[:-len(".html")]
+    html_file = base_filename + ".html"
+    pdf_file = base_filename + ".pdf"
+    # Create intermediate directories
+    pathlib.Path(base_filename).parent.mkdir(parents=True, exist_ok=True)
+    # Generate HTML
     html = HtmlFormatter.html().add(get_html_head()).add(get_html_body(tabs, chords))
-    with open(htmlfile, 'w+') as book:
+    with open(html_file, 'w+') as book:
         book.write(HtmlFormatter.doctype + str(html))
-    print("Wrote in %s" % htmlfile)
+    print("Wrote in %s" % html_file)
     if make_pdf:
-        pdf_file = "dest/wip_book.pdf"
         # Various options from https://superuser.com/questions/592974/how-to-print-to-save-as-pdf-from-a-command-line-with-chrome-or-chromium
-        cmd = ["chromium-browser", "--headless", "--disable-gpu", "--print-to-pdf=" + pdf_file, htmlfile]
-        cmd = ["google-chrome",    "--headless", "--disable-gpu", "--print-to-pdf=" + pdf_file, htmlfile]
-        cmd = ["wkhtmltopdf", htmlfile, pdf_file]
+        cmd = ["chromium-browser", "--headless", "--disable-gpu", "--print-to-pdf=" + pdf_file, html_file]
+        cmd = ["google-chrome",    "--headless", "--disable-gpu", "--print-to-pdf=" + pdf_file, html_file]
+        cmd = ["wkhtmltopdf", html_file, pdf_file]
         subprocess_call(cmd)
     if make_mobi:
-        cmd = [KINDLEGEN_PATH, '-verbose', '-dont_append_source', htmlfile]
+        cmd = [KINDLEGEN_PATH, '-verbose', '-dont_append_source', html_file]
         subprocess_call(cmd)
