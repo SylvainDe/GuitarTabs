@@ -38,7 +38,13 @@ def main():
         help='File containing URL for lists of tabs (".html" suffix not required)',
         default="dest/wip_book",
     )
-    # TODO: Add options for content such as title/cover
+    parser.add_argument(
+        "--name",
+        "-n",
+        help="Name for for generated book",
+        default="Tabs and Chords",
+    )
+    # TODO: Add options for content such as cover
     args = parser.parse_args()
     tabs = []
     for filename in args.tabfile:
@@ -54,6 +60,7 @@ def main():
         base_filename=args.output,
         make_mobi=args.mobi,
         make_pdf=args.pdf,
+        title=args.name,
     )
 
 
