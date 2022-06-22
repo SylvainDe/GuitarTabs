@@ -36,7 +36,7 @@ def main():
         "--output",
         "-o",
         help='File containing URL for lists of tabs (".html" suffix not required)',
-        default="dest/wip_book",
+        default="output/book",
     )
     parser.add_argument(
         "--name",

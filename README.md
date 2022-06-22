@@ -13,7 +13,7 @@ Collect tabs from various websites and group them into an ebook (for Kindle)
 | tabs4acoustic.com           | Yes           | Yes           | Yes                     |                        |
 | ultimate-guitar.com         | Yes           | Yes           | Yes                     | Yes                    |
 
-The files in dest correspond to the output with the file url_test_list.txt.
+The files in output correspond to the output with the file input_examples/list_of_urls_of_tabs.txt.
 
 Usage
 -----
