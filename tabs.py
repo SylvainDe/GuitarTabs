@@ -570,11 +570,13 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         if 'tabs' in page_data:
             return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
         elif 'other_tabs' in page_data:
-            return [cls.from_url(t['tab_url']) for t in page_data['other_tabs']]
+            return [cls.from_url(t['tab_url']) for t in page_data['other_tabs'] if "&" not in t['tab_url']]
         elif 'results' in page_data:
             return [cls.from_url(t['tab_url']) for t in page_data['results'] if "&" not in t['tab_url']]
         elif 'songbook' in page_data:
             return [cls.from_url(t['tab']['tab_url']) for t in page_data['songbook']['tabs']]
+        elif 'data' in page_data:
+            return [cls.from_url(t['tab_url']) for t in page_data['data']['tabs']]
         else:
             # urlfunctions.JsonCache.save_data_in_tmp(page_data)
             raise NotImplementedError
