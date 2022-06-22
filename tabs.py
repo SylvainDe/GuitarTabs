@@ -529,16 +529,12 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             return None
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
         page_data = json_content['store']['page']['data']
-        tab = page_data.get('tab', None)
-        if tab is None:
-            print("Could not find tab in %s" % url)
-            return None
+        tab = page_data['tab']
         tab_view = page_data['tab_view']
         tab_view_meta = tab_view['meta']
         if tab_view_meta == []:
             tab_view_meta = {}
         url2 = tab['tab_url']  # May differ from url when page is moved
-
         is_ukulele = tab['type_name'] == 'Ukulele'
         song_name = tab['song_name']
         return cls(
@@ -568,18 +564,20 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
         page_data = json_content['store']['page']['data']
         if 'tabs' in page_data:
-            return [cls.from_url(t['tab_url']) for t in page_data['tabs']]
+            tabs = page_data['tabs']
         elif 'other_tabs' in page_data:
-            return [cls.from_url(t['tab_url']) for t in page_data['other_tabs'] if "&" not in t['tab_url']]
+            tabs = page_data['other_tabs']
         elif 'results' in page_data:
-            return [cls.from_url(t['tab_url']) for t in page_data['results'] if "&" not in t['tab_url']]
+            tabs = page_data['results']
         elif 'songbook' in page_data:
-            return [cls.from_url(t['tab']['tab_url']) for t in page_data['songbook']['tabs']]
+            tabs = [t['tab'] for t in page_data['songbook']['tabs']]
         elif 'data' in page_data:
-            return [cls.from_url(t['tab_url']) for t in page_data['data']['tabs']]
+            tabs = page_data['data']['tabs']
         else:
             # urlfunctions.JsonCache.save_data_in_tmp(page_data)
             raise NotImplementedError
+        urls = [t['tab_url'] for t in tabs]
+        return [cls.from_url(url) for url in urls if "&" not in url]
 
     def get_text_for_link_to_original(self):
         return "%s version %d from %s (rated %f / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes)
