@@ -101,6 +101,8 @@ def get_html_body(title, tabs, chords):
             body.add(HtmlFormatter.new_line)
     body.add(heading(3, link(name="index_tabs_by_artist") + "By artist"))
     for artist, tabs_grouped in my_groupby(tabs, key=Tab.by_artist):
+        body.add(HtmlFormatter.a(name=HtmlFormatter.string_to_html_id("artist_%s" % artist)))
+        body.add("\n")
         body.add(heading(4, artist))
         for t in tabs_grouped:
             body.add(t.get_link(display_artist=False))

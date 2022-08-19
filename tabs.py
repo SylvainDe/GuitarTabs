@@ -19,6 +19,10 @@ urlCache = urlfunctions.UrlCache("cache")
 IN_DEV = False
 
 
+# Display a link to index categories (such as artist)
+DISPLAY_LINKS_TO_INDEX_CATEG = True
+
+
 def clean_whitespace(string):
     return "\n".join(l.rstrip() for l in string.splitlines())
 
@@ -75,6 +79,15 @@ class AbstractGuitarTab(object):
             self.get_link_to_original(content=self.get_text_for_link_to_original()),
             HtmlFormatter.new_line)
 
+    def get_links_to_index(self):
+        artist = self.artist_name
+        if not DISPLAY_LINKS_TO_INDEX_CATEG or not artist:
+            return ""
+        return HtmlFormatter.a(
+                    href="#" + HtmlFormatter.string_to_html_id("artist_%s" % artist),
+                    content="More tabs from %s" % artist
+        ) + HtmlFormatter.new_line
+
     def get_optional_field_content(self):
         opt_fields = [
             ('capo', 'Capo'),
@@ -100,6 +113,7 @@ class AbstractGuitarTab(object):
     def get_html_content(self, heading_level):
         return HtmlFormatter.HtmlGroup(
             self.get_header(heading_level),
+            self.get_links_to_index(),
             self.get_optional_field_content(),
             self.get_strumming_content(),
             self.get_chord_content(),
