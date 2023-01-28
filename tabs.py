@@ -257,7 +257,7 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
         ld_json = soup.find('script', type="application/ld+json").string.replace("\r", "")
         json_content = json.loads(ld_json)
         by_artist = json_content.get('byArtist', {'url': '#', 'name': 'Unknown'})
-        aggregate_rating = json_content.get('aggregateRating', {'ratingValue': 0, 'reviewCount': 0})
+        aggregate_rating = json_content.get('aggregateRating', {'ratingValue': 0, 'ratingCount': 0})
         author = json_content.get('author', {'name': 'Unknown'})
         return cls(
             song_name=song_name,
@@ -266,7 +266,7 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
             author=author['name'],
             artist_url=by_artist['url'],
             rating=aggregate_rating['ratingValue'],
-            votes=int(aggregate_rating['reviewCount']),
+            votes=int(aggregate_rating['ratingCount']),
             tab_content=soup.find('article'),
             chords=[],
             tab_id=None)
@@ -543,7 +543,10 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             return None
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
         page_data = json_content['store']['page']['data']
-        tab = page_data['tab']
+        tab = page_data.get('tab', None)
+        if tab is None:
+            print("No content for %s" % url)
+            return None
         tab_view = page_data['tab_view']
         tab_view_meta = tab_view['meta']
         if tab_view_meta == []:
