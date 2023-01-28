@@ -13,6 +13,8 @@ import htmlformatter as HtmlFormatter
 import chords
 
 urlCache = urlfunctions.UrlCache("cache")
+indent = "   "
+indent2 = indent * 2
 
 # Debug flag to be able to disable retrieval of all tabs and corresponding logging
 # to be able to focus on a single getter class
@@ -137,13 +139,19 @@ class AbstractGuitarTab(object):
 
     @classmethod
     def from_url(cls, url):
-        print(" ", url)
+        print("%s%s" % (url, indent))
         return cls.from_url_and_soup(url, urlCache.get_soup(url))
 
     @classmethod
     def from_list_url(cls, list_url):
         print(list_url)
-        return cls.from_list_url_and_soup(list_url, urlCache.get_soup(list_url))
+        lst = [
+            t
+           for t in cls.from_list_url_and_soup(list_url, urlCache.get_soup(list_url))
+           if t is not None
+        ]
+        print("%s: %d tabs retrieved" % (list_url, len(lst)))
+        return lst
 
     @classmethod
     def from_url_and_soup(cls, url, soup):
@@ -545,7 +553,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         page_data = json_content['store']['page']['data']
         tab = page_data.get('tab', None)
         if tab is None:
-            print("No content for %s" % url)
+            print("%sNo content for %s" % (indent2, url))
             return None
         tab_view = page_data['tab_view']
         tab_view_meta = tab_view['meta']
@@ -649,7 +657,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
         js_prefix = "var base_href = "
         jscript_tag = soup.find('script', text=re.compile(".*%s.*" % js_prefix))
         if not jscript_tag:
-            print("Could not find javascript tag in %s" % url)
+            print("%sCould not find javascript tag in %s" % (indent2, url))
             return None
         jscript = jscript_tag.string
         raw_data = {k:v for (k, v) in (
@@ -818,7 +826,7 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
             return None
         tab_content = soup.find("div", class_="divPartition")
         if tab_content is None:
-            print("No content for %s" % url)
+            print("%sNo content for %s" % (indent2, url))
             return None
 
         song_name = soup.find("p", class_="pAmzTitre")

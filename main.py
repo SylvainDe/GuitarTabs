@@ -49,11 +49,12 @@ def main():
     tabs = []
     for filename in args.tabfile:
         for url in get_lines_from_file(filename):
-            tabs.append(GuitarTabGetter.from_url(url))
+            tab = GuitarTabGetter.from_url(url)
+            if tab is not None:
+                tabs.append(tab)
     for filename in args.listfile:
         for url in get_lines_from_file(filename):
             tabs.extend(GuitarTabGetter.from_list_url(url))
-    tabs = [t for t in tabs if t is not None]
     book.make_book(
         tabs,
         chords.Chord.get_all(),
