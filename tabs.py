@@ -828,16 +828,15 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
         if tab_content is None:
             print("%sNo content for %s" % (indent2, url))
             return None
-
         song_name = soup.find("p", class_="pAmzTitre")
         if song_name is None:
-            song_name = soup.find("div", class_="dTitreChanson")
+            song_name = soup.find("div", class_="dTitrePartition").find("h1")
         artist_link = soup.find("div", id="dTitreNomArtiste").find("a")
         artist_name = soup.find("p", class_="pAmzArtiste")
         if artist_name is not None:
             artist_name_str = artist_name.string
         else:
-            artist_name_str = artist_link.string.strip()
+            artist_name_str = artist_link.find('h2').string
         contrib_links = soup.find("div", class_="dInfoContribution").find_all("a")
         len_contrib_links = len(contrib_links)
         if len_contrib_links == 0:
