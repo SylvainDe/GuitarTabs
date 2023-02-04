@@ -139,7 +139,7 @@ class AbstractGuitarTab(object):
 
     @classmethod
     def from_url(cls, url):
-        print("%s%s" % (url, indent))
+        print("%s%s" % (indent, url))
         return cls.from_url_and_soup(url, urlCache.get_soup(url))
 
     @classmethod
