@@ -870,7 +870,7 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
     def from_list_url_and_soup(cls, list_url, soup):
         div_liste_partition = soup.find("div", id="dListePartitions")
         if div_liste_partition:
-            src_liste_partition = div_liste_partition.get("source", None)
+            src_liste_partition = div_liste_partition.get("data-source", None)
             if src_liste_partition is not None:
                 return cls.from_json_url(src_liste_partition)
         return [cls.from_url(urllib.parse.urljoin(list_url, li.find('a')['href']))
