@@ -873,6 +873,15 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
             src_liste_partition = div_liste_partition.get("data-source", None)
             if src_liste_partition is not None:
                 return cls.from_json_url(src_liste_partition)
+        jscript_tag = soup.find('script', text=re.compile(".*jsAfficherListeDetailleePartitions.*"))
+        if jscript_tag:
+            jscript = jscript_tag.string.replace("\n", "")
+            pattern = re.compile(".*jsAfficherListeDetailleePartitions\(1, 50, 250, '(.*)', 'ListePartitions'")
+            match = pattern.match(jscript)
+            if match:
+                url2, = match.groups()
+                url3 = "https://www.boiteachansons.net/json/" + url2
+                return cls.from_json_url(url3)
         return [cls.from_url(urllib.parse.urljoin(list_url, li.find('a')['href']))
                 for li in soup.find_all("li", class_="liElementLstPartitions")]
 
