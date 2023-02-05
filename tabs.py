@@ -145,13 +145,11 @@ class AbstractGuitarTab(object):
     @classmethod
     def from_list_url(cls, list_url):
         print(list_url)
-        lst = [
-            t
-           for t in cls.from_list_url_and_soup(list_url, urlCache.get_soup(list_url))
-           if t is not None
-        ]
-        print("%s: %d tabs retrieved" % (list_url, len(lst)))
-        return lst
+        urls = cls.urls_from_list_soup(urlCache.get_soup(list_url))
+        tabs = [cls.from_url(urllib.parse.urljoin(list_url, u)) for u in urls]
+        tabs = [t for t in tabs if t is not None]
+        print("%s: %d tabs retrieved (from %d urls)" % (list_url, len(tabs), len(urls)))
+        return tabs
 
     @classmethod
     def from_url_and_soup(cls, url, soup):
@@ -159,8 +157,8 @@ class AbstractGuitarTab(object):
         return None
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
-        print("%s.from_url_and_soup(%s, soup) returned []" % (cls.__name__, list_url))
+    def urls_from_list_soup(cls, soup):
+        print("%s.urls_from_list_soup(soup) returned []" % (cls.__name__))
         return []
 
 
@@ -220,9 +218,8 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
             tab_id=json_content2['tabId'])
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
-        return [cls.from_url(urllib.parse.urljoin(list_url, a['href']))
-                for a in soup.find_all("a", class_="gt-link gt-link--primary")]
+    def urls_from_list_soup(cls, soup):
+        return [a['href'] for a in soup.find_all("a", class_="gt-link gt-link--primary")]
 
 
 class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
@@ -280,15 +277,13 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
             tab_id=None)
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
+    def urls_from_list_soup(cls, soup):
         table = soup.find("table", class_="hover stack")
         if table:
-            hrefs = [l['href'] for l in table.find_all("a")]
-            return [cls.from_url(urllib.parse.urljoin(list_url, href)) for href in hrefs]
+            return [a['href'] for a in table.find_all("a")]
         div = soup.find("div", class_='cell small-12 medium-9')
         if div:
-            hrefs = [l['href'] for l in div.find_all("a")]
-            return [cls.from_url(urllib.parse.urljoin(list_url, href)) for href in hrefs]
+            return [a['href'] for a in div.find_all("a")]
         return []
 
 
@@ -350,9 +345,8 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
         return HtmlFormatter.pre(clean_whitespace(content))
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
-        return [cls.from_url(urllib.parse.urljoin(list_url, a['href']))
-                for a in soup.find_all("a", class_="ryzh22")]
+    def urls_from_list_soup(cls, soup):
+        return [a['href'] for a in soup.find_all("a", class_="ryzh22")]
 
 
 class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
@@ -442,7 +436,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         return HtmlFormatter.pre(begin + "".join(content.contents).strip())
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
+    def urls_from_list_soup(cls, soup):
         hrefs = []
         content = soup.find(id="page_content")
         table = content.find("table")
@@ -451,11 +445,9 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
                 tds = tr.find_all("td")
                 if tds:
                     hrefs.append(tds[1].find("a")["href"])
-            return [cls.from_url(urllib.parse.urljoin(cls.prefixes[0], href)) for href in hrefs]
         else:
-            for a in content.find_all("a"):
-                hrefs.append(a["href"])
-        return [cls.from_url(urllib.parse.urljoin(cls.prefixes[0], href)) for href in hrefs]
+            hrefs.extend(a["href"] for a in content.find_all("a"))
+        return [urllib.parse.urljoin(cls.prefixes[0], href) for href in hrefs]
 
 
 class Strumming(object):
@@ -585,7 +577,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         )
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
+    def urls_from_list_soup(cls, soup):
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
         page_data = json_content['store']['page']['data']
         if 'tabs' in page_data:
@@ -602,7 +594,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             # urlfunctions.JsonCache.save_data_in_tmp(page_data)
             raise NotImplementedError
         urls = [t['tab_url'] for t in tabs]
-        return [cls.from_url(url) for url in urls if "&" not in url]
+        return [url for url in urls if "&" not in url]
 
     def get_text_for_link_to_original(self):
         return "%s version %d from %s (rated %f / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes)
@@ -687,12 +679,11 @@ class GuitarTabFromEChords(AbstractGuitarTab):
         )
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
+    def urls_from_list_soup(cls, soup):
         hrefs = [p.find("a")["href"] for p in soup.find_all("p", class_="nome-musica")]
-        if not hrefs:
-            results = soup.find(id="results")
-            hrefs = [p.find("a")["href"] for p in results.find_all("p", class_="h1")]
-        return [cls.from_url(h) for h in hrefs]
+        if hrefs:
+            return hrefs
+        return [p.find("a")["href"] for p in soup.find(id="results").find_all("p", class_="h1")]
 
 
 class GuitarTabFromSongsterr(AbstractGuitarTab):
@@ -738,14 +729,13 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
     )
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
+    def urls_from_list_soup(cls, soup):
         script_state = soup.find("script", id="state")
         if script_state:
             json_content = json.loads(script_state.string)
             json_search_songs = json_content["songs"]["songs"]["list"]
-            urls = ["https://www.songsterr.com/a/wsa/foo-bar-tab-s%s" % (s["songId"], ) for s in json_search_songs]
-            return [cls.from_url(url) for url in urls]
-        return [cls.from_url(urllib.parse.urljoin(list_url, a['href'])) for a in soup.find_all("a", class_="tab-link")]
+            return ["https://www.songsterr.com/a/wsa/foo-bar-tab-s%s" % (s["songId"], ) for s in json_search_songs]
+        return [a['href'] for a in soup.find_all("a", class_="tab-link")]
 
 
 class GuitarTabFromAzChords(AbstractGuitarTab):
@@ -787,11 +777,9 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
         )
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
-        rows = soup.find("tbody", {"data-link":"row"})
-        links = rows.find_all("a")
-        hrefs = [l['href'] for l in links]
-        return [cls.from_url(urllib.parse.urljoin(list_url, href)) for href in hrefs if href != "#"]
+    def urls_from_list_soup(cls, soup):
+        hrefs = [l['href'] for l in soup.find("tbody", {"data-link":"row"}).find_all("a")]
+        return [href for href in hrefs if href != "#"]
 
 
 class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
@@ -867,12 +855,12 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
             tab_content=tab_content)
 
     @classmethod
-    def from_list_url_and_soup(cls, list_url, soup):
+    def urls_from_list_soup(cls, soup):
         div_liste_partition = soup.find("div", id="dListePartitions")
         if div_liste_partition:
             src_liste_partition = div_liste_partition.get("data-source", None)
             if src_liste_partition is not None:
-                return cls.from_json_url(src_liste_partition)
+                return cls.urls_from_json_url(src_liste_partition)
         jscript_tag = soup.find('script', text=re.compile(".*jsAfficherListeDetailleePartitions.*"))
         if jscript_tag:
             jscript = jscript_tag.string.replace("\n", "")
@@ -881,11 +869,10 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
             if match:
                 url2, = match.groups()
                 url3 = "https://www.boiteachansons.net/json/" + url2
-                return cls.from_json_url(url3)
-        return [cls.from_url(urllib.parse.urljoin(list_url, li.find('a')['href']))
-                for li in soup.find_all("li", class_="liElementLstPartitions")]
+                return cls.urls_from_json_url(url3)
+        return [li.find('a')['href'] for li in soup.find_all("li", class_="liElementLstPartitions")]
 
     @classmethod
-    def from_json_url(cls, json_url):
-        return [cls.from_url(("%spartitions/%s/%s" % (cls.prefixes[0], e["aFich"], e["cFich"])).encode("ascii", "backslashreplace").decode())
+    def urls_from_json_url(cls, json_url):
+        return [("%spartitions/%s/%s" % (cls.prefixes[0], e["aFich"], e["cFich"])).encode("ascii", "backslashreplace").decode()
                 for e in urlCache.get_json(json_url)]
