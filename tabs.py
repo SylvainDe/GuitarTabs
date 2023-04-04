@@ -243,6 +243,8 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
             t.decompose()
         for t in content.find_all(class_="hide-for-print"):
             t.decompose()
+        for t in content.find_all("script"):
+            t.replace_with("\n")
         for t in content.find_all("span", class_="dropt"):
             for t2 in t.find_all("span"):
                 t2.decompose()
