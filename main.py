@@ -48,13 +48,17 @@ def main():
     args = parser.parse_args()
     tabs = []
     for filename in args.tabfile:
-        for url in get_lines_from_file(filename):
-            tab = GuitarTabGetter.from_url(url)
+        lines = list(get_lines_from_file(filename))
+        nb_urls = str(len(lines))
+        for i, url in enumerate(lines, start=1):
+            tab = GuitarTabGetter.from_url(url, "%d/%s" % (i, nb_urls))
             if tab is not None:
                 tabs.append(tab)
     for filename in args.listfile:
-        for url in get_lines_from_file(filename):
-            tabs.extend(GuitarTabGetter.from_list_url(url))
+        lines = list(get_lines_from_file(filename))
+        nb_urls = str(len(lines))
+        for i, url in enumerate(lines, start=1):
+            tabs.extend(GuitarTabGetter.from_list_url(url, "%d/%s" % (i, nb_urls)))
     book.make_book(
         tabs,
         chords.Chord.get_all(),

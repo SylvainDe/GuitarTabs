@@ -138,17 +138,18 @@ class AbstractGuitarTab(object):
         return HtmlFormatter.comment("No strumming content (%s.get_strumming_content to be implemented)" % self.__class__.__name__)
 
     @classmethod
-    def from_url(cls, url):
-        print("%s%s" % (indent, url))
+    def from_url(cls, url, log_prefix):
+        print("%s %s" % (log_prefix, url))
         return cls.from_url_and_soup(url, urlCache.get_soup(url))
 
     @classmethod
-    def from_list_url(cls, list_url):
-        print(list_url)
-        urls = cls.urls_from_list_soup(urlCache.get_soup(list_url))
-        tabs = [cls.from_url(urllib.parse.urljoin(list_url, u)) for u in urls]
+    def from_list_url(cls, list_url, log_prefix):
+        print("%s %s" % (log_prefix, list_url))
+        urls = [urllib.parse.urljoin(list_url, u) for u in cls.urls_from_list_soup(urlCache.get_soup(list_url))]
+        nb_urls = str(len(urls))
+        tabs = [cls.from_url(u, "%s%d/%s" % (indent, i, nb_urls)) for i, u in enumerate(urls, start=1)]
         tabs = [t for t in tabs if t is not None]
-        print("%s: %d tabs retrieved (from %d urls)" % (list_url, len(tabs), len(urls)))
+        print("%s %s: %d tabs retrieved" % (log_prefix, list_url, len(tabs)))
         return tabs
 
     @classmethod
