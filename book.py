@@ -31,7 +31,8 @@ def get_html_head(title):
         .add(HtmlFormatter.link(rel="stylesheet", href=CSS_FILE, type="text/css"))
 
 
-def get_html_body(title, tabs, chords):
+def get_html_body(title, tabs, chords, use_fake_data):
+    date = '<date>' if use_fake_data else datetime.datetime.now()
     # Ensure consistent ordering
     tabs.sort(key=Tab.by_name_and_url)
     chords.sort(key=Chord.by_name)
@@ -42,9 +43,7 @@ def get_html_body(title, tabs, chords):
     body = HtmlFormatter.body()
     # Header
     body.add(heading(1, title))
-    body.add("Generated on the %s with '%s'\n" %
-                (datetime.datetime.now(),
-                " ".join(sys.argv)))
+    body.add("Generated on the %s with '%s'\n" % (date, " ".join(sys.argv)))
     body.add(HtmlFormatter.pagebreak)
     # Table of content
     body.add(link(id="TOC"))
@@ -142,8 +141,11 @@ def get_html_body(title, tabs, chords):
     return body
 
 
-def generate_html(title, tabs, chords):
-    return HtmlFormatter.doctype + str(HtmlFormatter.html().add(get_html_head(title)).add(get_html_body(title, tabs, chords)))
+def generate_html(title, tabs, chords, use_fake_data):
+    return HtmlFormatter.doctype + str(
+        HtmlFormatter.html()
+                     .add(get_html_head(title))
+                     .add(get_html_body(title, tabs, chords, use_fake_data)))
 
 
 def subprocess_call(cmd):
@@ -153,7 +155,7 @@ def subprocess_call(cmd):
     print("%s returned %d" % (cmd_str, ret))
 
 
-def make_book(tabs, chords, base_filename, make_mobi=True, make_pdf=True, title="Tabs and Chords"):
+def make_book(tabs, chords, base_filename, make_mobi, make_pdf, use_fake_data, title):
     # File name handling
     if base_filename.endswith(".html"):
         base_filename = base_filename[:-len(".html")]
@@ -163,7 +165,7 @@ def make_book(tabs, chords, base_filename, make_mobi=True, make_pdf=True, title=
     pathlib.Path(base_filename).parent.mkdir(parents=True, exist_ok=True)
     # Generate HTML
     with open(html_file, 'w+') as book:
-        book.write(generate_html(title, tabs, chords))
+        book.write(generate_html(title, tabs, chords, use_fake_data))
         print("Wrote in %s" % html_file)
     # Generate PDF
     if make_pdf:

@@ -18,6 +18,7 @@ def main():
     )
     parser.add_argument("--mobi", "-m", action="store_true", help="Generate mobi file")
     parser.add_argument("--pdf", "-p", action="store_true", help="Generate pdf file")
+    parser.add_argument("--fake", "-f", action="store_true", help="Use fake data (to make output easier to compare)")
     parser.add_argument(
         "--tabfile",
         "-t",
@@ -46,25 +47,28 @@ def main():
     )
     # TODO: Add options for content such as cover
     args = parser.parse_args()
+    print(args)
+    use_fake_data = args.fake
     tabs = []
     for filename in args.tabfile:
         lines = list(get_lines_from_file(filename))
         nb_urls = str(len(lines))
         for i, url in enumerate(lines, start=1):
-            tab = GuitarTabGetter.from_url(url, "%d/%s" % (i, nb_urls))
+            tab = GuitarTabGetter.from_url(url, "%d/%s" % (i, nb_urls), use_fake_data)
             if tab is not None:
                 tabs.append(tab)
     for filename in args.listfile:
         lines = list(get_lines_from_file(filename))
         nb_urls = str(len(lines))
         for i, url in enumerate(lines, start=1):
-            tabs.extend(GuitarTabGetter.from_list_url(url, "%d/%s" % (i, nb_urls)))
+            tabs.extend(GuitarTabGetter.from_list_url(url, "%d/%s" % (i, nb_urls), use_fake_data))
     book.make_book(
         tabs,
         chords.Chord.get_all(),
         base_filename=args.output,
         make_mobi=args.mobi,
         make_pdf=args.pdf,
+        use_fake_data=use_fake_data,
         title=args.name,
     )
 

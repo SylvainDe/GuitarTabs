@@ -138,22 +138,22 @@ class AbstractGuitarTab(object):
         return HtmlFormatter.comment("No strumming content (%s.get_strumming_content to be implemented)" % self.__class__.__name__)
 
     @classmethod
-    def from_url(cls, url, log_prefix):
+    def from_url(cls, url, log_prefix, use_fake_data):
         print("%s %s" % (log_prefix, url))
-        return cls.from_url_and_soup(url, urlCache.get_soup(url))
+        return cls.from_url_and_soup(url, urlCache.get_soup(url), use_fake_data)
 
     @classmethod
-    def from_list_url(cls, list_url, log_prefix):
+    def from_list_url(cls, list_url, log_prefix, use_fake_data):
         print("%s %s" % (log_prefix, list_url))
         urls = [urllib.parse.urljoin(list_url, u) for u in cls.urls_from_list_soup(urlCache.get_soup(list_url))]
         nb_urls = str(len(urls))
-        tabs = [cls.from_url(u, "%s%d/%s" % (indent, i, nb_urls)) for i, u in enumerate(urls, start=1)]
+        tabs = [cls.from_url(u, "%s%d/%s" % (indent, i, nb_urls), use_fake_data) for i, u in enumerate(urls, start=1)]
         tabs = [t for t in tabs if t is not None]
         print("%s %s: %d tabs retrieved" % (log_prefix, list_url, len(tabs)))
         return tabs
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         print("%s.from_url_and_soup(%s, soup) returned None" % (cls.__name__, url))
         return None
 
@@ -192,7 +192,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
         return HtmlFormatter.pre(clean_whitespace(content))
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
         json_content = json.loads(soup.find('script', type="application/ld+json").string)
@@ -207,13 +207,15 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
             json_raw = json_raw.replace("%s:" % k, '"%s":' % k)
         json_content2 = json.loads(json_raw)
         song_name = json_content['name']
+        rating = 5 if use_fake_data else aggregate_rating.get('ratingValue')
+        votes = 10 if use_fake_data else int(aggregate_rating.get('reviewCount', "0"))
         return cls(
             song_name=song_name,
             artist_name=by_artist['name'],
             url=url,
             artist_url=by_artist['url'],
-            rating=aggregate_rating.get('ratingValue'),
-            votes=int(aggregate_rating.get('reviewCount', "0")),
+            rating=rating,
+            votes=votes,
             tab_content=soup.find('pre', class_="js-tab-fit-to-screen"),
             chords=list(chords.ChordsGetterFromApplicature.from_json_data(json_content2['applicature'], is_ukulele=False)),
             tab_id=json_content2['tabId'])
@@ -258,23 +260,27 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
         return "%s version from %s (rated %s / %d votes)" % (self.website, self.author, self.rating, self.votes)
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
         song_name = soup.find_all("span", itemprop="name")[-1].string
         ld_json = soup.find('script', type="application/ld+json").string.replace("\r", "")
+        # tmp workaround
+        ld_json = ld_json.replace(",,", ",")
         json_content = json.loads(ld_json)
         by_artist = json_content.get('byArtist', {'url': '#', 'name': 'Unknown'})
         aggregate_rating = json_content.get('aggregateRating', {'ratingValue': 0, 'ratingCount': 0})
         author = json_content.get('author', {'name': 'Unknown'})
+        rating = 5 if use_fake_data else aggregate_rating['ratingValue']
+        votes = 10 if use_fake_data else int(aggregate_rating['ratingCount'])
         return cls(
             song_name=song_name,
             artist_name=by_artist['name'],
             url=url,
             author=author['name'],
             artist_url=by_artist['url'],
-            rating=aggregate_rating['ratingValue'],
-            votes=int(aggregate_rating['ratingCount']),
+            rating=rating,
+            votes=votes,
             tab_content=soup.find('article'),
             chords=[],
             tab_id=None)
@@ -302,7 +308,7 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
         self.tab_content = tab_content
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
         titles = soup.find_all(class_="rightbrdr t_title")
@@ -366,7 +372,7 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         self.tempo = tempo
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
         breadcrumbs_links = soup.find("div", id="breadcrumbs").find_all('a')
@@ -541,7 +547,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         self.strummings = strummings
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
@@ -557,6 +563,8 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         url2 = tab['tab_url']  # May differ from url when page is moved
         is_ukulele = tab['type_name'] == 'Ukulele'
         song_name = tab['song_name']
+        rating = 5 if use_fake_data else tab['rating']
+        votes = 10 if use_fake_data else tab['votes']
         return cls(
             song_name=song_name,
             part=tab['part'].capitalize(),
@@ -566,8 +574,8 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
             type_name=tab['type_name'],
             version=tab['version'],
             author=tab['username'],
-            rating=tab['rating'],
-            votes=tab['votes'],
+            rating=rating,
+            votes=votes,
             is_acoustic=tab['recording']['is_acoustic'],
             capo=tab_view_meta.get('capo', None),
             tonality=tab_view_meta.get('tonality', None),
@@ -645,7 +653,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
         return HtmlFormatter.pre("".join(str(t) for t in content.contents))
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
         # Dirty extract of javascript values
@@ -701,7 +709,7 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
         self.capo = capo
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
         json_content = json.loads(soup.find("script", id="state").string)
@@ -760,13 +768,15 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
         return "%s %s (rated %f / %d votes)" % (self.type_name, self.version, self.rating, self.votes)
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
         tab_content = soup.find("pre", id="content")
         artist_link = soup.find("a", class_="h2link pull-left")
         version = soup.find("span", class_="muted").string.replace("(", "").replace(")", "")
         aggregate_rating = soup.find("span", itemprop="aggregateRating")
+        rating = 5 if use_fake_data else float(aggregate_rating.find(itemprop='ratingValue')["content"])
+        votes = 10 if use_fake_data else int(aggregate_rating.find(itemprop='ratingCount')["content"])
         return cls(
             url=url,
             song_name=aggregate_rating.find(itemprop='name')["content"],
@@ -774,8 +784,8 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
             artist_url=urllib.parse.urljoin(url, artist_link['href']),
             chords=[],
             version=version,
-            rating=float(aggregate_rating.find(itemprop='ratingValue')["content"]),
-            votes=int(aggregate_rating.find(itemprop='ratingCount')["content"]),
+            rating=rating,
+            votes=votes,
             tab_content=tab_content,
         )
 
@@ -812,7 +822,7 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
         return "%s version %s from %s (rated %s / %d votes)" % (self.type_name, self.version, self.author, self.rating, self.votes)
 
     @classmethod
-    def from_url_and_soup(cls, url, soup):
+    def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
         tab_content = soup.find("div", class_="divPartition")

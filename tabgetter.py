@@ -20,9 +20,9 @@ class GuitarTabGetter(object):
         raise Exception("Unsupported URL %s" % url)
 
     @classmethod
-    def from_url(cls, url, log_prefix):
-        return cls.get_class_for_url(url).from_url(url, log_prefix)
+    def from_url(cls, url, log_prefix, use_fake_data):
+        return cls.get_class_for_url(url).from_url(url, log_prefix, use_fake_data)
 
     @classmethod
-    def from_list_url(cls, url, log_prefix):
-        return cls.get_class_for_url(url).from_list_url(url, log_prefix)
+    def from_list_url(cls, url, log_prefix, use_fake_data):
+        return cls.get_class_for_url(url).from_list_url(url, log_prefix, use_fake_data)
