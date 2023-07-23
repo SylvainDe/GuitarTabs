@@ -554,7 +554,8 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         page_data = json_content['store']['page']['data']
         tab = page_data.get('tab', None)
         if tab is None:
-            print("%sNo content for %s" % (indent2, url))
+            assert "-official-" in url
+            print("%sNo content for %s: official tabs are not supported yet" % (indent2, url))
             return None
         tab_view = page_data['tab_view']
         tab_view_meta = tab_view['meta']
@@ -658,11 +659,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
             return None
         # Dirty extract of javascript values
         js_prefix = "var base_href = "
-        jscript_tag = soup.find('script', text=re.compile(".*%s.*" % js_prefix))
-        if not jscript_tag:
-            print("%sCould not find javascript tag in %s" % (indent2, url))
-            return None
-        jscript = jscript_tag.string
+        jscript = soup.find('script', text=re.compile(".*%s.*" % js_prefix)).string
         raw_data = {k:v for (k, v) in (
             re.findall('var ([^ ]*) = "([^"]*)";', jscript) +
             re.findall("var ([^ ]*) = '([^']*)';", jscript) +
@@ -825,10 +822,11 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
     def from_url_and_soup(cls, url, soup, use_fake_data):
         if IN_DEV:
             return None
-        tab_content = soup.find("div", class_="divPartition")
-        if tab_content is None:
-            print("%sNo content for %s" % (indent2, url))
+        removed = soup.find("table", id="tblAvertissementRetrait")
+        if removed is not None:
+            print("%sNo content for %s: content is removed on copyright owners' request" % (indent2, url))
             return None
+        tab_content = soup.find("div", class_="divPartition")
         song_name = soup.find("p", class_="pAmzTitre")
         if song_name is None:
             song_name = soup.find("div", class_="dTitrePartition").find("h1")
@@ -887,5 +885,16 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
 
     @classmethod
     def urls_from_json_url(cls, json_url):
-        return [("%spartitions/%s/%s" % (cls.prefixes[0], e["aFich"], e["cFich"])).encode("ascii", "backslashreplace").decode()
+        return [convert_iri_to_plain_ascii_uri("%spartitions/%s/%s" % (cls.prefixes[0], e["aFich"], e["cFich"]))
                 for e in urlCache.get_json(json_url)]
+
+
+def convert_iri_to_plain_ascii_uri(uri):
+    """Convert IRI to plain ASCII URL
+    Based on http://stackoverflow.com/questions/4389572/how-to-fetch-a-non-ascii-url-with-python-urlopen."""
+    lis = list(urllib.parse.urlsplit(uri))
+    lis[2] = urllib.parse.quote(lis[2])
+    url = urllib.parse.urlunsplit(lis)
+    if False and url != uri:
+        print(uri, "->", url)
+    return url
