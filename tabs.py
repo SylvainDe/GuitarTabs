@@ -146,10 +146,10 @@ class AbstractGuitarTab(object):
     def from_list_url(cls, list_url, log_prefix, use_fake_data):
         print("%s %s" % (log_prefix, list_url))
         urls = [urllib.parse.urljoin(list_url, u) for u in cls.urls_from_list_soup(urlCache.get_soup(list_url))]
-        nb_urls = str(len(urls))
-        tabs = [cls.from_url(u, "%s%d/%s" % (indent, i, nb_urls), use_fake_data) for i, u in enumerate(urls, start=1)]
+        nb_urls = len(urls)
+        tabs = [cls.from_url(u, "%s%d/%d" % (indent, i, nb_urls), use_fake_data) for i, u in enumerate(urls, start=1)]
         tabs = [t for t in tabs if t is not None]
-        print("%s %s: %d tabs retrieved" % (log_prefix, list_url, len(tabs)))
+        print("%s %s: %d tabs retrieved (from %d url)" % (log_prefix, list_url, len(tabs), nb_urls))
         return tabs
 
     @classmethod
