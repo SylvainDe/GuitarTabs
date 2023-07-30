@@ -1,3 +1,9 @@
+# Lists containing list of urls.
+# They correspond to various types of lists: top tabs,
+# search by artist, search by name, etc.
+# The corresponding results is too huge to be useful for
+# a user but can ensure that the logic works properly on
+# various types of lists
 https://www.ultimate-guitar.com/top/tabs
 https://www.ultimate-guitar.com/search.php?search_type=title&value=red%20hot%20chili%20peppers%20road%20trippin
 https://www.ultimate-guitar.com/collections/9787679/

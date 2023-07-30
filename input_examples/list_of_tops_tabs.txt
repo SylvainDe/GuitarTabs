@@ -1,0 +1,11 @@
+# Lists containing list of top tabs.
+# The point is to be able to test the logic around lists
+# without retrieving too many tabs (as "Top tabs" list
+# usually contain 50 items)
+https://www.ultimate-guitar.com/top/tabs
+https://www.guitaretab.com/top_tabs.html
+https://www.guitartabs.cc/top_tabs.html
+https://www.tabs4acoustic.com/en/guitar-tabs/top-guitar-tabs.html
+https://www.guitartabsexplorer.com/content/Top+guitar+tabs.php
+https://www.boiteachansons.net/partitions/top50Chansons
+https://www.e-chords.com/chords
