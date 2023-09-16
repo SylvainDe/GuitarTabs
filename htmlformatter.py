@@ -1,4 +1,5 @@
 import html as htmlmodule
+import urllib.parse
 import re
 
 # TODO: Consider other options:
@@ -18,6 +19,9 @@ def string_to_html_id(s):
     # return htmlmodule.escape(s, quote=True)
     regex = re.compile('[^a-zA-Z0-9_-]')
     return regex.sub('_', s)
+
+def encode_uri(uri):
+    return urllib.parse.quote(uri, safe="/:")
 
 class HtmlGroup(object):
     def __init__(self, *iterable):

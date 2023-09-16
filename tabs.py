@@ -74,7 +74,7 @@ class AbstractGuitarTab(object):
 
     def get_header(self, heading_level):
         acoustic = "Acoustic " if self.is_acoustic else ""
-        artist_link = HtmlFormatter.a(href=self.artist_url, content=self.artist_name)
+        artist_link = HtmlFormatter.a(href=HtmlFormatter.encode_uri(self.artist_url), content=self.artist_name)
         return HtmlFormatter.HtmlGroup(
             HtmlFormatter.a(name=self.html_anchor),
             "\n",
@@ -127,7 +127,7 @@ class AbstractGuitarTab(object):
             HtmlFormatter.pagebreak)
 
     def get_link_to_original(self, content):
-        return HtmlFormatter.a(href=self.url, content=content)
+        return HtmlFormatter.a(href=HtmlFormatter.encode_uri(self.url), content=content)
 
     def get_text_for_link_to_original(self):
         return "From %s" % self.website
@@ -277,7 +277,7 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
         for t in content.find_all():
             t.unwrap()
         content = "".join(str(t) for t in content.contents)
-        return HtmlFormatter.pre(clean_whitespace(content))
+        return HtmlFormatter.pre(htmlmodule.escape(clean_whitespace(content)))
 
     def get_text_for_link_to_original(self):
         return "%s version from %s (rated %s / %d votes)" % (self.website, self.author, self.rating, self.votes)
@@ -456,7 +456,9 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
                 t.unwrap()
         for t in content.find_all('img'):
             t.unwrap()
-        return HtmlFormatter.pre(clean_whitespace(str(content)))
+        content = clean_whitespace(str(content))
+        assert content
+        return HtmlFormatter.pre(content)
 
     def get_strumming_content(self):
         begin = "Tempo: %s, Time signature: %s\n" % (self.tempo, self.timesig)
@@ -562,7 +564,7 @@ class Strumming(object):
 class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
     prefixes = 'https://www.ultimate-guitar.com/', 'https://tabs.ultimate-guitar.com/'
     website = 'ultimate-guitar.com'
-    # is_skipped = False
+    # is_skipped = True
 
     def __init__(self, song_name, part, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, tab_id):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id)
@@ -805,7 +807,7 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
 
     def get_tab_content(self):
         content = self.tab_content
-        return HtmlFormatter.pre(clean_whitespace("".join(str(t) for t in content.contents)))
+        return HtmlFormatter.pre(htmlmodule.escape(clean_whitespace("".join(str(t) for t in content.contents))))
 
     def get_text_for_link_to_original(self):
         return "%s %s (rated %f / %d votes)" % (self.type_name, self.version, self.rating, self.votes)

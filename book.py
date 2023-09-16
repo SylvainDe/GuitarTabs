@@ -134,7 +134,7 @@ def get_html_body(title, tabs, chords, use_fake_data):
     body.add(heading(3, link(name="index_tabs_by_list") + "By list"))
     for lst, tabs_grouped in my_groupby_with_nullable_key(tabs, key=Tab.by_list_info):
         list_url, list_title = lst
-        body.add(heading(4, HtmlFormatter.a(href=list_url, content=list_title)))
+        body.add(heading(4, HtmlFormatter.a(href=HtmlFormatter.encode_uri(list_url), content=list_title)))
         for t in tabs_grouped:
             body.add(t.get_link())
             body.add(HtmlFormatter.new_line)
