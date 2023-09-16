@@ -16,10 +16,6 @@ urlCache = urlfunctions.UrlCache("cache")
 indent = "   "
 indent2 = indent * 2
 
-# Debug flag to be able to disable retrieval of all tabs and corresponding logging
-# to be able to focus on a single getter class
-IN_DEV = False
-
 
 # Display a link to index categories (such as artist)
 DISPLAY_LINKS_TO_INDEX_CATEG = True
@@ -38,6 +34,9 @@ class AbstractGuitarTab(object):
     by_src = operator.attrgetter('src')
     by_name_and_url = operator.attrgetter('song_name', 'url')
     by_list_info = operator.attrgetter('list_info')
+    # Change this to true to be able to debug a single class without having to
+    # deal with other classes
+    is_skipped = False
 
     def __init__(self, url, song_name, artist_name, artist_url, chords, tab_id):
         self.url = url
@@ -141,11 +140,15 @@ class AbstractGuitarTab(object):
 
     @classmethod
     def from_url(cls, url, log_prefix, use_fake_data):
+        if cls.is_skipped:
+            return None
         print("%s %s" % (log_prefix, url))
         return cls.from_url_and_soup(url, urlCache.get_soup(url), use_fake_data)
 
     @classmethod
     def from_list_url(cls, list_url, log_prefix, use_fake_data):
+        if cls.is_skipped:
+            return []
         print("%s %s" % (log_prefix, list_url))
         list_soup = urlCache.get_soup(list_url)
         list_title = cls.title_from_list_url_and_soup(list_url, list_soup)
@@ -181,6 +184,7 @@ class AbstractGuitarTab(object):
 class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
     prefixes = 'https://www.guitaretab.com/',
     website = 'guitaretab.com'
+    # is_skipped = False
 
     def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, chords, tab_id):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id)
@@ -208,8 +212,6 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
-        if IN_DEV:
-            return None
         json_content = json.loads(soup.find('script', type="application/ld+json").string)
         by_artist = json_content['byArtist']
         aggregate_rating = json_content.get('aggregateRating', dict())
@@ -248,6 +250,7 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
 class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
     prefixes = 'https://www.guitartabsexplorer.com',
     website = 'guitartabsexplorer.com'
+    # is_skipped = False
 
     def __init__(self, song_name, artist_name, url, artist_url, rating, votes, tab_content, chords, author, tab_id):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id)
@@ -281,8 +284,6 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
-        if IN_DEV:
-            return None
         song_name = soup.find_all("span", itemprop="name")[-1].string
         ld_json = soup.find('script', type="application/ld+json").string.replace("\r", "")
         # tmp workaround
@@ -324,6 +325,7 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
 class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
     prefixes = 'https://www.guitartabs.cc/',
     website = 'guitartabs.cc'
+    # is_skipped = False
 
     def __init__(self, song_name, artist_name, type_name, url, version, tab_content, votes, artist_url, chords):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id=None)
@@ -334,8 +336,6 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
-        if IN_DEV:
-            return None
         titles = soup.find_all(class_="rightbrdr t_title")
         artist_url = urllib.parse.urljoin(url, titles[0].find('a')['href'])
         version = int(str(titles[1].find('b').string))
@@ -391,6 +391,7 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
 class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
     prefixes = 'https://www.tabs4acoustic.com/',
     website = 'tabs4acoustic.com'
+    # is_skipped = False
 
     def __init__(self, song_name, artist_name, url, artist_url, tab_content, chords, author, strummings, key, timesig, tempo):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id=None)
@@ -403,8 +404,6 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
-        if IN_DEV:
-            return None
         breadcrumbs_links = soup.find("div", id="breadcrumbs").find_all('a')
         song_link = breadcrumbs_links[3]
         song_name = song_link.string
@@ -563,6 +562,7 @@ class Strumming(object):
 class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
     prefixes = 'https://www.ultimate-guitar.com/', 'https://tabs.ultimate-guitar.com/'
     website = 'ultimate-guitar.com'
+    # is_skipped = False
 
     def __init__(self, song_name, part, artist_name, url, artist_url, type_name, version, author, rating, votes, is_acoustic, capo, tonality, difficulty, tuning, tab_content, chords, strummings, tab_id):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id)
@@ -583,8 +583,6 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
-        if IN_DEV:
-            return None
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
         page_data = json_content['store']['page']['data']
         tab = page_data.get('tab', None)
@@ -670,6 +668,7 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
 class GuitarTabFromEChords(AbstractGuitarTab):
     prefixes = 'https://www.e-chords.com/',
     website = 'e-chords.com'
+    # is_skipped = False
 
     def __init__(self, url, song_name, artist_name, artist_url, chords, tab_id, key, capo, difficulty, tab_content, type_name):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id)
@@ -695,8 +694,6 @@ class GuitarTabFromEChords(AbstractGuitarTab):
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
-        if IN_DEV:
-            return None
         # Dirty extract of javascript values
         js_prefix = "var base_href = "
         jscript = soup.find('script', text=re.compile(".*%s.*" % js_prefix)).string
@@ -742,6 +739,7 @@ class GuitarTabFromEChords(AbstractGuitarTab):
 class GuitarTabFromSongsterr(AbstractGuitarTab):
     prefixes = 'https://www.songsterr.com/',
     website = 'songsterr.com'
+    # is_skipped = False
 
     def __init__(self, url, song_name, artist_name, artist_url, chords, tab_id, tab_content, difficulty, capo):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id)
@@ -752,8 +750,6 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
-        if IN_DEV:
-            return None
         json_content = json.loads(soup.find("script", id="state").string)
         json_meta = json_content['meta']
         json_current = json_meta['current']
@@ -798,6 +794,7 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
 class GuitarTabFromAzChords(AbstractGuitarTab):
     prefixes = 'https://www.azchords.com/',
     website = 'azchords.com'
+    # is_skipped = False
 
     def __init__(self, url, song_name, artist_name, artist_url, chords, version, rating, votes, tab_content):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id=None)
@@ -815,8 +812,6 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
-        if IN_DEV:
-            return None
         tab_content = soup.find("pre", id="content")
         artist_link = soup.find("a", class_="h2link pull-left")
         version = soup.find("span", class_="muted").string.replace("(", "").replace(")", "")
@@ -848,6 +843,7 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
 class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
     prefixes = 'https://www.boiteachansons.net/',
     website = 'boiteachansons.net'
+    # is_skipped = False
 
     def __init__(self, url, song_name, artist_name, artist_url, chords, author, version, rating, votes, key, tab_content):
         super().__init__(url, song_name, artist_name, artist_url, chords, tab_id=None)
@@ -873,8 +869,6 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
-        if IN_DEV:
-            return None
         removed = soup.find("table", id="tblAvertissementRetrait")
         if removed is not None:
             print("%sNo content for %s: content is removed on copyright owners' request" % (indent2, url))
