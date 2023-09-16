@@ -23,6 +23,11 @@ def my_groupby(iterable, key=None):
     return itertools.groupby(sorted(iterable, key=key), key=key)
 
 
+def my_groupby_with_nullable_key(iterable, key):
+    iterable2 = [e for e in iterable if key(e) is not None]
+    return itertools.groupby(sorted(iterable2, key=key), key=key)
+
+
 def get_html_head(title):
     return HtmlFormatter.head()\
         .add(HtmlFormatter.meta(attrs={'http-equiv': "Content-type", 'content': "text/html;charset=utf-8"}))\
@@ -32,7 +37,7 @@ def get_html_head(title):
 
 
 def get_html_body(title, tabs, chords, use_fake_data):
-    date = '<date>' if use_fake_data else datetime.datetime.now()
+    date = 'the_date' if use_fake_data else datetime.datetime.now()
     # Ensure consistent ordering
     tabs.sort(key=Tab.by_name_and_url)
     chords.sort(key=Chord.by_name)
@@ -70,6 +75,8 @@ def get_html_body(title, tabs, chords, use_fake_data):
     body.add(link(href="#index_tabs_by_type", content="Tabs by type"))
     body.add(HtmlFormatter.new_line)
     body.add(link(href="#index_tabs_by_src", content="Tabs by website"))
+    body.add(HtmlFormatter.new_line)
+    body.add(link(href="#index_tabs_by_list", content="Tabs by list"))
     body.add(HtmlFormatter.new_line)
     body.add(HtmlFormatter.pagebreak)
     body.add(heading(3, link(href="#index_chords", content="Chord Index")))
@@ -123,6 +130,13 @@ def get_html_body(title, tabs, chords, use_fake_data):
         body.add(heading(4, src))
         for t in tabs_grouped:
             body.add(t.get_link(display_src=False))
+            body.add(HtmlFormatter.new_line)
+    body.add(heading(3, link(name="index_tabs_by_list") + "By list"))
+    for lst, tabs_grouped in my_groupby_with_nullable_key(tabs, key=Tab.by_list_info):
+        list_url, list_title = lst
+        body.add(heading(4, HtmlFormatter.a(href=list_url, content=list_title)))
+        for t in tabs_grouped:
+            body.add(t.get_link())
             body.add(HtmlFormatter.new_line)
     # Chord Index
     body.add(link(name="index_chords"))

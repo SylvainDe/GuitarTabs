@@ -37,6 +37,7 @@ class AbstractGuitarTab(object):
     by_type = operator.attrgetter('type_name')
     by_src = operator.attrgetter('src')
     by_name_and_url = operator.attrgetter('song_name', 'url')
+    by_list_info = operator.attrgetter('list_info')
 
     def __init__(self, url, song_name, artist_name, artist_url, chords, tab_id):
         self.url = url
@@ -53,6 +54,7 @@ class AbstractGuitarTab(object):
         self.difficulty = "Unknown"
         self.tuning = None
         self.src = self.__class__.website
+        self.list_info = None
         if tab_id is None:
             tab_id = abs(int(hashlib.sha512(url.encode('utf-8')).hexdigest(), 16)) % (10 ** 8)
         self.html_anchor = HtmlFormatter.string_to_html_id("tab" + str(tab_id) + "-" + song_name)
@@ -145,16 +147,29 @@ class AbstractGuitarTab(object):
     @classmethod
     def from_list_url(cls, list_url, log_prefix, use_fake_data):
         print("%s %s" % (log_prefix, list_url))
-        urls = [urllib.parse.urljoin(list_url, u) for u in cls.urls_from_list_soup(urlCache.get_soup(list_url))]
+        list_soup = urlCache.get_soup(list_url)
+        list_title = cls.title_from_list_url_and_soup(list_url, list_soup)
+        if list_title is None:
+            list_title = list_url
+        list_info = (list_url, list_title)
+        urls = [urllib.parse.urljoin(list_url, u) for u in cls.urls_from_list_soup(list_soup)]
         nb_urls = len(urls)
         tabs = [cls.from_url(u, "%s%d/%d" % (indent, i, nb_urls), use_fake_data) for i, u in enumerate(urls, start=1)]
         tabs = [t for t in tabs if t is not None]
+        for t in tabs:
+            assert t.list_info is None
+            t.list_info = list_info
         print("%s %s: %d tabs retrieved (from %d url)" % (log_prefix, list_url, len(tabs), nb_urls))
         return tabs
 
     @classmethod
     def from_url_and_soup(cls, url, soup, use_fake_data):
         print("%s.from_url_and_soup(%s, soup) returned None" % (cls.__name__, url))
+        return None
+
+    @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        print("%s.title_from_list_url_and_soup(%s, soup) returned None" % (cls.__name__, url))
         return None
 
     @classmethod
@@ -221,6 +236,11 @@ class GuitarTabFromGuitarTabDotCom(AbstractGuitarTab):
             tab_id=json_content2['tabId'])
 
     @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        title = soup.find("title")
+        return title.string
+
+    @classmethod
     def urls_from_list_soup(cls, soup):
         return [a['href'] for a in soup.find_all("a", class_="gt-link gt-link--primary")]
 
@@ -284,6 +304,11 @@ class GuitarTabFromGuitarTabsExplorer(AbstractGuitarTab):
             tab_content=soup.find('article'),
             chords=[],
             tab_id=None)
+
+    @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        title = soup.find("title")
+        return title.string
 
     @classmethod
     def urls_from_list_soup(cls, soup):
@@ -352,6 +377,11 @@ class GuitarTabFromGuitarTabsDotCc(AbstractGuitarTab):
                 t.unwrap()
         content = "".join(str(t) for t in content.contents)
         return HtmlFormatter.pre(clean_whitespace(content))
+
+    @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        title = soup.find("title")
+        return title.string
 
     @classmethod
     def urls_from_list_soup(cls, soup):
@@ -443,6 +473,11 @@ class GuitarTabFromTabs4Acoustic(AbstractGuitarTab):
         for t in content.find_all():
             t.unwrap()
         return HtmlFormatter.pre(begin + "".join(content.contents).strip())
+
+    @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        title = soup.find("title")
+        return title.string
 
     @classmethod
     def urls_from_list_soup(cls, soup):
@@ -589,6 +624,11 @@ class GuitarTabFromUltimateGuitar(AbstractGuitarTab):
         )
 
     @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        title = soup.find("title")
+        return title.string
+
+    @classmethod
     def urls_from_list_soup(cls, soup):
         json_content = json.loads(soup.find("div", class_="js-store")["data-content"])
         page_data = json_content['store']['page']['data']
@@ -687,6 +727,11 @@ class GuitarTabFromEChords(AbstractGuitarTab):
         )
 
     @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        title = soup.find("title")
+        return title.string
+
+    @classmethod
     def urls_from_list_soup(cls, soup):
         hrefs = [p.find("a")["href"] for p in soup.find_all("p", class_="nome-musica")]
         if hrefs:
@@ -737,6 +782,10 @@ class GuitarTabFromSongsterr(AbstractGuitarTab):
     )
 
     @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        return None
+
+    @classmethod
     def urls_from_list_soup(cls, soup):
         script_state = soup.find("script", id="state")
         if script_state:
@@ -785,6 +834,10 @@ class GuitarTabFromAzChords(AbstractGuitarTab):
             votes=votes,
             tab_content=tab_content,
         )
+
+    @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        return None
 
     @classmethod
     def urls_from_list_soup(cls, soup):
@@ -864,6 +917,11 @@ class GuitarTabFromBoiteAChansons(AbstractGuitarTab):
             votes=votes,
             key=key.string if key else None,
             tab_content=tab_content)
+
+    @classmethod
+    def title_from_list_url_and_soup(cls, url, soup):
+        title = soup.find("title")
+        return title.string
 
     @classmethod
     def urls_from_list_soup(cls, soup):

@@ -1,4 +1,5 @@
 import html as htmlmodule
+import re
 
 # TODO: Consider other options:
 # From https://stackoverflow.com/questions/1548474/python-html-generator :
@@ -14,8 +15,9 @@ import html as htmlmodule
 
 
 def string_to_html_id(s):
-    return htmlmodule.escape(s, quote=True)
-
+    # return htmlmodule.escape(s, quote=True)
+    regex = re.compile('[^a-zA-Z0-9_-]')
+    return regex.sub('_', s)
 
 class HtmlGroup(object):
     def __init__(self, *iterable):
@@ -155,5 +157,8 @@ def comment(string):
 
 
 doctype = "<!DOCTYPE html>\n"
-pagebreak = HtmlTag(tag="mbp:pagebreak", on_close="\n")
 new_line = HtmlTag(tag="br", on_close="\n")
+if True:
+    pagebreak = HtmlTag(tag="div", attrs={"style": "break-after:page"}, on_close="\n")
+else:
+    pagebreak = HtmlTag(tag="mbp:pagebreak", on_close="\n")
